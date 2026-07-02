@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Python cache / virtual env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Local tool state
+.agents/
+.codex/
+
+# Generated data / logs
+output/
+temp/
+
+# Local input files and ad-hoc exports
+input/
+update_targets.csv
+
+# OS / editor
+Thumbs.db
+.DS_Store
