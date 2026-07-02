@@ -7,21 +7,24 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-import psycopg
 import requests
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
+import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PARENT_DIR = SCRIPT_DIR.parent
+if str(PARENT_DIR) not in sys.path:
+    sys.path.insert(0, str(PARENT_DIR))
+
+from db_config import connect_db
+
 
 
 BASE_DIR = Path(r"C:\price_system")
 ENV_PATH = BASE_DIR / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
-
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分の price_app パスワードに合わせる
 
 RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers"
 
@@ -64,15 +67,6 @@ def load_auth_header() -> dict[str, str]:
         "Accept": "application/json",
     }
 
-
-def connect_db():
-    return psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
 
 
 def write_json_file(prefix: str, data: dict) -> Path:

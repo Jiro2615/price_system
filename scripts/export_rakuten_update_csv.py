@@ -3,14 +3,9 @@ import csv
 from datetime import datetime
 from pathlib import Path
 
-import psycopg
+from db_config import connect_db
 
 
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分の price_app パスワードに合わせる
 
 
 def fetch_rakuten_update_targets(store_code: str | None, limit: int):
@@ -60,13 +55,7 @@ def fetch_rakuten_update_targets(store_code: str | None, limit: int):
 
     params.append(limit)
 
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    conn = connect_db()
 
     try:
         with conn.cursor() as cur:

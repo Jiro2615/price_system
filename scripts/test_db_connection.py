@@ -1,24 +1,14 @@
-import psycopg
 from datetime import datetime
 
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分で設定したパスワードに合わせて変更
+from db_config import connect_db
 
 TEST_ASIN = "B000TEST01"
+
 
 def main():
     print("DB接続テスト開始")
 
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    conn = connect_db()
 
     try:
         with conn.cursor() as cur:
@@ -75,32 +65,24 @@ def main():
             )
 
             conn.commit()
-            print("amazon_products へ書き込みOK")
+            print("amazon_products への書き込みOK")
 
             cur.execute(
                 """
-                SELECT
-                    asin,
-                    title,
-                    amazon_price,
-                    available_qty,
-                    gift_available,
-                    shipping_status,
-                    checked_at
+                SELECT asin, title, amazon_price, checked_at
                 FROM amazon_products
-                WHERE asin = %s;
+                WHERE asin = %s
                 """,
                 (TEST_ASIN,),
             )
-
             row = cur.fetchone()
-            print("読み戻し結果:")
-            print(row)
+            print("読み取り結果:", row)
 
+        print("DB接続テスト成功")
+        return 0
     finally:
         conn.close()
 
-    print("DB接続テスト完了")
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

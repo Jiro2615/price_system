@@ -4,19 +4,22 @@ from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+import sys
+from pathlib import Path
 
-import psycopg
+SCRIPT_DIR = Path(__file__).resolve().parent
+PARENT_DIR = SCRIPT_DIR.parent
+if str(PARENT_DIR) not in sys.path:
+    sys.path.insert(0, str(PARENT_DIR))
+
+from db_config import connect_db
+
+
 
 
 # =========================
 # DB設定
 # =========================
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分の price_app パスワードに合わせる
-
 BASE_DIR = Path(r"C:\price_system")
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_csv"
 
@@ -189,13 +192,7 @@ def fetch_price_targets(
     """
     params.append(limit)
 
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    conn = connect_db()
 
     valid_rows: list[dict[str, Any]] = []
     skipped_rows: list[dict[str, Any]] = []

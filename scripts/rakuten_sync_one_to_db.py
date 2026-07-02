@@ -5,20 +5,14 @@ import os
 from pathlib import Path
 from urllib.parse import quote
 
-import psycopg
 import requests
 from dotenv import load_dotenv
 
+from db_config import connect_db
 
 BASE_DIR = Path(r"C:\price_system")
 ENV_PATH = BASE_DIR / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
-
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分の price_app パスワードに合わせる
 
 
 def load_auth_header() -> dict[str, str]:
@@ -28,10 +22,10 @@ def load_auth_header() -> dict[str, str]:
     license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
 
     if not service_secret:
-        raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
+        raise RuntimeError(f"RAKUTEN_SERVICE_SECRET 驍ｵ・ｺ隶呵ｶ｣・ｽ・ｩ繝ｻ・ｺ驍ｵ・ｺ繝ｻ・ｧ驍ｵ・ｺ郢晢ｽｻ {ENV_PATH}")
 
     if not license_key:
-        raise RuntimeError(f"RAKUTEN_LICENSE_KEY が空です: {ENV_PATH}")
+        raise RuntimeError(f"RAKUTEN_LICENSE_KEY 驍ｵ・ｺ隶呵ｶ｣・ｽ・ｩ繝ｻ・ｺ驍ｵ・ｺ繝ｻ・ｧ驍ｵ・ｺ郢晢ｽｻ {ENV_PATH}")
 
     token_src = f"{service_secret}:{license_key}".encode("utf-8")
     token = base64.b64encode(token_src).decode("ascii")
@@ -57,7 +51,7 @@ def call_get(url: str) -> dict:
 
     if not (200 <= res.status_code < 300):
         print(json.dumps(data, ensure_ascii=False, indent=2))
-        raise RuntimeError(f"楽天APIエラー status={res.status_code}")
+        raise RuntimeError(f"髫ｶ魃会ｽｽ・ｽ髯樊ｻゑｽｽ・ｩAPI驛｢・ｧ繝ｻ・ｨ驛｢譎｢・ｽ・ｩ驛｢譎｢・ｽ・ｼ status={res.status_code}")
 
     return data
 
@@ -90,7 +84,7 @@ def get_store_id(cur, store_code: str) -> int:
     )
     row = cur.fetchone()
     if not row:
-        raise RuntimeError(f"楽天店舗が見つかりません: {store_code}")
+        raise RuntimeError(f"髫ｶ魃会ｽｽ・ｽ髯樊ｻゑｽｽ・ｩ髯滓焔謖咏ｹ晢ｽｻ驍ｵ・ｺ霑ｹ螟ｲ・ｽ・ｦ闕ｵ譏ｶ蜻ｽ驍ｵ・ｺ闕ｵ譎｢・ｽ鬘費ｽｸ・ｺ繝ｻ・ｾ驍ｵ・ｺ陝ｶ蜻ｻ・ｽ繝ｻ {store_code}")
     return int(row[0])
 
 
@@ -229,7 +223,7 @@ def write_json_file(prefix: str, manage_number: str, sku_code: str | None, data:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="楽天APIから1商品/SKUの現在価格・在庫を取得してDBへ反映します。")
+    parser = argparse.ArgumentParser(description="Rakuten APIから1商品/SKUの現在価格・在庫を取得してDBへ反映します。")
     parser.add_argument("--store", default="rakuten_1", help="stores.store_code")
     parser.add_argument("--manage-number", required=True, help="楽天商品管理番号")
     parser.add_argument("--sku", required=True, help="楽天SKU管理番号")
@@ -239,13 +233,7 @@ def main() -> int:
     manage_number = args.manage_number.strip()
     sku_code = args.sku.strip()
 
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    conn = connect_db()
 
     try:
         with conn.cursor() as cur:
@@ -263,10 +251,10 @@ def main() -> int:
             current_stock = extract_quantity(inv_data)
 
             print("")
-            print("取得値:")
-            print(f"  商品名      : {item_name}")
-            print(f"  現在価格    : {current_price}")
-            print(f"  現在在庫    : {current_stock}")
+            print("髯ｷ・ｿ鬮｢ﾂ繝ｻ・ｾ隲､諷環繝ｻ・､:")
+            print(f"  髯懶｣ｰ郢晢ｽｻ陋ｻﾂ髯ｷ・ｷ郢晢ｽｻ     : {item_name}")
+            print(f"  髴托ｽｴ繝ｻ・ｾ髯懶ｽｨ繝ｻ・ｨ髣憺屮・ｽ・｡髫ｴ・ｬ繝ｻ・ｼ    : {current_price}")
+            print(f"  髴托ｽｴ繝ｻ・ｾ髯懶ｽｨ繝ｻ・ｨ髯懶ｽｨ繝ｻ・ｨ髯溯ｶ｣・ｽ・ｫ    : {current_stock}")
             print(f"  item JSON   : {item_path}")
             print(f"  stock JSON  : {inv_path}")
             print("")

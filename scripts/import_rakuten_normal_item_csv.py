@@ -1,16 +1,10 @@
 import argparse
 import csv
 from pathlib import Path
-from typing import Any
 
-import psycopg
+from db_config import connect_db
 
 
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "price_system"
-DB_USER = "price_app"
-DB_PASSWORD = "price_app_2026"  # 自分の price_app パスワードに合わせる
 
 
 def clean(value: Any) -> str:
@@ -289,13 +283,7 @@ def main() -> int:
         print("dry-run のためDB更新しません。")
         return 0
 
-    conn = psycopg.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-    )
+    conn = connect_db()
 
     inserted = 0
     updated = 0
