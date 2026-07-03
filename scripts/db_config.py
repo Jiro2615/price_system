@@ -28,14 +28,17 @@ def get_db_config() -> dict[str, object]:
 
     if not password:
         raise RuntimeError(
-            f"DB_PASSWORD が空です: {ENV_PATH} "
-            "(PRICE_SYSTEM_DB_PASSWORD / DB_PASSWORD / PGPASSWORD のいずれかを設定してください)"
+            f"DB password is empty: {ENV_PATH} "
+            "(set one of PRICE_SYSTEM_DB_PASSWORD / DB_PASSWORD / PGPASSWORD)"
         )
 
     try:
         port = int(port_text)
     except ValueError as e:
-        raise RuntimeError(f"DB_PORT が数値ではありません: {port_text}") from e
+        raise RuntimeError(
+            f"DB port is not numeric: {port_text} "
+            "(check PRICE_SYSTEM_DB_PORT / DB_PORT)"
+        ) from e
 
     return {
         "host": host,

@@ -17,11 +17,13 @@ venv/
 
 # Generated data / logs
 output/
+backup/
 temp/
 
 # Local input files and ad-hoc exports
 input/
 update_targets.csv
+config/amazon_worker_launcher.ini
 
 # OS / editor
 Thumbs.db

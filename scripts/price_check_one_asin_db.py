@@ -1,12 +1,44 @@
+import argparse
 import asyncio
+import builtins
 import re
 import sys
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any, Optional
 
 from playwright.async_api import async_playwright
 
 from db_config import connect_db
+
+
+def configure_output() -> None:
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is None or not hasattr(stream, "reconfigure"):
+            continue
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
+def safe_print(*args, **kwargs) -> None:
+    try:
+        builtins.print(*args, **kwargs)
+    except UnicodeEncodeError:
+        sep = kwargs.get("sep", " ")
+        end = kwargs.get("end", "\n")
+        file = kwargs.get("file", sys.stdout)
+        flush = kwargs.get("flush", False)
+        text = sep.join(str(arg) for arg in args)
+        encoding = getattr(file, "encoding", None) or "utf-8"
+        safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+        builtins.print(safe_text, end=end, file=file, flush=flush)
+
+
+configure_output()
+print = safe_print
 
 
 def now_dt() -> datetime:
@@ -26,61 +58,76 @@ def extract_asin(url: str) -> str:
     return m.group(1).upper() if m else ""
 
 
-def calc_diff_days(month_num: int, day_num: int) -> int:
+def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
+    if not (1 <= month_num <= 12):
+        return None
+    if not (1 <= day_num <= 31):
+        return None
+
     today = date.today()
-    target = date(today.year, month_num, day_num)
+
+    try:
+        target = date(today.year, month_num, day_num)
+    except ValueError:
+        return None
+
     if target < today:
-        target = date(today.year + 1, month_num, day_num)
+        try:
+            target = date(today.year + 1, month_num, day_num)
+        except ValueError:
+            return None
+
     return (target - today).days
 
 
 def judge_basic_ng(in_text: str) -> str:
-    if "最小注文個数" in in_text:
-        return "複数注文"
+    if "在庫切れ" in in_text:
+        return "在庫切れ"
     if "ギフト" not in in_text:
-        return "ギフトなし"
-    if "配送料 \\" in in_text or "配送料 ￥" in in_text:
-        return "配送料あり"
-    if "一時的に在庫切れ" in in_text:
-        return "一時的に在庫切れ"
+        return "ギフト不可"
     return ""
-
-
-def parse_available_qty(in_text: str) -> int:
-    m = re.search(r"残り\s*(\d+)\s*点", in_text)
-    if m:
-        return min(4, int(m.group(1)))
-    return 4
 
 
 def parse_shipping_status(in_text: str) -> tuple[str, str]:
     text = re.sub(r"\s+", "", in_text or "")
 
-    if "か月以内に発送します" in text:
+    if "通常1~2か月以内に発送します" in text:
         return "NG", "発送遅い"
 
-    if re.search(r"(本日中?|今日|明日|翌日|明後日).{0,30}(お届け|配送|配達|到着)", text):
-        return "OK", "発送OK"
+    if re.search(r"(お届け|配送|配達|到着).{0,30}(明日|翌日|本日|今日)", text):
+        return "OK", "配送OK"
 
-    if re.search(r"(お届け|配送|配達|到着).{0,30}(本日中?|今日|明日|翌日|明後日)", text):
-        return "OK", "発送OK"
+    if re.search(r"(明日|翌日|本日|今日).{0,30}(お届け|配送|配達|到着)", text):
+        return "OK", "配送OK"
 
     send_week: Optional[int] = None
     diff_days: Optional[int] = None
 
-    m = re.search(r"(\d+)週間以内に発送します", text)
+    m = re.search(r"(\d+)日以内.*?(お届け|配送|配達|到着)", text)
+    if not m:
+        m = re.search(r"(お届け|配送|配達|到着).{0,20}?(\d+)日以内", text)
+        if m:
+            send_week = int(m.group(2))
     if m:
-        send_week = int(m.group(1))
+        send_week = send_week or int(m.group(1))
 
-    date_match = re.search(r"([0-9]{1,2})月([0-9]{1,2})日", text)
+    date_match = re.search(
+        r"(?:お届け|配送|配達|到着).{0,20}?([0-9]{1,2})月([0-9]{1,2})日",
+        text,
+    )
+    if not date_match:
+        date_match = re.search(
+            r"([0-9]{1,2})月([0-9]{1,2})日.{0,20}?(?:お届け|配送|配達|到着)",
+            text,
+        )
     if date_match:
         diff_days = calc_diff_days(int(date_match.group(1)), int(date_match.group(2)))
 
     if send_week == 1:
-        return "OK", "発送OK"
+        return "OK", "配送OK"
 
     if diff_days is not None and 0 <= diff_days < 7:
-        return "OK", "発送OK"
+        return "OK", "配送OK"
 
     if send_week is None and diff_days is None:
         return "NG", "発送日情報なし"
@@ -153,6 +200,83 @@ async def get_alt_price_from_buybox(page) -> int:
     return 0
 
 
+async def get_price_from_selector(page, selector: str) -> int:
+    loc = page.locator(selector)
+    if await loc.count() == 0:
+        return 0
+    return await get_price_from_locator(loc.first)
+
+
+async def collect_selector_diagnostics(page) -> list[dict[str, Any]]:
+    diagnostics: list[dict[str, Any]] = []
+    selectors = (
+        "#buybox",
+        "#desktop_buybox",
+        "#corePriceDisplay_desktop_feature_div",
+        "#availability",
+        "#outOfStock",
+        "#merchant-info",
+        "#addToCart",
+        "#buy-now-button",
+    )
+
+    for selector in selectors:
+        count = 0
+        text = ""
+        try:
+            loc = page.locator(selector)
+            count = await loc.count()
+            if count > 0:
+                text = await safe_inner_text(loc.first)
+        except Exception as e:
+            text = f"[selector_error] {e}"
+        diagnostics.append({"selector": selector, "count": count, "text": text})
+
+    return diagnostics
+
+
+async def save_debug_html(page, asin: str) -> Optional[Path]:
+    try:
+        output_dir = Path(__file__).resolve().parent.parent / "output" / "amazon_debug"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = output_dir / f"{asin}_{timestamp}.html"
+        html = await page.content()
+        output_path.write_text(html, encoding="utf-8")
+        return output_path
+    except Exception as e:
+        print(f"debug_html save error: {e}")
+        return None
+
+
+def parse_available_qty(text: str) -> Optional[int]:
+    try:
+        normalized = re.sub(r"\s+", "", text or "")
+        if not normalized:
+            return None
+
+        patterns = (
+            r"残り(\d+)点",
+            r"残り(\d+)個",
+            r"在庫(\d+)点",
+            r"在庫(\d+)個",
+            r"(\d+)点在庫あり",
+            r"(\d+)個在庫あり",
+            r"利用可能な出品数(\d+)",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, normalized)
+            if match:
+                return int(match.group(1))
+
+        if "在庫あり" in normalized:
+            return 1
+
+        return None
+    except Exception:
+        return None
+
+
 async def parse_point(page) -> int:
     loc = page.locator("#pointsInsideBuyBox_feature_div")
     if await loc.count() == 0:
@@ -168,6 +292,36 @@ async def get_title(page) -> str:
     if await loc.count() == 0:
         return ""
     return (await safe_inner_text(loc.first)).strip()
+
+
+async def detect_buybox_unavailable_reason(page, body_text: str) -> str:
+    parts = [body_text or ""]
+
+    for selector in (
+        "#outOfStock",
+        "#availability",
+        "#availabilityInsideBuyBox_feature_div",
+    ):
+        text = await get_first_text(page, selector)
+        if text:
+            parts.append(text)
+
+    combined_text = "\n".join(parts)
+
+    patterns = (
+        "現在在庫切れです",
+        "一時的に在庫切れ",
+        "入荷時期は未定です",
+        "この商品は現在お取り扱いできません",
+        "この商品は、現在お取り扱いできません",
+        "現在お取り扱いできません",
+        "再入荷予定は立っておりません",
+    )
+    for pattern in patterns:
+        if pattern in combined_text:
+            return "BuyBoxなし"
+
+    return ""
 
 
 async def read_buybox_info(page) -> dict[str, Any]:
@@ -242,7 +396,13 @@ async def close_amazon_page(playwright, browser, context, page) -> None:
         pass
 
 
-async def check_amazon_one(asin: str, page=None) -> dict[str, Any]:
+async def check_amazon_one(
+    asin: str,
+    page=None,
+    page_timeout_ms: int = 60000,
+    settle_timeout_ms: int = 1000,
+    debug_html: bool = False,
+) -> dict[str, Any]:
     asin = asin.strip().upper()
 
     result = {
@@ -273,8 +433,8 @@ async def check_amazon_one(asin: str, page=None) -> dict[str, Any]:
             url = f"https://www.amazon.co.jp/dp/{asin}"
             print(f"Amazon確認開始: {url}")
 
-            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(1000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
+            await page.wait_for_timeout(settle_timeout_ms)
 
             body = await get_first_text(page, "body")
             if "下に表示されている文字を入力してください" in body:
@@ -300,8 +460,104 @@ async def check_amazon_one(asin: str, page=None) -> dict[str, Any]:
             buy_info = await read_buybox_info(page)
 
             if not buy_info["in_text"]:
-                result["system_error"] = True
-                result["ng_reason"] = "BuyBoxなし"
+                selector_diagnostics = await collect_selector_diagnostics(page)
+                diagnostics_map = {
+                    item["selector"]: item for item in selector_diagnostics
+                }
+                print("BuyBox取得失敗 diagnostics:")
+                for item in selector_diagnostics:
+                    preview = re.sub(r"\s+", " ", item["text"] or "")[:120]
+                    print(
+                        f"  {item['selector']}: count={item['count']} text={preview}"
+                    )
+
+                if debug_html:
+                    debug_path = await save_debug_html(page, asin)
+                    if debug_path is not None:
+                        print(f"debug_html saved: {debug_path}")
+
+                availability_text = diagnostics_map.get("#availability", {}).get(
+                    "text", ""
+                )
+                merchant_info_text = diagnostics_map.get("#merchant-info", {}).get(
+                    "text", ""
+                )
+                buybox_text = diagnostics_map.get("#buybox", {}).get("text", "")
+                desktop_buybox_text = diagnostics_map.get("#desktop_buybox", {}).get(
+                    "text", ""
+                )
+                add_to_cart_text = diagnostics_map.get("#addToCart", {}).get("text", "")
+                add_to_cart_count = diagnostics_map.get("#addToCart", {}).get(
+                    "count", 0
+                )
+                buy_now_count = diagnostics_map.get("#buy-now-button", {}).get(
+                    "count", 0
+                )
+                add_to_cart_is_offer_link = "すべての出品を見る" in add_to_cart_text
+                has_purchase_button = buy_now_count > 0 or (
+                    add_to_cart_count > 0 and not add_to_cart_is_offer_link
+                )
+                fallback_text = "\n".join(
+                    filter(
+                        None,
+                        [
+                            body,
+                            out_of_stock_text,
+                            availability_text,
+                            merchant_info_text,
+                            buybox_text,
+                            desktop_buybox_text,
+                            add_to_cart_text,
+                        ],
+                    )
+                )
+                fallback_price = int(buy_info["price"] or 0)
+                if fallback_price <= 0:
+                    fallback_price = await get_alt_price_from_buybox(page)
+                if fallback_price <= 0:
+                    fallback_price = await get_price_from_selector(
+                        page, "#corePriceDisplay_desktop_feature_div"
+                    )
+                fallback_qty = parse_available_qty(fallback_text)
+                fallback_point = await parse_point(page)
+                offer_listing_only = (
+                    "すべての出品を見る" in buybox_text
+                    or "すべての出品を見る" in desktop_buybox_text
+                    or add_to_cart_is_offer_link
+                )
+                missing_core_purchase_info = (
+                    fallback_price <= 0
+                    and not availability_text
+                    and not merchant_info_text
+                    and buy_now_count <= 0
+                )
+                unavailable_reason = await detect_buybox_unavailable_reason(page, body)
+                if unavailable_reason:
+                    result["business_ng"] = True
+                    result["ng_reason"] = unavailable_reason
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "ギフト" in fallback_text if fallback_text else None
+                elif offer_listing_only and missing_core_purchase_info:
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "BuyBoxなし"
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = None
+                    result["gift_available"] = False
+                elif has_purchase_button or fallback_price > 0:
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "ギフト" in fallback_text if fallback_text else None
+                    result["shipping_status"] = availability_text or result["shipping_status"]
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = "BuyBox取得失敗"
                 return result
 
             in_text = buy_info["in_text"]
@@ -408,14 +664,19 @@ def save_to_db(data: dict[str, Any]) -> None:
 
 
 async def main() -> int:
-    if len(sys.argv) < 2:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("asin")
+    parser.add_argument("--debug-html", action="store_true")
+    args = parser.parse_args()
+
+    if not args.asin:
         print("ASINを指定してください。")
         print("例: py price_check_one_asin_db.py B0XXXXXXXX")
         return 2
 
-    asin = sys.argv[1].strip().upper()
+    asin = args.asin.strip().upper()
 
-    data = await check_amazon_one(asin)
+    data = await check_amazon_one(asin, debug_html=args.debug_html)
 
     print("取得結果:")
     for k, v in data.items():

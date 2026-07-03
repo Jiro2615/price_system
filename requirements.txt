@@ -1,0 +1,4 @@
+playwright
+psycopg[binary]
+python-dotenv
+requests
