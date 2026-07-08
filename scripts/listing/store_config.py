@@ -8,8 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from scripts.db_config import connect_db
-
-from .models import StoreSettings
+from scripts.listing.models import StoreSettings
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]

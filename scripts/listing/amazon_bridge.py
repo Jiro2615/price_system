@@ -4,7 +4,7 @@ import asyncio
 import importlib
 from pathlib import Path
 
-from .models import AmazonCheckResult
+from scripts.listing.models import AmazonCheckResult
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]

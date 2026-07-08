@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .models import AmazonCheckResult, EvaluationResult, KeepaProductData, MasterData, MatchedRule, StoreSettings
+from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, MasterData, MatchedRule, StoreSettings
 
 
 ATTRIBUTE_CANDIDATES = {

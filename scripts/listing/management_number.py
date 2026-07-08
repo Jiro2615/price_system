@@ -4,7 +4,7 @@ from __future__ import annotations
 import secrets
 from datetime import datetime
 
-from .models import ManagementNumberBundle
+from scripts.listing.models import ManagementNumberBundle
 
 
 def generate_management_number_bundle(management_suffix: str = "187", now: datetime | None = None) -> ManagementNumberBundle:

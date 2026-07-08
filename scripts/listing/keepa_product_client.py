@@ -10,7 +10,7 @@ from typing import Any, Optional
 import requests
 from dotenv import load_dotenv
 
-from .models import KeepaProductData
+from scripts.listing.models import KeepaProductData
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]

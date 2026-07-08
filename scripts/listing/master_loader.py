@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from .models import MasterData
+from scripts.listing.models import MasterData
 
 
 MASTER_FILENAMES = {

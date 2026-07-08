@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 
-from .models import EvaluationResult, StoreSettings
+from scripts.listing.models import EvaluationResult, StoreSettings
 
 
 CUSTOMIZATION_OPTIONS = [
