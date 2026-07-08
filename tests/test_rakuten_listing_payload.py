@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from scripts.listing.listing_evaluator import evaluate_listing
+from scripts.listing.master_loader import load_master_data
 from scripts.listing.management_number import generate_management_number_bundle
 from scripts.listing.models import AmazonCheckResult, KeepaProductData, MasterData, StoreSettings, sanitize_for_output, to_jsonable
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
@@ -13,10 +14,13 @@ from scripts.listing.rakuten_payload_builder import build_inventory_payload, bui
 
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
+REFERENCE_MASTER_DIR = Path(__file__).resolve().parents[1] / "reference" / "legacy_listing"
 
 
 class RakutenListingPhase1Tests(unittest.TestCase):
     def setUp(self) -> None:
+        self.valid_keepa_category_id = 10219786051
+        self.valid_rakuten_genre_id = 101737
         self.master = MasterData(
             blacklist={"B000BLACK01"},
             kako_ng={"B000NG0001": "\u904e\u53bbNG\u7406\u7531"},
@@ -24,8 +28,8 @@ class RakutenListingPhase1Tests(unittest.TestCase):
             prohibited_words_rakuten=["18\u7981"],
             prohibited_words_other=["\u9055\u6cd5"],
             listed_asins={"B000LISTED1": "20250101010101_187"},
-            category_map={12345: 565510},
-            attribute_definitions={565510: ["\u30ab\u30e9\u30fc", "\u30d6\u30e9\u30f3\u30c9\u540d", "\u30e1\u30fc\u30ab\u30fc\u578b\u756a"]},
+            category_map={self.valid_keepa_category_id: self.valid_rakuten_genre_id},
+            attribute_definitions={self.valid_rakuten_genre_id: ["\u30d6\u30e9\u30f3\u30c9\u540d", "\u30e1\u30fc\u30ab\u30fc\u578b\u756a"]},
             missing_files=[],
         )
         self.store = StoreSettings(
@@ -67,7 +71,7 @@ class RakutenListingPhase1Tests(unittest.TestCase):
             model="MODEL-1",
             ean="1234567890123",
             images_csv="abc123,def456",
-            category_id=12345,
+            category_id=self.valid_keepa_category_id,
             features=["\u7279\u5fb41", "\u7279\u5fb42"],
             description="\u5546\u54c1\u8aac\u660e\u30c6\u30ad\u30b9\u30c8",
             style="\u30b9\u30bf\u30a4\u30ebA",
@@ -188,7 +192,7 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         )
 
         self.assertEqual(item_payload["itemNumber"], "20250101010101_187_ab12")
-        self.assertEqual(item_payload["genreId"], 565510)
+        self.assertEqual(item_payload["genreId"], self.valid_rakuten_genre_id)
         self.assertEqual(item_payload["features"]["inventoryDisplay"], "DISPLAY_ABSOLUTE_STOCK_COUNT")
         self.assertEqual(item_payload["variants"]["20250101010101_187_ab12"]["articleNumber"], "1234567890123")
         self.assertEqual(inventory_payload["quantity"], 4)
@@ -265,23 +269,34 @@ class RakutenListingPhase1Tests(unittest.TestCase):
             PrepareListingRequest(
                 asin="B000TEST01",
                 store_code="rakuten_1",
-                master_dir=Path("C:/dummy/master"),
+                master_dir=REFERENCE_MASTER_DIR,
                 offline=True,
+                allow_missing_master=True,
                 store_settings_json=FIXTURE_DIR / "offline_store_settings.json",
                 amazon_result_json=FIXTURE_DIR / "offline_amazon_result.json",
                 keepa_result_json=FIXTURE_DIR / "offline_keepa_result.json",
             ),
             store_settings_loader=fail_store_loader,
-            master_data_loader=lambda master_dir, allow_missing: self.master,
+            master_data_loader=load_master_data,
             amazon_fetcher=fail_amazon_fetcher,
             keepa_fetcher=fail_keepa_fetcher,
         )
 
         self.assertEqual(result["mode"], "offline")
         self.assertEqual(result["listing_status"], "eligible")
+        self.assertIn("\u51fa\u54c1\u53ef\u80fd", result["listing_reason"])
         self.assertEqual(result["item_payload"]["itemNumber"], result["management_number"])
+        self.assertEqual(result["item_payload"]["genreId"], self.valid_rakuten_genre_id)
+        self.assertEqual(
+            result["item_payload"]["variants"][result["management_number"]]["articleNumber"],
+            "1234567890123",
+        )
         self.assertEqual(result["inventory_payload"]["quantity"], 4)
+        self.assertEqual(result["inventory_payload"]["operationLeadTime"]["normalDeliveryTimeId"], 1)
+        self.assertEqual(result["inventory_payload"]["operationLeadTime"]["backOrderDeliveryTimeId"], 1)
+        self.assertEqual(result["inventory_payload"]["shipFromIds"], ["1"])
         self.assertIn("\u30aa\u30d5\u30e9\u30a4\u30f3\u30e2\u30fc\u30c9: \u30ed\u30fc\u30ab\u30eb fixture JSON \u306e\u307f\u3092\u4f7f\u7528\u3057\u307e\u3059", result["warnings"])
+        self.assertIn("missing master files: kinsiword_other.txt", result["warnings"])
 
 
 if __name__ == "__main__":
