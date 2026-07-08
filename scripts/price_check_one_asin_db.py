@@ -9,7 +9,10 @@ from typing import Any, Optional
 
 from playwright.async_api import async_playwright
 
-from db_config import connect_db
+try:
+    from scripts.db_config import connect_db
+except ModuleNotFoundError:
+    from db_config import connect_db
 
 
 def configure_output() -> None:
