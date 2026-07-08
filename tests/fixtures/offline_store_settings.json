@@ -1,0 +1,22 @@
+{
+  "store_id": 4,
+  "store_code": "rakuten_1",
+  "store_name": "rakuten_1",
+  "max_stock": 4,
+  "fee_rate": 0.15,
+  "use_amazon_point": false,
+  "profit_mode": "amount",
+  "profit_rate": 0.0,
+  "profit_amount": 300,
+  "fixed_cost": 0,
+  "rounding_unit": 1,
+  "normal_delivery_date_id": 1,
+  "back_order_delivery_date_id": 1,
+  "normal_delivery_time_id": 1,
+  "back_order_delivery_time_id": 1,
+  "ship_from_ids": [
+    "1"
+  ],
+  "min_avg90_sellers": 3.5,
+  "management_suffix": "187"
+}

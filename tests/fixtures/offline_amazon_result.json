@@ -1,0 +1,13 @@
+{
+  "requested_asin": "B000TEST01",
+  "page_asin": "B000TEST01",
+  "title": "Amazon旧語テスト商品",
+  "amazon_price": 2000,
+  "available_qty": 9,
+  "gift_available": true,
+  "shipping_status": "next day shipping",
+  "business_ng": false,
+  "system_error": false,
+  "ng_reason": "",
+  "current_url": "https://www.amazon.co.jp/dp/B000TEST01?th=1&psc=1"
+}
