@@ -1,7 +1,9 @@
 import argparse
 import base64
+import csv
 import json
 import os
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -12,9 +14,10 @@ import requests
 from db_config import connect_db
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
+from rakuten_auth import build_rakuten_auth_header, resolve_rakuten_store_code
 
 
-BASE_DIR = Path(r"C:\price_system")
+BASE_DIR = Path(__file__).resolve().parents[1]
 ENV_PATH = BASE_DIR / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
@@ -74,6 +77,82 @@ def item_url(manage_number: str) -> str:
 # =========================
 # DB取得
 # =========================
+
+def normalize_csv_header(value: str) -> str:
+    return re.sub(r"[\s_\-（）()\[\]【】/\\]+", "", str(value or "")).casefold()
+
+
+def first_csv_value(row: dict[str, str], aliases: list[str]) -> str:
+    normalized = {normalize_csv_header(key): value for key, value in row.items()}
+    for alias in aliases:
+        value = normalized.get(normalize_csv_header(alias))
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
+
+
+def read_csv_targets(path: Path) -> list[dict[str, Any]]:
+    encodings = ["utf-8-sig", "cp932"]
+    last_error: Exception | None = None
+    for encoding in encodings:
+        try:
+            with path.open("r", encoding=encoding, newline="") as handle:
+                reader = csv.DictReader(handle)
+                targets: list[dict[str, Any]] = []
+                for row in reader:
+                    manage_number = first_csv_value(row, [
+                        "manage_number",
+                        "managenumber",
+                        "mall_item_code",
+                        "item_code",
+                        "item_url",
+                        "item_url_code",
+                        "rakuten_manage_number",
+                        "rakuten_management_number",
+                        "商品管理番号",
+                        "商品番号",
+                        "管理番号",
+                        "楽天管理番号",
+                        "商品URL",
+                    ])
+                    sku = first_csv_value(row, [
+                        "sku",
+                        "sku_code",
+                        "variantid",
+                        "variant_id",
+                        "sku_management_number",
+                        "sku_manage_number",
+                        "SKU管理番号",
+                        "SKU番号",
+                        "システム連携用SKU番号",
+                    ])
+                    price_raw = first_csv_value(row, [
+                        "price",
+                        "target_price",
+                        "standardprice",
+                        "standard_price",
+                        "update_price",
+                        "販売価格",
+                        "価格",
+                        "更新価格",
+                        "標準価格",
+                    ])
+                    price = to_int(price_raw)
+                    if not manage_number and not sku:
+                        continue
+                    targets.append({
+                        "manage_number": manage_number,
+                        "sku": sku,
+                        "target_price": price,
+                    })
+                return targets
+        except UnicodeDecodeError as exc:
+            last_error = exc
+            continue
+    if last_error:
+        raise last_error
+    return []
+
 
 def fetch_price_targets(
     store_code: str | None,
@@ -154,6 +233,81 @@ def fetch_price_targets(
 # =========================
 # 楽天API payload
 # =========================
+
+def fetch_price_targets_from_csv(
+    store_code: str | None,
+    csv_targets: list[dict[str, Any]],
+    limit: int,
+) -> list[dict[str, Any]]:
+    if not csv_targets:
+        return []
+    rows: list[dict[str, Any]] = []
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            for target in csv_targets[:limit]:
+                manage_number = str(target.get("manage_number") or "").strip()
+                sku_code = str(target.get("sku") or "").strip()
+                where = [
+                    "s.mall = 'rakuten'",
+                    "sp.enabled = TRUE",
+                    "COALESCE(sp.no_price_change, FALSE) = FALSE",
+                ]
+                params: list[Any] = []
+                if store_code:
+                    where.append("s.store_code = %s")
+                    params.append(store_code)
+                if manage_number:
+                    where.append("sp.mall_item_code = %s")
+                    params.append(manage_number)
+                if sku_code:
+                    where.append("COALESCE(NULLIF(sp.sku_code, ''), sp.mall_item_code) = %s")
+                    params.append(sku_code)
+                if not manage_number and not sku_code:
+                    continue
+                sql = f"""
+                    SELECT
+                        s.id AS store_id,
+                        s.store_code,
+                        sp.id AS store_product_id,
+                        sp.asin,
+                        sp.mall_item_code,
+                        COALESCE(NULLIF(sp.sku_code, ''), sp.mall_item_code) AS sku_code,
+                        sp.item_name,
+                        sp.current_price,
+                        sp.target_price,
+                        sp.current_stock,
+                        sp.target_stock,
+                        sp.force_stop,
+                        sp.no_price_change,
+                        sp.current_status,
+                        ap.amazon_price,
+                        ap.amazon_point,
+                        ap.available_qty,
+                        ap.business_ng,
+                        ap.system_error,
+                        ap.ng_reason,
+                        ap.checked_at
+                    FROM store_products sp
+                    JOIN stores s ON s.id = sp.store_id
+                    LEFT JOIN amazon_products ap ON ap.asin = sp.asin
+                    WHERE {" AND ".join(where)}
+                    ORDER BY s.store_code, sp.id
+                    LIMIT 1;
+                """
+                cur.execute(sql, params)
+                row = cur.fetchone()
+                if not row:
+                    continue
+                col_names = [desc.name for desc in cur.description]
+                data = dict(zip(col_names, row))
+                if target.get("target_price") is not None:
+                    data["target_price"] = target["target_price"]
+                rows.append(data)
+    finally:
+        conn.close()
+    return rows
+
 
 def build_price_patch_payload(row: dict[str, Any]) -> dict[str, Any]:
     sku = str(row.get("sku_code") or row.get("mall_item_code") or "").strip()
@@ -266,16 +420,24 @@ def retry_wait_seconds(res: requests.Response, retry_wait: float, attempt: int) 
     return max(retry_wait * attempt, 1.0)
 
 
+def print_wait_log(action: str, reason: str, seconds: float, **extra: Any) -> None:
+    parts = [f"next_action={action}", f"seconds={seconds:.1f}", f"reason={reason}"]
+    for key, value in extra.items():
+        parts.append(f"{key}={value}")
+    print(" ".join(parts))
+
+
 def call_rakuten_api_with_retry(
     method: str,
     url: str,
     *,
+    store_code: str,
     payload: dict[str, Any] | None = None,
     api_label: str,
     max_retries: int,
     retry_wait: float,
 ) -> tuple[int, dict[str, Any]]:
-    headers = load_auth_header()
+    headers = build_rakuten_auth_header(store_code)
     retry_statuses = {429, 500, 502, 503, 504}
 
     for attempt in range(1, max_retries + 2):
@@ -297,6 +459,7 @@ def call_rakuten_api_with_retry(
         if res.status_code in retry_statuses and attempt <= max_retries:
             wait_sec = retry_wait_seconds(res, retry_wait, attempt)
             print(json.dumps(data, ensure_ascii=False, indent=2))
+            print_wait_log("sleep_retry", "api_retry", wait_sec, status=res.status_code, attempt=attempt)
             print(f"  {api_label}: status={res.status_code} のため {wait_sec:.1f} 秒待って再試行します ({attempt}/{max_retries})")
             time.sleep(wait_sec)
             continue
@@ -309,6 +472,7 @@ def call_rakuten_api_with_retry(
 
 def call_item_patch(
     manage_number: str,
+    store_code: str,
     payload: dict[str, Any],
     max_retries: int,
     retry_wait: float,
@@ -317,6 +481,7 @@ def call_item_patch(
     status_code, data = call_rakuten_api_with_retry(
         "PATCH",
         url,
+        store_code=store_code,
         payload=payload,
         api_label="楽天価格更新API",
         max_retries=max_retries,
@@ -331,6 +496,7 @@ def call_item_patch(
 
 def call_item_get(
     manage_number: str,
+    store_code: str,
     max_retries: int,
     retry_wait: float,
 ) -> dict[str, Any]:
@@ -338,6 +504,7 @@ def call_item_get(
     _status_code, data = call_rakuten_api_with_retry(
         "GET",
         url,
+        store_code=store_code,
         api_label="楽天items.get",
         max_retries=max_retries,
         retry_wait=retry_wait,
@@ -576,12 +743,15 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=10, help="対象最大件数")
     parser.add_argument("--manage-number", default="", help="特定の商品管理番号だけに絞る")
     parser.add_argument("--sku", default="", help="特定のSKUだけに絞る")
+    parser.add_argument("--csv", default="", help="CSV file containing manage_number, sku, and optional price")
     parser.add_argument("--blocked-only", action="store_true", help="rakuten_csv_update_blocked = TRUE の商品のみ対象にする")
     parser.add_argument("--output", default="", help="送信予定JSON/結果JSONの保存先。空なら自動")
     parser.add_argument("--max-change-rate", type=float, default=0.50, help="実更新時に許可する最大価格変更率。0.50=50%%。0なら無制限")
     parser.add_argument("--allow-large-change", action="store_true", help="価格変更率チェックを無視して実更新する")
     parser.add_argument("--allow-current-price-null", action="store_true", help="current_price がNULLでも実更新する")
-    parser.add_argument("--no-verify", action="store_true", help="PATCH後のitems.get確認を省略する")
+    verify_group = parser.add_mutually_exclusive_group()
+    verify_group.add_argument("--verify", action="store_true", help="PATCH後にitems.getで反映確認する")
+    verify_group.add_argument("--no-verify", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--api-interval", type=float, default=1.5, help="1商品処理ごとに待つ秒数。楽天APIのQPS制限対策")
     parser.add_argument("--verify-wait", type=float, default=1.5, help="PATCH成功後、items.get確認前に待つ秒数")
     parser.add_argument("--retry-count", type=int, default=5, help="429/一時エラー時の再試行回数")
@@ -600,15 +770,27 @@ def main() -> int:
     store_code = args.store.strip() or None
     manage_number = args.manage_number.strip() or None
     sku_code = args.sku.strip() or None
+    csv_path = Path(args.csv) if args.csv.strip() else None
     dry_run = not args.execute
 
-    rows = fetch_price_targets(
-        store_code=store_code,
-        limit=args.limit,
-        manage_number=manage_number,
-        sku_code=sku_code,
-        blocked_only=args.blocked_only,
-    )
+    if csv_path:
+        if not csv_path.is_absolute():
+            csv_path = BASE_DIR / csv_path
+        csv_targets = read_csv_targets(csv_path)
+        print(f"CSV targets: {len(csv_targets)} file={csv_path}")
+        rows = fetch_price_targets_from_csv(
+            store_code=store_code,
+            csv_targets=csv_targets,
+            limit=args.limit,
+        )
+    else:
+        rows = fetch_price_targets(
+            store_code=store_code,
+            limit=args.limit,
+            manage_number=manage_number,
+            sku_code=sku_code,
+            blocked_only=args.blocked_only,
+        )
     print_targets(rows)
     print(f"楽天価格更新対象件数: {len(rows)}")
 
@@ -641,7 +823,8 @@ def main() -> int:
     print("実更新モードです。楽天商品API items.patch へ送信します。")
     print("在庫は更新しません。SKUの standardPrice のみ更新します。")
     print(f"最大価格変更率チェック: {'無視' if args.allow_large_change else args.max_change_rate}")
-    print(f"PATCH後確認: {'しない' if args.no_verify else 'items.getで確認する'}")
+    verify_enabled = bool(args.verify and not args.no_verify)
+    print(f"PATCH後確認: {'items.getで確認する' if verify_enabled else 'しない'}")
     print("")
 
     result_summary = {
@@ -656,6 +839,7 @@ def main() -> int:
 
     conn = connect_db()
     try:
+        auth_store_code = resolve_rakuten_store_code(store_code, rows)
         for index, row in enumerate(rows, start=1):
             manage = str(row.get("mall_item_code") or "").strip()
             sku = str(row.get("sku_code") or manage).strip()
@@ -674,6 +858,7 @@ def main() -> int:
                 request_payload = build_price_patch_payload(row)
                 patch_response = call_item_patch(
                     manage,
+                    auth_store_code,
                     request_payload,
                     max_retries=args.retry_count,
                     retry_wait=args.retry_wait,
@@ -682,13 +867,15 @@ def main() -> int:
                 verified_price: int | None = None
                 verify_response: dict[str, Any] | None = None
 
-                if not args.no_verify:
+                if verify_enabled:
                     if args.verify_wait > 0:
+                        print_wait_log("sleep_verify", "post_patch_verify", args.verify_wait)
                         print(f"  PATCH後確認前に {args.verify_wait:.1f} 秒待機します")
                         time.sleep(args.verify_wait)
 
                     verify_response = call_item_get(
                         manage,
+                        auth_store_code,
                         max_retries=args.retry_count,
                         retry_wait=args.retry_wait,
                     )
@@ -744,6 +931,7 @@ def main() -> int:
             print("")
 
             if args.api_interval > 0 and index < len(rows):
+                print_wait_log("sleep_rate_limit", "api_interval", args.api_interval)
                 print(f"API制限対策: 次の商品まで {args.api_interval:.1f} 秒待機します")
                 time.sleep(args.api_interval)
                 print("")
