@@ -1,0 +1,979 @@
+サービス一覧へ戻る / RakutenPayOrderAPI
+
+RMS WEB SERVICE : RakutenPayOrderAPI Message Codes Reference
+
+1.共通
+
+2.searchOrder
+
+3.getOrder
+
+4.confirmOrder
+
+5.updateOrderShipping
+
+6.updateOrderShippingAsync
+
+7.getResultUpdateOrderShippingAsync
+
+8.getSubStatusList
+
+9.updateOrderSubStatus
+
+10.updateOrderMemo
+
+11.updateOrderRemarks
+
+12.updateOrderSender
+
+13.updateOrderSenderAfterShipping
+
+14.cancelOrder
+
+15.cancelOrderAfterShipping
+
+16.updateOrderOrderer
+
+17.updateOrderDelivery
+
+18.simulateCouponAmount
+
+19.getPayment
+
+
+
+
+共通
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_ERROR_001	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。		400
+2	ERROR	ORDER_EXT_API_ERROR_002	URLに不備があります。修正の上、再リクエストしてください。		404
+3	ERROR	ORDER_EXT_API_ERROR_003	リクエストメソッドはPOSTを指定してください。		405
+4	ERROR	ORDER_EXT_API_ERROR_004	不明なエラーが発生しました。		400,404,405以外
+searchOrder
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+15	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_023	{0}が重複しています。	重複チェックエラー	400
+16	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_032	{0}には{1}以下の値を指定して下さい。	リクエストパラメータで設定された値が想定値以上の場合	400
+18	WARNING	ORDER_EXT_API_SEARCH_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_100	指定されたステータスでは検索できません。	注文状態不正	400
+20	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_101	{0}日以上過去の期間は指定できません。	期間指定不正	400
+21	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_102	指定された期間では検索できません。	期間指定不正	400
+22	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_103	期間を{0}日以内に指定してください。	期間指定不正	400
+23	INFO	ORDER_EXT_API_SEARCH_ORDER_INFO_101	注文検索に成功しました。	注文情報取得に成功した	200
+24	INFO	ORDER_EXT_API_SEARCH_ORDER_INFO_102	注文検索に成功しました。(検索結果０件)	注文情報が０件だった	200
+getOrder
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_007	{0}には最低１つの注文番号を指定して下さい。	リストに注文番号が未指定	400
+9	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+10	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+11	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+12	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+13	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+14	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_014	{0}には最大{1}件までの注文番号を指定して下さい。	リストに指定した注文番号が最大件数超えの場合	400
+15	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+16	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+17	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+18	WARNING	ORDER_EXT_API_GET_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	INFO	ORDER_EXT_API_GET_ORDER_INFO_101	受注情報取得に成功しました。(取得件数{0}件)	受注情報取得に成功した	200
+20	INFO	ORDER_EXT_API_GET_ORDER_INFO_102	受注情報が取得できませんでした。	検索結果0件の注文番号の場合	200
+21	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_101	指定された注文番号の受注情報取得に失敗しました。	受注情報取得に失敗した	200
+22	WARNING	ORDER_EXT_API_GET_ORDER_WARNING_101	受注情報取得に成功しましたが、メールアドレスが取得できませんでした。(取得件数{0}件：[{1}])	受注情報の取得に成功したがメールアドレスのマスキングに失敗した場合
+※受注情報の取得に成功したもののメールアドレスのマスキングに失敗した場合、ダミーアドレス「xxx@xxx.xxx」をレスポンスします。注文情報取得（getOrder）で再取得可能です。	200
+confirmOrder
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_007	{0}には最低１つの注文番号を指定して下さい。	リストに注文番号が未指定	400
+9	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+10	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+11	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+12	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+13	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+14	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_014	{0}には最大{1}件までの注文番号を指定して下さい。	リストに指定した注文番号が最大件数超えの場合	400
+15	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+16	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名	200
+18	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式	200
+19	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限	200
+20	WARNING	ORDER_EXT_API_CONFIRM_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+21	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_101	指定されたshop_idが存在しません。	shop_idに指定された店舗が存在しない	200
+22	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_102	指定された注文番号の注文は存在しませんでした。	指定された注文番号が存在しない	200
+23	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_103	指定された注文番号は注文確認が出来る状態ではありませんでした。	注文確認できない状態であった	200
+24	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_104	指定された注文番号は現在キャンセル・変更処理中のため、注文確認が出来る状態ではありませんでした。	注文確認できない状態であった	200
+25	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_105	送料が未設定の受注です。	注文確認できない状態であった	200
+26	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_106	代引手数料が未設定の受注です。	注文確認できない状態であった	200
+27	ERROR	ORDER_EXT_API_CONFIRM_ORDER_ERROR_108	消費税が未設定の受注です。	注文確認できない状態であった	200
+28	INFO	ORDER_EXT_API_CONFIRM_ORDER_INFO_101	注文確認に成功しました。	注文確認に成功した	200
+29	WARNING	ORDER_EXT_API_CONFIRM_ORDER_WARNING_101	注文確認は完了しましたが、メール送信処理でエラーが発生しました。	注文確認は完了したが、メール送信でエラーが発生	200
+updateOrderShipping
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_017	{0}には最低１つの{1}を指定して下さい。	リストにモデルが未指定	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_018	{0}には最大{1}件までの{2}を指定して下さい。（basketId：{3}）	リストに指定したモデル件数が最大件数超えの場合	400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_019	{0}の{1}を指定してください。	{0}の{1}が未指定	400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+18	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+19	WARNING	ORDER_EXT_API_UPDATE_ORDERSHIPPING_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+20	WARNING	ORDER_EXT_API_UPDATE_ORDERSHIPPING_WARNING_101	発送情報の追加は完了しましたが、発送明細IDが取得できませんでした。	発送明細の追加は完了したが、登録された発送明細IDの取得に失敗した場合。
+※処理は成功しているため、発送明細IDは注文情報取得（getOrder）で取得することが可能	200
+21	INFO	ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101	発送情報の追加設定が完了しました。	発送情報追加設定に成功した	200
+22	INFO	ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_102	発送情報の更新設定が完了しました。	発送情報更新設定に成功した	200
+23	INFO	ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_103	発送情報の削除設定が完了しました。	発送情報削除設定に成功した	200
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_101	発送明細保有件数の上限を超えているため、発送完了報告が出来る状態ではありませんでした。
+（発送明細保有件数の上限：1つの送付先につき 20件）	発送完了報告できない状態であった
+送付先を上限内の数に修正し再度実行が必要	200
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_102	指定された注文番号は既にキャンセルされているため、発送完了報告が出来る状態ではありませんでした。	発送完了報告できない状態であった	200
+26	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_103	指定された注文番号は一定期間経過したため、発送完了報告が出来る状態ではありませんでした。	注文日時受注有効期限（注文日時から二年後）チェックエラー	200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_104	指定されたサブステータスが該当受注のステータスに紐づくサブステータスではありません。	発送完了報告できない状態であった	200
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_105	受注情報を取得できなかったため、発送完了報告が出来る状態ではありませんでした。	発送完了報告できない状態であった	200
+29	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_106	指定された発送明細が存在しません。	指定された発送明細が存在しない	400
+30	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_107	発送日には、注文日より前、および、注文日から12ヶ月以上先の日付は入力できません。	発送日と注文日の関連性チェックエラー	400
+31	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_108	発送明細情報の１件目は削除できません。	指定された発送明細が削除不可	400
+32	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_109	指定された配送会社コードは無効です。	配送会社コード存在チェックエラー	400
+33	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_110	指定された送付先IDが存在しません。（送付先ID：{0}）	指定された送付先IDが存在しない	400
+34	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_111	指定された注文番号は更新が出来る状態ではありませんでした。	更新処理エラー
+時間を空けて再度実行が必要	200
+35	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_113	支払方法が後払い決済の場合、発送後に発送明細を更新および登録する際は、配送会社・お荷物伝票番号・発送日をすべて入力してください。	更新処理エラー
+後払い決済の場合、配送会社・お荷物伝票番号・発送日をすべて入力して再実行が必要	200
+updateOrderShippingAsync
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_017	{0}には最低１つの{1}を指定して下さい。	リストにモデルが未指定	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_018	{0}には最大{1}件までの{2}を指定して下さい。（basketId：{3}）	リストに指定したモデル件数が最大件数超えの場合	400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_019	{0}の{1}を指定してください。	{0}の{1}が未指定	400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+18	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_023	{0}が重複しています。	重複チェックエラー	400
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+20	WARNING	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+21	INFO	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_INFO_101	発送情報の更新を受付けました。	発送完了報告リクエストの受付が完了	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERSHIPPING_ASYNC_ERROR_109	指定された配送会社コードは無効です。	配送会社コード存在チェックエラー	400
+getResultUpdateOrderShippingAsync
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+14	WARNING	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+15	INFO	ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_INFO_101	指定されたリクエストIDの処理結果は存在しませんでした。	処理結果が存在しなかった	200
+16	ERROR	ORDER_CSV_API_UPLOAD_SHIPPING_ERROR_999	発送完了報告に失敗しました。受注情報の状態を確認して再度お試し下さい。	通信エラーなど	200
+getSubStatusList
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+10	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+11	ERROR	ORDER_EXT_API_GET_SUBSTATUSLIST_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+12	WARNING	ORDER_EXT_API_GET_SUBSTATUSLIST_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+13	INFO	ORDER_EXT_API_GET_SUBSTATUSLIST_INFO_101	サブステータス一覧の取得に成功しました。	サブステータス一覧の取得に成功した	200
+14	INFO	ORDER_EXT_API_GET_SUBSTATUSLIST_INFO_102	サブステータス一覧の取得に成功しました。(取得結果０件)	サブステータス一覧の取得に成功した（サブステータス情報0件）	200
+updateOrderSubStatus
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_007	{0}には最低１つの注文番号を指定して下さい。	リストに注文番号が未指定	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_014	{0}には最大{1}件までの注文番号を指定して下さい。	リストに指定した注文番号が最大件数超えの場合	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	WARNING	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+18	INFO	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101	サブステータスの更新設定が完了しました。	サブステータスの更新に成功した	200
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_101	指定された注文番号は既にキャンセルされているため、サブステータスの更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた	200
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_102	指定された注文番号、サブステータスでは更新できません。	存在しない注文番号、もしくは更新できないサブステータスが指定された	200
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_103	受注情報を取得できなかったため、サブステータスの更新が出来る状態ではありませんでした。	受注状態情報の取得に失敗した	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_104	指定された注文番号は一定期間経過したため、サブステータスの更新を行うことができません。	注文日時受注有効期限（注文日時から二年後）チェックエラー	400
+updateOrderMemo
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_030	{0}に外部リンクが含まれています。該当の外部リンクを削除してください。	{0}の値に許可されていない外部リンクが含まれている	400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+18	WARNING	ORDER_EXT_API_UPDATE_ORDERMEMO_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	INFO	ORDER_EXT_API_UPDATE_ORDERMEMO_INFO_101	ひとことメモ、担当者情報等の更新設定が完了しました。	ひとことメモ、担当者情報等の更新に成功した	200
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_101	受注情報を取得できなかったため、ひとことメモ、担当者情報等の更新が出来る状態ではありませんでした。	受注情報が存在しなかった	200
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_102	指定された注文番号は既にキャンセルされているため、ひとことメモ、担当者情報等の更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_103	指定された注文番号は一定期間経過したため、ひとことメモ、担当者情報等の更新が出来る状態ではありませんでした。	注文日時受注有効期限（注文日時から二年後）チェックエラー	200
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_104	指定されたサブステータスでは更新できません。	更新できないサブステータスが指定された	200
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_105	何れかの項目を指定してください。	注文番号以外の項目が指定されなかった	400
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_106	お届け日指定には、注文日より前、および、注文日から12ヶ月以上先の日付は入力できません。	お届け日指定と注文日の関連性チェックエラー	400
+26	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_107	指定された注文番号は更新が出来る状態ではありませんでした。	更新処理エラー
+時間を空けて再度実行が必要	200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_108	支払方法が後払い決済の場合、発送後の発送明細には配送会社・お荷物伝票番号・発送日を入力する必要があります。	更新処理エラー
+後払い決済の場合、配送会社・お荷物伝票番号・発送日をすべて入力して再実行が必要	200
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_109	お届け時間帯の開始時間は、終了時間と同じか終了時間より過去を指定してください。	更新処理エラー
+お届け時間帯を正しい形式で入力し、再度実行が必要	200,400
+29	WARNING	ORDER_EXT_API_UPDATE_ORDERMEMO_WARNING_002	更新は完了しましたが、お届け日とお届け時間帯の更新が出来る状態ではありませんでした。	ソーシャルギフト注文において受取情報が未入力の場合、「お届け日指定」・「お届け時間帯」は変更できません。「お届け日指定」・「お届け時間帯」以外の項目は更新完了しています。	200
+updateOrderRemarks
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー	200
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_030	{0}に外部リンクが含まれています。該当の外部リンクを削除してください。	{0}の値に許可されていない外部リンクが含まれている	400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+18	WARNING	ORDER_EXT_API_UPDATE_ORDERREMARKS_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	INFO	ORDER_EXT_API_UPDATE_ORDERREMARKS_INFO_101	備考情報の更新設定が完了しました。	備考情報の更新に成功した	200
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_101	受注情報を取得できなかったため、備考情報の更新が出来る状態ではありませんでした。	受注情報が存在しなかった	200
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_102	指定された注文番号は既にキャンセルされているため、備考情報の更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_103	指定された注文番号は一定期間経過したため、備考情報の更新を行うことができません。	注文日時受注有効期限（注文日時から二年後）チェックエラー	400
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERREMARKS_ERROR_104	ソーシャルギフト注文と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	ソーシャルギフト注文の、ギフト配送を変更しようとした	400
+updateOrderSender
+No.	Level	Message ID	Message	Description	クーポン再計算内	クーポン再計算後	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生			500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定			400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定			400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効			400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定			400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定			400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません			400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正			400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定			400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定			400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正			400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合			400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正			400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_017	{0}には最低１つの{1}を指定して下さい。	リストにモデルが未指定			400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正			400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー			400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー			200
+18	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_023	{0}が重複しています。	重複チェックエラー			400
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_024	{0}の項目を指定して下さい。（{1}:{2}）	{0}の項目が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_025	{0}の値を指定して下さい。（{1}:{2}）	{0}の値が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_026	{0}の書式が不正です。（{1}:{2}）	{0}の書式が不正
+{1}リストのキー名
+{2}リストのキー値			400
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_027	指定された{0}の値が不正です。（{1}:{2}）	{0}のコード値、名称などが不正
+{1}リストのキー名
+{2}リストのキー値			400
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_028	{0}に入力できない文字が含まれています。（{1}:{2}）	{0}の値が機種依存文字チェックエラー
+{1}リストのキー名
+{2}リストのキー値			400
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_029	{0}には最低１つの{1}を指定して下さい。（{2}:{3}）	{0}チェック対象リスト
+{1}チェック対象項目
+{2}リストのキー名
+{3}リストのキー値			400
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている			400
+26	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_033	メールアドレスが不正です。	指定されたメールアドレスの書式が不正			200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名			200
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式			200
+29	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限			200
+30	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_904	注文者／送付先の住所が海外の場合、支払方法「{0}」は利用できません。	注文者または送付先が海外住所の場合エラー			200
+31	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_905	{0}に不正な値が指定されております。	コード値、名称などが不正
+{0}項目名			400
+32	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_906	全値引対象商品の代金合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+33	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_907	全値引対象商品の個数合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+34	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_908	値引対象商品の個数({1}個)がクーポンの利用枚数({2}枚)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン利用枚数チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+35	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_909	値引対象商品の代金合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+36	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_910	注文全体の商品代金の合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+37	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_911	注文全体の商品個数の合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+38	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_912	注文全体の商品代金の合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+39	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_913	注文全体の送料合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+40	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_914	送料未確定のためクーポンを適用できません。	クーポンバリデーションチェックエラー(送料未確定チェック)			200
+41	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_915	値引対象商品が注文に含まれていないため適用できないクーポンがあります。	クーポンバリデーションチェックエラー(商品存在チェック)			200
+42	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_916	注文全体の商品代金の合計({1}円)がクーポンの合計値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+43	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_917	支払方法に{0}が指定されているため、「注文確認」後に購買額が増額となる注文内容変更はできません。	Alipay、またはPayPal決済で、注文確認後の増額の場合エラー
+{0}決済方法名			200
+44	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_918	送料無料クーポン(上限あり)は送料の割引上限額を超えるため適用できません。上限額以下に設定してから、再度実行してください。	クーポンバリデーションチェックエラー(上限あり送料チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+45	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_919	複数の項目選択肢別在庫商品にクーポンが適用され、クーポンの利用額が異なってしまう場合、単価を同一にする必要があります。	クーポンバリデーションチェックエラー(同一商品IDの金額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+46	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_920	注文内容の修正により、値引対象商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+値引対象商品の代金合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+47	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_921	注文全体の送料合計が0円のためクーポンを適用できません。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+送料が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+48	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_922	注文内容の修正により、注文全体の商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+注文全体の商品代金の合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+49	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_923	請求金額が上限金額を超えており、「 {0}」を利用できません。	ユーザ支払額上限エラー			200
+50	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_924	楽天処理中のため、金額を変更することはできません。選択制決済への変更に限り、送料・代引手数料の変更が可能です。	支払方法変更内容チェックエラー			200
+51	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_925	1商品あたりの数量が10,000を超えている注文でクーポンが適用されている場合、数量を10,000以下にする必要があります。	クーポンバリデーションチェックエラー(商品個数の上限チェック)
+※上限変更により2021/6/16以降は発生しません。			200
+52	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_926	クーポン締め日以降のため、付け替えされません。クーポンコード：{0}、値引き額 {1}円の利用枚数を商品の数に合わせて減らす必要があります。	クーポンバリデーションチェックエラー(利用条件チェック)
+※このエラーは注文の翌月末以降に発生します			200
+53	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中			200
+54	INFO	ORDER_EXT_API_UPDATE_ORDERSENDER_INFO_101	送付先情報の更新設定が完了しました。	送付先情報の更新に成功した			200
+55	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_101	受注情報を取得できなかったため、送付先情報更新が出来る状態ではありませんでした。	受注情報が存在しなかった			200
+56	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_102	指定された注文番号は既にキャンセルされているため、送付先情報更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた			200
+57	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_103	現在の決済ステータスが処理可能なステータスではないため、送付先情報更新が出来る状態ではありませんでした。	変更処理不可な決済ステータス(決済NG（店舗引渡）)が存在していた			200
+58	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_104	金額の再計算に失敗しました。金額を設定していない項目がないか確認してください。	金額再計算でエラーが発生した			200
+59	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_105	合計金額が上限金額を超えているため、送付先情報更新が出来る状態ではありませんでした。	計算後に合計金額が上限金額（1000000000）を超えていた			200
+60	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_107	指定された注文番号は一定期間経過したため、送付先情報更新が出来る状態ではありませんでした。	注文日時受注有効期限（注文日時から一年後）チェックエラー			200
+61	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_108	処理可能な配送方法ではないため、送付先情報更新が出来る状態ではありませんでした。	配送方法が、「楽天BOX受取、コンビニ受取、ロッカー受取」のいずれかの場合に、送付先の氏名および住所が変更されていた			200
+62	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_109	現在キャンセル処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文取消受付中			200
+63	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_110	現在変更処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文内容変更受付中			200
+64	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_111	処理中です。少しお時間が経ってから、再度申請をしてください。	決済手続き依頼中または決済依頼中			200
+65	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_112	楽天処理中です。少しお時間が経ってから、再度申請をしてください。	決済処理NGのため			200
+66	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_113	現在決済処理中のため、更新できません。少しお時間が経ってから、再度申請をしてください。	現在の決済手段が決済処理NGのため			200
+67	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_114	存在しないクーポンが指定されています。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストされたクーポンの情報と DBのクーポンの情報が一致していない。
+※受注に紐づくクーポンコード、商品ID、割引単価等、最新のクーポン情報を取得し、再度リクエストを行ってください。			400
+68	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_115	クーポン利用数は増やすことはできません。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストのクーポン利用枚数が DBのクーポン利用枚数より増えている			400
+69	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_116	指定された送付先IDが存在しません。（送付先ID：{0}）	指定された送付先IDが存在しない			400
+70	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_117	指定された商品明細IDが存在しません。（商品明細ID：{0}）	指定された商品情報の買い物かごIDが存在しない			400
+71	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_118	全ての送付先を削除することはできません。	送付先情報全件削除チェックエラー			400
+72	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_119	全ての商品を削除することはできません。（送付先ID：{0}）	商品情報全件削除チェックエラー			400
+73	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_120	合計金額とクーポン利用枚数を同時に0にすることはできません。	合計金額とクーポン利用枚数が同時に 0 へ変更はエラー			200
+74	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_121	指定された注文番号の更新処理は発送後のため処理できません。	注文状態チェックエラー			400
+75	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_122	指定された送付先の数が不正です。	送付先数チェックエラー			400
+76	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_123	指定された商品の数が不正です。（送付先ID：{0}）	商品数チェックエラー			400
+77	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_124	指定されたクーポンの数が不正です。	クーポン数チェックエラー			400
+78	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_125	指定された送付先毎の商品情報に差異があります。	値の一致性チェックエラー			400
+79	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_127	決済手段が代金引換以外の場合には、代引料を設定できません。	代引料、決済手段の整合性チェックエラー			400
+80	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_128	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー			200
+81	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_129	決済手数料が発生する場合、ユーザ支払額を0円にすることはできません。	ユーザ支払額エラー			200
+82	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_132	決済手段が代金引換の場合、代引料税率の設定が必須となります。代引料税率を設定し、再度リクエストを行ってください。	代引料税率設定エラー			400
+83	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_133	ラッピングの税込区分は、税込から税別へ変更できません。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+84	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_134	ラッピングを追加する場合、税込区分は税込を設定してください。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+85	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_135	ユーザ支払額をマイナスにすることはできません。 RMSコールセンターまでお問合せください。	ユーザ支払額エラー			200
+86	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_136	支払方法を代金引換に変更する場合、代引料の設定が必須となります。代引料を設定し、再度リクエストを行ってください。	代引決済指定時、代引手数料別商品が含まれる場合、代引料未設定エラー			200
+87	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_137	指定された支払方法には変更できません。	支払方法変更不可エラー			200
+88	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_138	指定された支払方法はこの店舗では対応していません。	支払方法店舗未対応エラー			200
+89	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_139	マルチSKUの場合、SKU情報は必須です。	マルチSKU受注のSkuModel.skuInfoの値が未指定			400
+90	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_140	指定されたSKU管理番号が存在しません。（SKU管理番号：{0}）	指定されたSKUモデルのSKU管理番号が存在しない			400
+91	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_141	置き配指定と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、置き配指定と組み合わせることができません。変更内容を見直してから再度お試しください。  
+・特定配送方法（宅配便、宅配便[特定送料]、小型宅配便）以外の場合
+・決済方法が代金引換の場合
+・複数配送先の場合
+・送付先住所が国外の場合			400
+92	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_142	ソーシャルギフト注文と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、ソーシャルギフト注文の内容を変更できません。変更内容を見直してから再度お試しください。 
+・ソーシャルギフト注文で利用可能な支払方法以外への変更の場合　
+・送付先住所を国外へ変更の場合
+・置き配指定への変更の場合
+・送付先情報が未入力の場合（受取人が受取情報入力後から変更可能）			400
+93	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_143	指定された注文番号は更新が出来る状態ではありませんでした。	ソーシャルギフト注文において受取情報が未入力の場合、送付者情報を変更できません。変更内容を見直してから再度お試しください。 			200
+94	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_ERROR_801	ユーザ支払額が0円の場合、支払方法「{0}」は利用できません。	ユーザ支払額エラー			200
+95	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_WARNING_101	この注文は本日発送完了予定です。発送する際はご注意ください。	対象注文が本日発送完了予定			200
+96	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_WARNING_102	在庫更新でエラーが発生したため、在庫数に不整合が発生しています。詳細はエラーメールをご確認ください。	在庫更新でエラー			200
+97	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_WARNING_103	請求金額が{0}の上限金額を越えています。請求金額を調整しない場合、{0}が利用できません。	上限金額超過チェック			200
+98	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_WARNING_104	請求金額が{0}の上限金額を超えており、{0}を利用できません。	上限金額超過チェック			200
+updateOrderSenderAfterShipping
+No.	Level	Message ID	Message	Description	クーポン再計算内	クーポン再計算後	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_000	不明なエラーが発生しました。	システムエラーが発生			500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定			400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定			400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効			400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定			400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定			400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません			400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正			400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定			400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定			400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_011	{0}の書式が不正です。	{0}の書式が不正			400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合			400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正			400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_017	{0}には最低１つの{1}を指定して下さい。	リストにモデルが未指定			400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正			400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー			400
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー			200
+18	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_023	{0}が重複しています。	重複チェックエラー			400
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_024	{0}の項目を指定して下さい。（{1}:{2}）	{0}の項目が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_025	{0}の値を指定して下さい。（{1}:{2}）	{0}の値が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_026	{0}の書式が不正です。（{1}:{2}）	{0}の書式が不正
+{1}リストのキー名
+{2}リストのキー値			400
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_027	指定された{0}の値が不正です。（{1}:{2}）	{0}のコード値、名称などが不正
+{1}リストのキー名
+{2}リストのキー値			400
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_028	{0}に入力できない文字が含まれています。（{1}:{2}）	{0}の値が機種依存文字チェックエラー
+{1}リストのキー名
+{2}リストのキー値			400
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_029	{0}には最低１つの{1}を指定して下さい。（{2}:{3}）	{0}チェック対象リスト
+{1}チェック対象項目
+{2}リストのキー名
+{3}リストのキー値			400
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている			400
+26	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_033	メールアドレスが不正です。	指定されたメールアドレスの書式が不正			200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名			200
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式			200
+29	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限			200
+30	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_904	注文者／送付先の住所が海外の場合、支払方法「{0}」は利用できません。	注文者または送付先が海外住所の場合エラー			200
+31	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_905	{0}に不正な値が指定されております。	コード値、名称などが不正
+{0}項目名			400
+32	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_906	全値引対象商品の代金合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+33	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_907	全値引対象商品の個数合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+34	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_908	値引対象商品の個数({1}個)がクーポンの利用枚数({2}枚)よりも少ないです。 	クーポンバリデーションチェックエラー(クーポン利用枚数チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+35	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_909	値引対象商品の代金合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+36	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_910	注文全体の商品代金の合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+37	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_911	注文全体の商品個数の合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+38	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_912	注文全体の商品代金の合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+39	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_913	注文全体の送料合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+40	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_914	送料未確定のためクーポンを適用できません。	クーポンバリデーションチェックエラー(送料未確定チェック)			200
+41	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_915	値引対象商品が注文に含まれていないため適用できないクーポンがあります。	クーポンバリデーションチェックエラー(商品存在チェック)			200
+42	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_916	注文全体の商品代金の合計({1}円)がクーポンの合計値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+43	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_917	支払方法に{0}が指定されているため、「注文確認」後に購買額が増額となる注文内容変更はできません。	Alipay、またはPayPal決済で、注文確認後の増額の場合エラー
+{0}決済方法名			200
+44	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_918	送料無料クーポン(上限あり)は送料の割引上限額を超えるため適用できません。上限額以下に設定してから、再度実行してください。	クーポンバリデーションチェックエラー(上限あり送料チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+45	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_919	複数の項目選択肢別在庫商品にクーポンが適用され、クーポンの利用額が異なってしまう場合、単価を同一にする必要があります。	クーポンバリデーションチェックエラー(同一商品IDの金額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+46	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_920	注文内容の修正により、値引対象商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+値引対象商品の代金合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+47	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_921	注文全体の送料合計が0円のためクーポンを適用できません。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+送料が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+48	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_922	注文内容の修正により、注文全体の商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+注文全体の商品代金の合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+49	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_923	請求金額が上限金額を超えており、「{0}」を利用できません。	ユーザ支払額上限エラー			200
+50	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_924	楽天処理中のため、金額を変更することはできません。選択制決済への変更に限り、送料・代引手数料の変更が可能です。	支払方法変更内容チェックエラー			200
+51	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_925	1商品あたりの数量が10,000を超えている注文でクーポンが適用されている場合、数量を10,000以下にする必要があります。	クーポンバリデーションチェックエラー(商品個数の上限チェック)
+※上限変更により2021/6/16以降は発生しません。			200
+52	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_926	クーポン締め日以降のため、付け替えされません。クーポンコード：{0}、値引き額 {1}円の利用枚数を商品の数に合わせて減らす必要があります。	クーポンバリデーションチェックエラー(利用条件チェック)
+※このエラーは注文の翌月末以降に発生します			200
+53	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中			200
+54	INFO	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_INFO_101	送付先情報の更新設定が完了しました。	送付先情報の更新に成功した			200
+55	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_101	受注情報を取得できなかったため、送付先情報更新が出来る状態ではありませんでした。	受注情報が存在しなかった			200
+56	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_102	指定された注文番号は既にキャンセルされているため、送付先情報更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた			200
+57	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_103	現在の決済ステータスが処理可能なステータスではないため、送付先情報更新が出来る状態ではありませんでした。	変更処理不可な決済ステータス(決済NG（店舗引渡）)が存在していた			200
+58	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_104	金額の再計算に失敗しました。金額を設定していない項目がないか確認してください。	金額再計算でエラーが発生した			200
+59	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_105	合計金額が上限金額を超えているため、送付先情報更新が出来る状態ではありませんでした。	計算後に合計金額が上限金額（1000000000）を超えていた			200
+60	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_107	指定された注文番号は一定期間経過したため、送付先情報更新が出来る状態ではありませんでした。	注文日時受注有効期限（注文日時から一年後）チェックエラー			200
+61	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_108	処理可能な配送方法ではないため、送付先情報更新が出来る状態ではありませんでした。	配送方法が、「楽天BOX受取、コンビニ受取、ロッカー受取」のいずれかの場合に、送付先の氏名および住所が変更されていた			200
+62	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_109	現在キャンセル処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文取消受付中			200
+63	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_110	現在変更処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文内容変更受付中			200
+64	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_111	処理中です。少しお時間が経ってから、再度申請をしてください。	決済手続き依頼中または決済依頼中			200
+65	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_112	楽天処理中です。少しお時間が経ってから、再度申請をしてください。	決済処理NGのため			200
+66	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_113	現在決済処理中のため、更新できません。少しお時間が経ってから、再度申請をしてください。	現在の決済手段が決済処理NGのため			200
+67	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_114	存在しないクーポンが指定されています。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストのクーポンの種類と DBのクーポンの種類が一致していない			400
+68	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_115	クーポン利用数は増やすことはできません。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストのクーポン利用枚数が DBのクーポン利用枚数より増えている			400
+69	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_116	指定された送付先IDが存在しません。（送付先ID：{0}）	指定された送付先IDが存在しない			400
+70	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_117	指定された商品明細IDが存在しません。（商品明細ID：{0}）	指定された商品情報の買い物かごIDが存在しない			400
+71	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_118	全ての送付先を削除することはできません。	送付先情報全件削除チェックエラー			400
+72	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_119	全ての商品を削除することはできません。（送付先ID：{0}）	商品情報全件削除チェックエラー			400
+73	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_120	合計金額とクーポン利用枚数を同時に0にすることはできません。	合計金額とクーポン利用枚数が同時に 0 へ変更はエラー			200
+74	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_121	指定された注文番号の更新処理は発送後ではないため処理できません。	注文状態チェックエラー			400
+75	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_122	指定された送付先の数が不正です。	送付先数チェックエラー			400
+76	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_123	指定された商品の数が不正です。（送付先ID：{0}）	商品数チェックエラー			400
+77	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_124	指定されたクーポンの数が不正です。	クーポン数チェックエラー			400
+78	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_125	指定された送付先毎の商品情報に差異があります。	値の一致性チェックエラー			400
+79	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_127	決済手段が代金引換以外の場合には、代引料を設定できません。	代引料、決済手段の整合性チェックエラー			400
+80	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_128	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー			200
+81	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_129	決済手数料が発生する場合、ユーザ支払額を0円にすることはできません。	ユーザ支払額エラー			200
+82	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_130	注文内容を変更しましたが、"返品受領確認/変更確定"が失敗しました。再度同じリクエストを実行してください。	返品確認/変更確定できない状態であった
+当エラーが発生した際は、再実行してください			200
+83	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_131	注文内容を変更しましたが、"返品受領確認/変更確定"が実行できませんでした。再度同じリクエストを実行してください。	返品確認/変更確定できない状態であった
+当エラーが発生した際は、再実行してください。			200
+84	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_132	決済手段が代金引換の場合、代引料税率の設定が必須となります。代引料税率を設定し、再度リクエストを行ってください。	代引料税率設定エラー			400
+85	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_133	ラッピングの税込区分は、税込から税別へ変更できません。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+86	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_134	ラッピングを追加する場合、税込区分は税込を設定してください。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+87	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_135	ユーザ支払額をマイナスにすることはできません。 RMSコールセンターまでお問合せください。	ユーザ支払額エラー			200
+88	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_139	マルチSKUの場合、SKU情報は必須です。	マルチSKU受注のSkuModel.skuInfoの値が未指定			400
+89	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_140	指定されたSKU管理番号が存在しません。（SKU管理番号：{0}）	指定されたSKUモデルのSKU管理番号が存在しない			400
+90	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_141	置き配指定と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、置き配指定と組み合わせることができません。変更内容を見直してから再度お試しください。  
+・特定配送方法（宅配便、宅配便[特定送料]、小型宅配便）以外の場合
+・決済方法が代金引換の場合
+・複数配送先の場合
+・送付先住所が国外の場合			400
+91	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_142	ソーシャルギフト注文と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、ソーシャルギフト注文の内容を変更できません。変更内容を見直してから再度お試しください。 
+・送付先住所を国外へ変更の場合
+・置き配指定への変更の場合
+・送付先情報が未入力の場合（受取人が受取情報入力後から変更可能）			400
+92	ERROR	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_ERROR_801	ユーザ支払額が0円の場合、支払方法「{0}」は利用できません。	ユーザ支払額エラー			200
+93	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_101	この注文は本日発送完了予定です。発送する際はご注意ください。	対象注文が本日発送完了予定			200
+94	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_102	在庫更新でエラーが発生したため、在庫数に不整合が発生しています。詳細はエラーメールをご確認ください。	在庫更新でエラー			200
+95	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_103	請求金額が{0}の上限金額を越えています。請求金額を調整しない場合、{0}が利用できません。	上限金額超過チェック			200
+96	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_104	請求金額が{0}の上限金額を超えており、{0}を利用できません。	上限金額超過チェック			200
+97	WARNING	ORDER_EXT_API_UPDATE_ORDERSENDER_AFTER_SHIPPING_WARNING_105	送付先情報の更新設定が完了しましたが、警告が発生しています。	送付先情報の更新処理に成功した（警告あり：在庫更新処理でエラー）			200
+cancelOrder
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+15	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー	200
+16	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名	200
+18	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式	200
+19	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限	200
+20	WARNING	ORDER_EXT_API_CANCEL_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+21	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_101	現在の決済ステータスがキャンセル申請可能なステータスではないため、キャンセルができません。	キャンセルできない状態であった	200
+22	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_102	発送日が登録されているためキャンセル申請できません。発送日を削除してから、再度キャンセル申請してください。	キャンセルできない状態であった	200
+23	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_103	指定された注文番号は既にキャンセルされています。	キャンセルできない状態であった	200
+24	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_104	現在キャンセル・変更処理中のため、注文キャンセル申請が出来る状態ではありません。	キャンセルできない状態であった	200
+25	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_105	注文キャンセル申請に失敗しました。	キャンセルできない状態であった	200
+26	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_106	受注情報を取得できなかったため、注文キャンセル申請が出来る状態ではありません。	キャンセルできない状態であった	200
+27	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_107	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー	200
+28	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_108	現在のステータスが発送前キャンセル申請可能なステータスではないため、キャンセルができません。	ステータスが不正	400
+29	ERROR	ORDER_EXT_API_CANCEL_ORDER_ERROR_109	指定された注文番号は一定期間経過したため、注文キャンセル申請が出来る状態ではありません。	注文日時受注有効期限（注文日時から一年後）チェックエラー	200
+30	INFO	ORDER_EXT_API_CANCEL_ORDER_INFO_101	注文キャンセル処理が完了しました。	注文キャンセル処理に成功した	200
+31	WARNING	ORDER_EXT_API_CANCEL_ORDER_WARNING_101	注文キャンセル処理が完了しましたが、警告が発生しています。	注文キャンセル処理に成功した（警告あり：在庫更新処理でエラー）	200
+cancelOrderAfterShipping
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+15	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー	200
+16	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名	200
+18	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式	200
+19	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限	200
+20	WARNING	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+21	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_101	現在の決済ステータスがキャンセル申請可能なステータスではないため、キャンセルができません。	キャンセルできない状態であった	200
+22	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_102	発送日が登録されているためキャンセル申請できません。発送日を削除してから、再度キャンセル申請してください。	キャンセルできない状態であった	200
+23	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_103	指定された注文番号は既にキャンセルされています。	キャンセルできない状態であった	200
+24	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_104	現在キャンセル・変更処理中のため、注文キャンセルが出来る状態ではありません。	キャンセルできない状態であった	200
+25	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_105	注文キャンセル申請に失敗しました。	キャンセルできない状態であった	200
+26	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_106	受注情報を取得できなかったため、注文キャンセルが出来る状態ではありません。	キャンセルできない状態であった	200
+27	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_107	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー	200
+28	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_108	現在のステータスが発送後キャンセル可能なステータスではないため、キャンセルができません。	ステータスが不正	400
+29	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_109	指定された注文番号は一定期間経過したため、注文キャンセルが出来る状態ではありません。	一定期間経過エラー	200
+30	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_110	現在の発送ステータスが返品確認待ちではないため返品確認ができません。	返品確認できない状態であった
+
+当エラーが発生した際は、再実行してください	200
+31	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_111	現在のキャンセル・変更ステータスがキャンセル申請ではないため、キャンセル確定ができません。	キャンセルできない状態であった
+
+当エラーが発生した際は、再実行してください	200
+32	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_112	現在の発送ステータスが返品確認完了ではないため、キャンセル確定ができません。	キャンセルできない状態であった
+
+当エラーが発生した際は、再実行してください	200
+33	ERROR	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_ERROR_113	返金・請求金額確定に失敗しました。	返金・請求金額確定エラー
+
+当エラーが発生した際は、再実行してください	200
+34	INFO	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_INFO_101	注文キャンセル処理が完了しました。	注文キャンセル処理に成功した	200
+35	WARNING	ORDER_EXT_API_CANCEL_ORDER_AFTER_SHIPPING_WARNING_101	注文キャンセル処理が完了しましたが、警告が発生しています。	注文キャンセル処理に成功した（警告あり：在庫更新処理でエラー）	200
+updateOrderOrderer
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー	200
+17	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+18	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_033		メールアドレスが不正です。		指定されたメールアドレスの書式が不正	200
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名	200
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式	200
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_904	注文者／送付先の住所が海外の場合、支払方法「{0}」は利用できません。	注文者または送付先が海外住所の場合エラー	200
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_905	{0}に不正な値が指定されております。	コード値、名称などが不正
+{0}項目名	400
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_918	送料無料クーポン(上限あり)は送料の割引上限額を超えるため適用できません。上限額以下に設定してから、再度実行してください。	クーポンバリデーションチェックエラー(利用金額条件チェック)	200
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_919	複数の項目選択肢別在庫商品にクーポンが適用され、クーポンの利用額が異なってしまう場合、単価を同一にする必要があります。	クーポンバリデーションチェックエラー
+(同一商品IDの金額チェック)	200
+26	WARNING	ORDER_EXT_API_UPDATE_ORDERORDERER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_101	誕生日には、未来日の日付は指定できません。	誕生日チェックエラー	400
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_102	指定された注文番号は既にキャンセルされているため、注文者情報更新が出来る状態ではありませんでした。	注文者更新できない状態であった	200
+29	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_103	受注情報を取得できなかったため、注文者情報更新が出来る状態ではありませんでした。	注文者更新できない状態であった	200
+30	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_105	税率に関わる必須項目（送料税率、代引料税率、商品税率、ラッピング税率）が入力されていません。入力後に更新してください。	送付先情報の税関連項目必須エラー	400
+31	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_106	指定された注文番号は一定期間経過したため、注文者情報更新を行うことができません。	注文日時受注有効期限（注文日時から二年後）チェックエラー	400
+32	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_107	ユーザ支払額をマイナスにすることはできません。 RMSコールセンターまでお問合せください。	ユーザ支払額エラー	200
+33	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_108	注文者の住所が後払い決済の請求書に印字できる文字数を越えています。	住所の請求書印字可能文字数超過チェックエラー	200
+34	ERROR	ORDER_EXT_API_UPDATE_ORDERORDERER_ERROR_109	置き配指定と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、置き配指定と組み合わせることができません。変更内容を見直してから再度お試しください。  
+・特定配送方法（宅配便、宅配便[特定送料]、小型宅配便）以外の場合
+・決済方法が代金引換の場合
+・複数配送先の場合
+・送付先住所が国外の場合	200
+35	INFO	ORDER_EXT_API_UPDATE_ORDERORDERER_INFO_101	注文者情報の更新設定が完了しました。	注文者更新に成功した	200
+36	WARNING	ORDER_EXT_API_UPDATE_ORDERORDERER_WARNING_101	注文者の住所が後払い決済の請求書に印字できる文字数を越えています。	住所の請求書印字可能文字数超過チェックエラー	200
+updateOrderDelivery
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+15	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_022	更新処理に失敗しました。申し訳ございませんが、しばらくお待ちになって再度実行してください。	更新処理楽観的排他リトライ後エラー	200
+16	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	WARNING	ORDER_EXT_API_UPDATE_ORDERDELIVERY_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+18	INFO	ORDER_EXT_API_UPDATE_ORDERDELIVERY_INFO_101	配送方法の更新設定が完了しました。	配送方法の更新に成功した	200
+19	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_101	指定された注文番号は既にキャンセルされているため、配送方法の更新が出来る状態ではありませんでした。	更新できない状態であった	200
+20	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_102	この決済方法では、メール便は利用できません。	選択した配送方法が選択不可な状態であった	200
+21	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_103	指定された配送方法は無効です。	選択した配送方法が無効であった	200
+22	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_104	受注情報を取得できなかったため、配送方法の更新が出来る状態ではありませんでした。	更新できない状態であった	200
+23	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_105	指定された配送方法には変更できません。	選択不可な配送方法(拠点配送系)が選択された	200
+24	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_106	指定された注文番号は一定期間経過したため、配送方法の更新を行うことができません。	注文日時受注有効期限（注文日時から一年後）チェックエラー	400
+25	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_107	現在の決済ステータスが処理可能なステータスではないため、配送方法更新が出来る状態ではありませんでした。	変更処理不可な決済ステータス(決済NG（店舗引渡）)が存在していた。	200
+26	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_108	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー	200
+27	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_109	置き配指定注文では利用できない配送方法です。変更内容を見直してから再度お試しください。	選択した配送方法が置き配指定注文と組み合わせられない配送方法であった
+・特定配送方法（宅配便、宅配便[特定送料]、小型宅配便）以外の場合	200
+28	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_110	置き配指定と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	置き配指定注文と組み合わせられない設定であった	200
+29	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_801	支払方法 {0}では利用できない配送方法です。	選択した配送方法が現在の支払方法と組み合わせられない配送方法であった
+{0}支払方法名	200
+30	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_802	ソーシャルギフト注文と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	指定した配送方法がソーシャルギフト注文で利用できない配送方法であった	200
+31	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名	200
+32	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式	200
+33	ERROR	ORDER_EXT_API_UPDATE_ORDERDELIVERY_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限	200
+simulateCouponAmount
+No.	Level	Message ID	Message	Description	クーポン再計算内	クーポン再計算後	HTTP Status Code
+1	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_000	不明なエラーが発生しました。	システムエラーが発生			500,200
+2	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定			400
+3	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定			400
+4	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効			400
+5	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定			400
+6	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定			400
+7	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません			400
+8	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正			400
+9	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定			400
+10	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定			400
+11	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_011	{0}の書式が不正です。	{0}の書式が不正			400
+12	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合			400
+13	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正			400
+14	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_017	{0}には最低１つの{1}を指定して下さい。	リストにモデルが未指定			400
+15	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正			400
+16	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー			400
+17	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_023	{0}が重複しています。	重複チェックエラー			400
+18	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_024	{0}の項目を指定して下さい。（{1}:{2}）	{0}の項目が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+19	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_025	{0}の値を指定して下さい。（{1}:{2}）	{0}の値が未指定
+{1}リストのキー名
+{2}リストのキー値			400
+20	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_026	{0}の書式が不正です。（{1}:{2}）	{0}の書式が不正
+{1}リストのキー名
+{2}リストのキー値			400
+21	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_027	指定された{0}の値が不正です。（{1}:{2}）	{0}のコード値、名称などが不正
+{1}リストのキー名
+{2}リストのキー値			400
+22	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_028	{0}に入力できない文字が含まれています。（{1}:{2}）	{0}の値が機種依存文字チェックエラー
+{1}リストのキー名
+{2}リストのキー値			400
+23	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_029	{0}には最低１つの{1}を指定して下さい。（{2}:{3}）	{0}チェック対象リスト
+{1}チェック対象項目
+{2}リストのキー名
+{3}リストのキー値			400
+24	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている			400
+25	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_033	メールアドレスが不正です。	指定されたメールアドレスの書式が不正			200
+26	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_901	{0}の場合、{1}は必須です。	決済手続き必須項目エラー
+{0}決済方法名
+{1}項目名			200
+27	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_902	{0}の場合、{1}には{2}を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}想定形式			200
+28	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_903	{0}の場合、{1}には{2}桁以上{3}桁以下の値を設定してください。	決済手続きエラー
+{0}決済方法名
+{1}項目名
+{2}下限
+{3}上限			200
+29	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_904	注文者／送付先の住所が海外の場合、支払方法「{0}」は利用できません。	注文者または送付先が海外住所の場合エラー			200
+30	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_905	{0}に不正な値が指定されております。	コード値、名称などが不正
+{0}項目名			400
+31	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_906	全値引対象商品の代金合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+32	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_907	全値引対象商品の個数合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+33	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_908	値引対象商品の個数({1}個)がクーポンの利用枚数({2}枚)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン利用枚数チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+34	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_909	値引対象商品の代金合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+35	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_910	注文全体の商品代金の合計({1}円)がクーポンの利用金額条件({2}円)を満たしていません。	クーポンバリデーションチェックエラー(利用金額条件チェック)			200
+36	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_911	注文全体の商品個数の合計({1}個)がクーポンの購入個数条件({2}個)を満たしていません。	クーポンバリデーションチェックエラー(購入個数条件チェック)			200
+37	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_912	注文全体の商品代金の合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+38	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_913	注文全体の送料合計({1}円)がクーポンの値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+39	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_914	送料未確定のためクーポンを適用できません。	クーポンバリデーションチェックエラー(送料未確定チェック)			200
+40	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_915	値引対象商品が注文に含まれていないため適用できないクーポンがあります。	クーポンバリデーションチェックエラー(商品存在チェック)			200
+41	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_916	注文全体の商品代金の合計({1}円)がクーポンの合計値引額({2}円)よりも少ないです。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末以降に発生します	発生しない	発生する	200
+42	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_917	支払方法に{0}が指定されているため、「注文確認」後に購買額が増額となる注文内容変更はできません。	Alipay、またはPayPal決済で、注文確認後の増額の場合エラー
+{0}決済方法名			200
+43	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_918	送料無料クーポン(上限あり)は送料の割引上限額を超えるため適用できません。	クーポンバリデーションチェックエラー(上限あり送料チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+44	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_919	複数の項目選択肢別在庫商品にクーポンが適用され、クーポンの利用額が異なってしまう場合、単価を同一にする必要があります。	クーポンバリデーションチェックエラー(同一商品IDの金額チェック)
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+45	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_920	注文内容の修正により、値引対象商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+値引対象商品の代金合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+46	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_921	注文全体の送料合計が0円のためクーポンを適用できません。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+送料が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+47	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_922	注文内容の修正により、注文全体の商品代金合計またはクーポン値引額が0円となっています。	クーポンバリデーションチェックエラー(クーポン値引額チェック)
+注文全体の商品代金の合計が0円の場合、クーポンの適用不可
+※クーポン再計算機能導入後、このエラーは注文の翌月末まで発生します	発生する	発生しない	200
+48	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_923	請求金額が上限金額を超えており、「 {0}」を利用できません。	ユーザ支払額上限エラー			200
+49	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_924	楽天処理中のため、金額を変更することはできません。選択制決済への変更に限り、送料・代引手数料の変更が可能です。	支払方法変更内容チェックエラー			200
+50	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_925	1商品あたりの数量が10,000を超えている注文でクーポンが適用されている場合、数量を10,000以下にする必要があります。	クーポンバリデーションチェックエラー(商品個数の上限チェック)
+※上限変更により2021/6/16以降は発生しません。			200
+51	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_926	クーポン締め日以降のため、付け替えされません。クーポンコード：{0}、値引き額 {1}円の利用枚数を商品の数に合わせて減らす必要があります。	クーポンバリデーションチェックエラー(利用条件チェック)
+※このエラーは注文の翌月末以降に発生します			200
+52	INFO	ORDER_EXT_API_SIMULATECOUPONAMOUNT_INFO_101	シミュレーションが完了しました。	シミュレーションに成功した			200
+53	WARNING	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中			200
+54	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_101	受注情報を取得できなかったため、送付先情報更新が出来る状態ではありませんでした。	受注情報が存在しなかった			200
+55	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_102	指定された注文番号は既にキャンセルされているため、送付先情報更新が出来る状態ではありませんでした。	受注情報がキャンセルされていた			200
+56	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_103	現在の決済ステータスが処理可能なステータスではないため、送付先情報更新が出来る状態ではありませんでした。	変更処理不可な決済ステータス(決済NG（店舗引渡）)が存在していた			200
+57	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_104	金額の再計算に失敗しました。金額を設定していない項目がないか確認してください。	金額再計算でエラーが発生した			200
+58	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_105	合計金額が上限金額を超えているため、送付先情報更新が出来る状態ではありませんでした。	計算後に合計金額が上限金額（1000000000）を超えていた			200
+59	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_107	指定された注文番号は一定期間経過したため、送付先情報更新が出来る状態ではありませんでした。	注文日時受注有効期限（注文日時から一年後）チェックエラー			200
+60	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_108	処理可能な配送方法ではないため、送付先情報更新が出来る状態ではありませんでした。	配送方法が、「楽天BOX受取、コンビニ受取、ロッカー受取」のいずれかの場合に、送付先の氏名および住所が変更されていた			200
+61	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_109	現在キャンセル処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文取消受付中			200
+62	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_110	現在変更処理中のため、送付先情報更新が出来る状態ではありませんでした。	対象の受注が、注文内容変更受付中			200
+63	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_111	処理中です。少しお時間が経ってから、再度申請をしてください。	決済手続き依頼中または決済依頼中			200
+64	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_112	楽天処理中です。少しお時間が経ってから、再度申請をしてください。	決済処理NGのため			200
+65	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_113	現在決済処理中のため、更新できません。少しお時間が経ってから、再度申請をしてください。	現在の決済手段が決済処理NGのため			200
+66	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_114	存在しないクーポンが指定されています。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストのクーポンの種類と DBのクーポンの種類が一致していない			400
+67	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_115	クーポン利用数は増やすことはできません。（クーポンコード：{0}, 商品ID：{1}, クーポン割引単価：{2}）	リクエストのクーポン利用枚数が DBのクーポン利用枚数より増えている			400
+68	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_116	指定された送付先IDが存在しません。（送付先ID：{0}）	指定された送付先IDが存在しない			400
+69	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_117	指定された商品明細IDが存在しません。（商品明細ID：{0}）	指定された商品情報の買い物かごIDが存在しない			400
+70	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_118	全ての送付先を削除することはできません。	送付先情報全件削除チェックエラー			400
+71	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_119	全ての商品を削除することはできません。（送付先ID：{0}）	商品情報全件削除チェックエラー			400
+72	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_120	合計金額とクーポン利用枚数を同時に0にすることはできません。	合計金額とクーポン利用枚数が同時に 0 へ変更はエラー			200
+73	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_121	指定された注文番号の更新処理は発送後のため処理できません。	注文状態チェックエラー			400
+74	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_122	指定された送付先の数が不正です。	送付先数チェックエラー			400
+75	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_123	指定された商品の数が不正です。（送付先ID：{0}）	商品数チェックエラー			400
+76	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_124	指定されたクーポンの数が不正です。	クーポン数チェックエラー			400
+77	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_125	指定された送付先毎の商品情報に差異があります。	値の一致性チェックエラー			400
+78	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_127	決済手段が代金引換以外の場合には、代引料を設定できません。	代引料、決済手段の整合性チェックエラー			400
+79	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_128	ただ今、楽天市場にてお客様対応中です。処理完了まで、しばらくお待ちください。ご不明点、お困りの際は、RMSコールセンターまでお問合せください。	案件化フラグが設定されているときの操作エラー			200
+80	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_129	決済手数料が発生する場合、ユーザ支払額を0円にすることはできません。	ユーザ支払額エラー			200
+81	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_132	決済手段が代金引換の場合、代引料税率の設定が必須となります。代引料税率を設定し、再度リクエストを行ってください。	代引料税率設定エラー			400
+82	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_133	ラッピングの税込区分は、税込から税別へ変更できません。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+83	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_134	ラッピングを追加する場合、税込区分は税込を設定してください。（ラッピングモデル：{0}）	ラッピングの税込区分設定エラー			400
+84	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_135	ユーザ支払額をマイナスにすることはできません。 RMSコールセンターまでお問合せください。	ユーザ支払額エラー			200
+85	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_136	支払方法を代金引換に変更する場合、代引料の設定が必須となります。代引料を設定し、再度リクエストを行ってください。	代引決済指定時、代引手数料別商品が含まれる場合、代引料未設定エラー			200
+86	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_137	指定された支払方法には変更できません。	支払方法変更不可エラー			200
+87	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_138	指定された支払方法はこの店舗では対応していません。	支払方法店舗未対応エラー			200
+88	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_139	マルチSKUの場合、SKU情報は必須です。	マルチSKU受注のSkuModel.skuInfoの値が未指定			400
+89	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_140	指定されたSKU管理番号が存在しません。（SKU管理番号：{0}）	指定されたSKUモデルのSKU管理番号が存在しない			400
+90	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_141	置き配指定と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、置き配指定と組み合わせることができません。変更内容を見直してから再度お試しください。  
+・特定配送方法（宅配便、宅配便[特定送料]、小型宅配便）以外の場合
+・決済方法が代金引換の場合
+・複数配送先の場合
+・送付先住所が国外の場合			400
+91	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_142	ソーシャルギフト注文と組み合わせることができない設定があります。変更内容を見直してから再度お試しください。	以下の場合、ソーシャルギフト注文の内容を変更できません。変更内容を見直してから再度お試しください。 
+・ソーシャルギフト注文で利用可能な支払方法以外への変更の場合　
+・送付先住所を国外へ変更の場合
+・置き配指定への変更の場合
+・送付先情報が未入力の場合（受取人が受取情報入力後から変更可能）			400
+92	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_143	指定された注文番号は更新が出来る状態ではありませんでした。	ソーシャルギフト注文において受取情報が未入力の場合、送付者情報を変更できません。変更内容を見直してから再度お試しください。			200
+93	ERROR	ORDER_EXT_API_SIMULATE_COUPONAMOUNT_ERROR_801	ユーザ支払額が0円の場合、支払方法「{0}」は利用できません。	ユーザ支払額エラー			200
+getPayment
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません	400
+8	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+15	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+16	WARNING	ORDER_EXT_API_GET_PAYMENT_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+17	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_101	指定された注文番号の決済情報は存在しませんでした。	注文番号不備、もしくはデータ不整合	200
+18	ERROR	ORDER_EXT_API_GET_PAYMENT_ERROR_102	指定された注文番号は一定期間経過したため、決済情報の取得を行うことができません。	注文日時受注有効期限（注文日時から二年後）チェックエラー	400
+19	INFO	ORDER_EXT_API_GET_PAYMENT_INFO_101	決済情報取得に成功しました。	決済情報取得に成功した	200
+20	INFO	ORDER_EXT_API_GET_PAYMENT_INFO_102	決済情報取得に成功しました。(検索結果０件)	決済情報取得に成功した（決済情報0件）	200

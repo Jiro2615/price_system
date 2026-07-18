@@ -1,0 +1,260 @@
+サービス一覧へ戻る / RakutenPayOrderAPI
+
+RMS WEB SERVICE : getResultUpdateOrderShippingAsync
+Overview
+この機能を利用すると、楽天ペイ注文の「発送完了報告（非同期）」処理の結果を確認することができます。こちらは同期処理となります。
+
+Endpoint
+Endpoint
+https://api.rms.rakuten.co.jp/es/2.0/order/getResultUpdateOrderShippingAsync/
+Request
+Request Method
+Method
+POST
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Parameter
+Level 1: base
+No	Logical Name	Parameter Name	Required	Type	Max Byte	Default	Description	Sample
+1	リクエストID	requestId	yes	String	128	-	発送完了報告（非同期）処理実行時のリクエストID
+updateOrderShippingAsync の response parameter
+
+※処理結果を確認可能な期間は30日間となります。	ede66c43-9b9d-4222-93ed-5f11c96e08e2_20180101120000
+Response
+HTTP Status
+Code	Status	Description
+200	OK	リクエストが成功した。
+400	Bad Request	リクエストが不正である。
+404	Not Found	Request-URI に一致するものを見つけられなかった。
+405	Method Not Allowed	許可されていないメソッドを使用しようとした。
+500	Internal Server Error	サーバ内部にエラーが発生した。
+503	Service Unavailable	サービスが一時的に過負荷やメンテナンスで使用不可能である。
+Response Header
+Key	Value
+Content-Type	application/json;charset=utf-8
+Response Parameter
+Level 1: base
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	発送完了報告結果モデルリスト	ResultShippingModelList	yes	List <ResultShippingModel>	-	-		
+Level 2: ResultShippingMode
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	注文番号	orderNumber	no	String	382	-		123456-20180101-00001801
+2	メッセージモデルリスト	MessageModelList	yes	List<MessageModel>	-	-		
+Level 3: MessageModel
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	メッセージ種別	messageType	yes	String	16	-	 以下のいずれか
+
+・INFO
+・ERROR
+・WARNING	INFO
+2	メッセージコード	messageCode	yes	String	128	-	メッセージコードの一覧はこちら	MESSAGE_CODE_SAMPLE
+3	メッセージ	message	yes	String	1024	-	メッセージサンプル
+4	データ番号	dataNumber	no	Number	10	-	指定データ番号。上から１～	1
+5	発送明細ID	shippingDetailId	no	Number	12	-	・ID指定時は、指定のID
+・ID未指定時は、新規登録された発送明細ID	45678
+Sample
+発送完了報告（非同期）処理が正常終了した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/getResultUpdateOrderShippingAsync/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "requestId":"ede66c43-9b9d-4222-93ed-5f11c96e08e2_20180101120000"
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "ResultShippingModelList": [
+        {
+            "orderNumber": "123456-20180101-00001801",
+            "MessageModelList": [
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_102",
+                    "message": "発送情報の更新設定が完了しました。",
+                    "dataNumber": 1,
+                    "shippingDetailId": 15419
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 2,
+                    "shippingDetailId": 15421
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 3,
+                    "shippingDetailId": 15422
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 4,
+                    "shippingDetailId": 15423
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 5,
+                    "shippingDetailId": 15424
+                }
+            ]
+        },
+        {
+            "orderNumber": "123456-20180101-00001901",
+            "MessageModelList": [
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_102",
+                    "message": "発送情報の更新設定が完了しました。",
+                    "dataNumber": 1,
+                    "shippingDetailId": 15420
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 2,
+                    "shippingDetailId": 15425
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 3,
+                    "shippingDetailId": 15426
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 4,
+                    "shippingDetailId": 15427
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 5,
+                    "shippingDetailId": 15428
+                }
+            ]
+        }
+    ]
+}
+発送完了報告（非同期）処理が正常終了（エラーあり）した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/getResultUpdateOrderShippingAsync/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "requestId":"ede66c43-9b9d-4222-93ed-5f11c96e08e2_20180101120000"
+}'
+Response in JSON format (Status: 200 OK)
+    "ResultShippingModelList": [
+        {
+            "orderNumber": "123456-20180101-00001801",
+            "MessageModelList": [
+                {
+                    "messageType": "ERROR",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_102",
+                    "message": "指定された注文番号は既にキャンセルされているため、発送完了報告が出来る状態ではありませんでした。",
+                    "dataNumber": null,
+                    "shippingDetailId": null
+                }
+            ]
+        },
+        {
+            "orderNumber": "123456-20180101-00001901",
+            "MessageModelList": [
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_102",
+                    "message": "発送情報の更新設定が完了しました。",
+                    "dataNumber": 1,
+                    "shippingDetailId": 15420
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 2,
+                    "shippingDetailId": null
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 3,
+                    "shippingDetailId": null
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 4,
+                    "shippingDetailId": null
+                },
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+                    "message": "発送情報の追加設定が完了しました。",
+                    "dataNumber": 5,
+                    "shippingDetailId": null
+                }
+            ]
+        }
+    ]
+}
+発送完了報告（非同期）処理が終了していない場合、もしくはリクエストIDが存在しない場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/getResultUpdateOrderShippingAsync/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "requestId":"ede66c43-9b9d-4222-93ed-5f11c96e08e2_20180101120000"
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "ResultShippingModelList": [
+        {
+            "MessageModelList": [
+                {
+                    "messageType": "INFO",
+                    "messageCode": "ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_INFO_101",
+                    "message": "指定されたリクエストIDの処理結果は存在しませんでした。"
+                }
+            ]
+        }
+    ]
+}
+パラメータの指定に誤りがある場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/getResultUpdateOrderShippingAsync/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{}'
+Response in JSON format (Status: 400 Bad Request)
+{
+    "ResultShippingModelList": [
+        {
+            "MessageModelList": [
+                {
+                    "messageType": "ERROR",
+                    "messageCode": "ORDER_EXT_API_GET_RESULT_UPDATEORDERSHIPPING_ASYNC_ERROR_009",
+                    "message": "requestIdの項目を指定して下さい。"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,143 @@
+サービス一覧へ戻る / RakutenPayOrderAPI
+
+RMS WEB SERVICE : updateOrderMemo
+Overview
+
+この機能を利用すると、楽天ペイ注文の「ひとことメモ、担当者情報等の更新」を行うことができます。こちらは同期処理となります。
+
+更新対象は以下となります。
+
+・ひとことメモ
+・担当者
+・利用サービス名（配送区分）
+・メール差込文(お客様へのメッセージ)
+・お届け日指定
+・お届け時間帯
+・サブステータスID
+
+Endpoint
+Endpoint
+https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderMemo/
+Request
+Request Method
+Method
+POST
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Parameter
+Level1: base
+No	Logical Name	Parameter Name	Required	Type	Max Byte	Default	Description	Sample
+1	注文番号	orderNumber	yes	String	382	-		502763-20171027-00006701
+2	サブステータスID	subStatusId	no	Number	10	-		3601
+3	配送区分	deliveryClass	no	Number	10	0	「利用サービス名」のうち以下のいずれか
+
+0: 選択なし
+1: 普通
+2: 冷蔵
+3: 冷凍
+4: その他1
+5: その他2
+6: その他3
+7: その他4
+8: その他5	2
+4	お届け日指定	deliveryDate	no	Date	10	-	YYYY-MM-DD	2017-11-30
+5	お届け時間帯	shippingTerm	no	Number	10	0	以下のいずれか
+
+0: なし
+1: 午前
+2: 午後
+9: その他
+
+h1h2: h1時-h2時 (h1は7～24まで任意で数値指定可能。h2は07～24まで任意で数値指定可能)	724
+2324
+6	ひとことメモ	memo	no	String	4000	-	以下の入力チェックが適用されます
+・機種依存文字などの不正文字以外
+・全角、半角にかかわらず1000文字以下	ひとことメモです
+7	担当者	operator	no	String	32	-	以下の入力チェックが適用されます
+・機種依存文字などの不正文字以外
+・全角、半角にかかわらず6文字以下	楽天担当
+8	メール差込文
+(お客様へのメッセージ)	mailPlugSentence	no	String	3072	-	以下の入力チェックが適用されます
+・機種依存文字などの不正文字以外
+・全角、半角にかかわらず1024文字以下	お買い上げ頂きまして誠に有難うございます。
+Response
+HTTP Status
+Code	Status	Description
+200	OK	リクエストが成功した。
+400	Bad Request	リクエストが不正である。
+404	Not Found	Request-URI に一致するものを見つけられなかった。
+405	Method Not Allowed	許可されていないメソッドを使用しようとした。
+500	Internal Server Error	サーバ内部にエラーが発生した。
+503	Service Unavailable	サービスが一時的に過負荷やメンテナンスで使用不可能である。
+Response Header
+Key	Value
+Content-Type	application/json;charset=utf-8
+Response Parameter
+Level 1: base
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	メッセージモデルリスト	MessageModelList	yes	List <MessageModel>	-	-		
+Level 2: MessageModel
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	メッセージ種別	messageType	yes	String	16	-	以下のいずれか
+
+・INFO
+・ERROR
+・WARNING	INFO
+2	メッセージコード	messageCode	yes	String	128	-	メッセージコードの一覧はこちら	MESSAGE_CODE_SAMPLE
+3	メッセージ	message	yes	String	1024	-	メッセージサンプル
+4	注文番号	orderNumber	no	String	382	-		341680-22222222-1241583267
+Sample
+情報の更新に成功した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderMemo/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "orderNumber": "123456-20180101-1241583267",
+    "subStatusId": "3601",
+    "deliveryClass": "2",
+    "deliveryDate": "2018-01-15",
+    "shippingTerm": 724,
+    "memo": "ひとことメモです",
+    "operator": "楽天担当",
+    "mailPlugSentence": "お買い上げ頂きまして誠に有難うございます。"
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "MessageModelList": [
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERMEMO_INFO_101",
+            "message": "ひとことメモ、担当者情報等の更新設定が完了しました。",
+            "orderNumber": "123456-20180101-1241583267"
+        }
+    ]
+}
+パラメータの指定に誤りがあった場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderMemo/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "subStatusId": "3601",
+    "deliveryClass": "2",
+    "deliveryDate": "2017-11-30",
+    "shippingTerm": 724,
+    "memo": "ひとことメモです",
+    "operator": "楽天担当",
+    "mailPlugSentence": "お買い上げ頂きまして誠に有難うございます。"
+}'
+Response in JSON format (Status: 400 Bad Request)
+{
+    "MessageModelList": [
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERMEMO_ERROR_009",
+            "message": "orderNumberの項目を指定して下さい。"
+        }
+    ]
+}

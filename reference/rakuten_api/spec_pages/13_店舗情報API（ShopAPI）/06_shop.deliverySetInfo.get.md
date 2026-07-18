@@ -1,0 +1,106 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/deliverysetinfo/
+サービス: 店舗情報API（ShopAPI）
+
+サービス一覧へ戻る / ShopAPI
+
+RMS WEB SERVICE : shop.deliverySetInfo.get
+Overview
+
+この機能を利用すると、商品別配送設定の情報を取得することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+
+
+https://api.rms.rakuten.co.jp/es/1.0/shop/deliverySetInfo
+
+	GET
+Request
+HTTP Header
+No	Key	Value
+1	
+
+Authorization
+
+	ESA Base64(serviceSecret:licenseKey)
+2	Content-Type	application/xml; charset=UTF-8
+Query Parameters
+No	Parameter	Description	Type	Required	Note
+1	deliverySetId	配送方法セット管理番号	Integer	No	指定した deliverySetId の情報を取得します。
+指定しない場合はすべての商品別配送設定の情報を取得します。
+HTTP Body
+
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	content-type	application/xml; charset=UTF-8
+2	x-request-id	UUID形式
+※API requestを特定する一意のIDです。問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+3	Timestamp	アクセス時のタイムスタンプ
+※問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+HTTP Body
+Level 1: shopBizApiResponse
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultCode	結果コード	String	4	Yes	
+2	resultMessageList	メッセージ一覧	resultMessageList	-	Yes	
+3	result	取得データ本体	deliverySetInfoBizModel	-	No	
+Level 2: resultMessageList
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultMessage	メッセージ	resultMessage	-	Yes	
+Level 3: resultMessage
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	code	コード	String	4	Yes	詳細は、ShopAPI Response Codes Referenceを参照してください。
+2	message	メッセージ	String	-	Yes
+Level 2: deliverySetInfoBizModel
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	deliverySetInfoList	配送方法セット情報リスト	deliverySetInfoList	-	Yes	
+Level 3: deliverySetInfoList
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	deliverySetInfo	配送方法セット情報	deliverySetInfo	-	Yes	
+Level 4: deliverySetInfo
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	deliverySetId	配送方法セット管理番号	Integer	10	Yes	
+2	deliverySetName	配送方法セット名	String	382	Yes	
+3	deliverySetDefaultFlag	デフォルト選択配送方法	Short	1	Yes	0: デフォルト設定にしない
+1: デフォルト設定にする
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+    <result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:deliverySetInfoBizModel">
+        <deliverySetInfoList>
+            <deliverySetInfo>
+                <deliverySetId>1</deliverySetId>
+                <deliverySetName>deliveryset1</deliverySetName>
+                <deliverySetDefaultFlag>1</deliverySetDefaultFlag>
+            </deliverySetInfo>
+            <deliverySetInfo>
+                <deliverySetId>2</deliverySetId>
+                <deliverySetName>deliveryset2</deliverySetName>
+                <deliverySetDefaultFlag>0</deliverySetDefaultFlag>
+            </deliverySetInfo>
+        </deliverySetInfoList>
+    </result>
+</shopbiz:shopBizApiResponse>
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>E999</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>E999</code>
+            <message>Unknown Execution error.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>

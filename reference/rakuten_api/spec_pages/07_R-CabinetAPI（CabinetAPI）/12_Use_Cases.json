@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "R-CabinetAPI（CabinetAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"
+  },
+  "feature_page": {
+    "name": "Use Cases",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetapiusecases/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetapiusecases/",
+  "main_text": "サービス一覧へ戻る / CabinetAPI\n\n\nRMS WEB SERVICE : Cabinet API Use Cases\n\nCabinetAPIを利用して出来る、Use caseを記載します。\n\n\n\n\n1.R-Cabinetの利用状況を確認する\n\n2.フォルダの一覧を取得する\n\n3.画像を検索する\n\n\n\n\n1. R-Cabinetの利用状況を確認する\n\n\n\n1.1  R-Cabinetの各フォルダの画像保存可能数を確認する\n\n　　　1. cabinet.usage.get実行\n　　　2. cabinet.folders.get実行\n\n　　→cabinet.usage.getのレスポンス項目\"FileMax\"の値から、cabinet.folders.getのレスポンス項目\"FileCount\"の値を引くことで、R-Cabinetの各フォルダの画像保存可能数を確認することができます。\n\n\n\n2. フォルダの一覧を取得する\n\n\n\n2.1 R-Cabinet内のフォルダ/画像の一覧を取得する\n\n　　　1. cabinet.folders.getを実行\n　　　2. cabinet.folders.getのレスポンス項目\"FolderId\"を、cabinet.folder.files.getのリクエスト項目\"folderId\"にセットし、実行\n　　　　　※取得したFolderIdの数分実行\n\n　　→1と2のレスポンスを組み合わせることで、R-Cabinet内のフォルダ情報とそれに紐づく画像情報を全て確認することができます。\n\n\n\n3. 画像を検索する\n\n\n\n3.1 検索対象の画像名が、R-Cabinet内の各フォルダに存在するか確認する\n\n　　　1. cabinet.folders.get実行\n　　　2. レスポンス項目\"FolderId\"を、cabinet.files.searchのリクエスト項目\"folderId\"にセットし、実行\n　　　　　※取得したFolderIdの数分実行\n\n　　→R-Cabinet内の各フォルダに検索対象の画像名が存在するか確認することができます。"
+}

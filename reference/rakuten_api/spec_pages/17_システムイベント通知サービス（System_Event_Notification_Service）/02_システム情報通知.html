@@ -1,0 +1,343 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><a href="/merchant-portal/backToMenu"><span>サービス一覧へ戻る</span></a> / <a title="SystemEventNotificationService" href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"><span>システムイベント通知サービス</span></a></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : システム情報通知</span></h1><p><span style="color: #000000;"><br></span></p>
+<p><span style="color: #000000;">「システム情報通知」は、汎用インターフェースに基づいた様々なサービスの情報を通知する機能です。</span></p>
+<p><span style="color: #000000;"><br></span></p>
+<p>実装の前に、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice#制約事項">RMS WEB SERVICE : システムイベント通知サービス/４．制約事項</a>」をご確認ください。</p><h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Endpoint</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">HTTP&nbsp;Method</span></b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span>-</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">POST</span></td></tr></tbody></table></div><h2 id="Request">Request</h2><h3 id="HTTP Header">HTTP Header</h3><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Key</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Value</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span>Content-Type</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span></span>text/xml</td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span>Content-Length</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,255);">※Request Bodyのサイズ値が入る </span></td></tr></tbody></table></div><h3 id="HTTP Body">HTTP Body</h3><h4 id="XML:notifyModel">XML:notifyModel</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Element</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Description</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Type</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Mandatory</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Multiplicity</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Note</span></b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">notifyModel.<strong>authModel</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);"><strong></strong></span><p><span style="color: rgb(0,0,0);">認証モデル</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">オブジェクト</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">-</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">notifyModel.<strong>notifyInfoModel</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">通知情報モデル</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">配列</span><br><span style="color: rgb(0,0,0);">＜オブジェクト＞</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">-</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1...n</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">最大500件</span></td></tr></tbody></table></div><h4 id="XML:authModel">XML:authModel</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Element</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Description</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Type</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Mandatory</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Note</span></b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">authModel.<strong>contractId</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">契約ID</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">文字列</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">API利用者ID</span><br><span style="color: rgb(0,0,0);"><span style="white-space: pre-wrap;font-family: Arial , sans-serif;line-height: 1.4285715;">半角記号英数字最大255桁<br></span><span style="white-space: pre-wrap;font-family: Arial , sans-serif;line-height: 1.4285715;">例）X1X1234</span><span style="white-space: pre-wrap;font-family: Arial , sans-serif;line-height: 1.4285715;"> <br></span></span></p></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">authModel.<strong>shopUrl</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">ショップURL</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">文字列</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">店舗URL</span><br><span style="color: rgb(0,0,0);"><span style="line-height: 1.4285715;">半角記号英数字最大255桁<br></span><span style="line-height: 1.4285715;">例）_rakutentest</span></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">3</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">authModel.<strong>authKey</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">認証キー</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">文字列</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">システムイベント通知サービス</span><span style="color: rgb(0,0,0);">用認証キーがセットされます</span><br><span style="color: rgb(0,0,0);"><span style="line-height: 1.4285715;">半角英数字最大255桁<br></span><span style="line-height: 1.4285715;">例）Aq12wc456fg</span></span></p></td></tr></tbody></table></div><h4 id="XML:notifyInfoModel">XML:notifyInfoModel</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Element</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Description</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Type</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Mandatory</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Note</span></b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">notifyInfoModel.<strong>requestId</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">リクエストID</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">文字列</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">255</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">2015/08/18以降利用開始の場合<br>(Version2.0をご利用の場合)のみ送信されます</td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">notifyInfoModel.<strong>serviceId</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">サービスID</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">文字列</span></p><span style="color: rgb(0,0,0);"></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">11</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">有効範囲：0～2147483647</span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">3</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong><span style="line-height: 1.4285715;">functionId</span></strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">機能ID <br></span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">文字列</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">11</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">有効範囲：0～2147483647</span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">4</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value1</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ1</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>　<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);"><span style="line-height: 1.4285715;">全角文字含む　最大255桁<br></span><span style="line-height: 1.4285715;">例） </span><span style="line-height: 1.4285715;"><value1 name="fileName"></value1></span><span style="line-height: 1.4285715;">xxx.csv</span><span style="line-height: 1.4285715;"></span></span></p></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">5</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value2</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ2</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value2 name="fileName">xxx.csv</value2></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">6</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value3</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ3</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value3 name="fileName">xxx.csv</value3></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">7</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value4</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ4</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value4 name="fileName">xxx.csv</value4></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">8</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value5</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ5</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"></span><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value5 name="fileName">xxx.csv</value5></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">9</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value6</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ6</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value6 name="fileName">xxx.csv</value6></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">10</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value7</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ7</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value7 name="fileName">xxx.csv</value7></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">11</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value8</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ8</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value8 name="fileName">xxx.csv</value8></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">12</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value9</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ9</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value9 name="fileName">xxx.csv</value9></span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">13</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">notifyInfoModel</span>.<strong>value10</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">データ10</span><br><span style="color: rgb(0,0,0);">（属性名name)</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">属性：文字列<br></span>&nbsp;<br><span style="color: rgb(0,0,0);">値：文字列</span></p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span><br><span style="color: rgb(0,0,0);">/255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">○</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">サービスID、機能IDに紐づく</span><span style="color: rgb(0,0,0);">対象データ</span><br><span style="color: rgb(0,0,0);">全角文字含む　最大255桁<br>例） <value10 name="fileName">xxx.csv</value10></span></td></tr></tbody></table></div><h4 id="Request Sample">Request Sample</h4>
+<div id="HTMLBlock32457" class="HTMLBlock">
+<br>
+<div class="table-wrap">
+<div class="code panel pdl" style="border-width: 1px;">
+<div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+&lt;notifyModel&gt;
+    &lt;authModel&gt;
+        &lt;contractId&gt;xxxxxxxx&lt;/contractId&gt;
+        &lt;shopUrl&gt; shop_url &lt;/shopUrl&gt;
+        &lt;authKey&gt;123456789&lt;/authKey&gt;
+    &lt;/authModel&gt;
+    &lt;notifyInfoModel&gt;
+        &lt;requestId&gt;3000-3870e2bc-29fc-4f4f-848e-33312ad07e7d&lt;/requestId&gt;
+        &lt;serviceId&gt;3000&lt;/serviceId&gt;
+        &lt;functionId&gt;1100&lt;/functionId&gt;
+        &lt;value1 name="fileName"&gt;normal-item.csv&lt;/value1&gt;
+        &lt;value2 name="processDate"&gt;2015/05/01 15:59&lt;/value2&gt;
+        &lt;value3 name="insertCount"&gt;0&lt;/value3&gt;
+        &lt;value4 name="updateCount"&gt;5&lt;/value4&gt;
+        &lt;value5 name="deleteCount"&gt;0&lt;/value5&gt;
+        &lt;value6 name="errorCount"&gt;1&lt;/value6&gt;
+        &lt;value7 name="errorFilePath"&gt;ritem/logs/normal-item.20230501155904410.csv&lt;/value7&gt;
+        &lt;value8 name=""&gt;&lt;/value8&gt;
+        &lt;value9 name=""&gt;&lt;/value9&gt;
+        &lt;value10 name=""&gt;&lt;/value10&gt;
+    &lt;/notifyInfoModel&gt;
+&lt;/notifyModel&gt;</pre>
+
+</div>
+</div>
+</div>
+<br>
+</div><h2 id="Response">Response</h2><h3 id="HTTP Header">HTTP Header</h3><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Key</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Value</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">Content-Type</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">text/xml</td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">Content-Length</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,255);">※Request Bodyのサイズ値が入る </span></td></tr></tbody></table></div><h3 id="HTTP Body">HTTP Body</h3><h4 id="XML:responseModel">XML:responseModel</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Element</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Description</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Type</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Note</span></b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">responseModel.<strong>resultCode</strong></span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">処理結果コード</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">文字列</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">255</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">1</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">処理結果コードの詳細は下記参照</span><br><a href="/merchant-portal/view/ja/common/1-1_service_index/systemEventNotificationService/readytouseservice">Ready to use service</a><span style="color: rgb(0,0,0);"> </span><span style="color: rgb(0,0,0);">3.2.2. 通知受信モジュールの実装</span></p></td></tr></tbody></table></div><h4 id="Response Sample">Response Sample</h4>
+<div id="HTMLBlock6835" class="HTMLBlock">
+<br><div class="table-wrap"><table class="confluenceTable"><tbody><tr><td colspan="1" class="confluenceTd"><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+&lt;responseModel&gt;
+	&lt;resultCode&gt;N-000-000&lt;/resultCode&gt;
+&lt;/responseModel&gt; </pre>
+</div></div></td></tr></tbody></table></div><br></div><h2 id="Service list">Service list</h2><p>　<span style="color: #000000;">「システム情報通知」では以下のサービスを提供します。</span></p>
+<div id="HTMLBlock37465" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">No</th>
+      <th class="confluenceTh">サービス名</th>
+      <th class="confluenceTh">通知内容</th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationrs">商品一括編集完了通知</a></td>
+      <td class="confluenceTd">商品一括編集の処理が完了したことを通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationrcabinet">画像一括編集完了通知</a></td>
+      <td class="confluenceTd">画像一括編集の処理が完了したことを通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationpurchasehistory">購入履歴変更通知</a></td>
+      <td class="confluenceTd">購入履歴からの下記の変更タイミングと変更箇所を通知します<br>
+・クレジットカード変更<br>
+・支払方法変更<br>
+・注文キャンセル<br>
+     </td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationnotifier">再入荷リクエスト通知（SKU移行前）</a></td>
+      <td class="confluenceTd">SKU移行前の再入荷リクエスト内容を通知します</td>
+    </tr>
+
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationnotifier2/">再入荷リクエスト通知（SKU移行後）</a></td>
+      <td class="confluenceTd">SKU移行後の再入荷リクエスト内容を通知します<br>注）SKU移行後も継続して利用希望の場合は、4100：再入荷リクエスト通知（SKU移行前）と別に、4200：再入荷リクエスト通知（SKU移行後）のお申込みが必要です</td>
+    </tr>
+
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/creditexamresultnotice">審査結果通知</a></td>
+      <td class="confluenceTd">楽天側での決済の与信審査結果を通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/cautiondisplaynotice">警告表示注文通知</a></td>
+      <td class="confluenceTd">警告表示されている注文がある場合通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/paymentmethodchangenotification/">支払方法変更通知</a></td>
+      <td class="confluenceTd">「支払方法変更通知」は、楽天市場 決済代行センター業務において、購入者の支払方法を変更したタイミングで、対象受注・支払方法を通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/inquiryshopperactionnotice">問い合わせユーザアクション通知</a></td>
+      <td class="confluenceTd">ユーザーから、新規問い合わせまたは返信があったことを通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/inquirymerchantactionnotice">問い合わせ店舗アクション通知</a></td>
+      <td class="confluenceTd">店舗様からの新規問い合わせ、またはユーザーの問い合わせに返信したことを通知します</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/reserveinformationnotification">購入申込通知</a></td>
+      <td class="confluenceTd">予約購入・定期購入・頒布会サービスにて、新規申込が発生したタイミングでの申込特定情報を通知します</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

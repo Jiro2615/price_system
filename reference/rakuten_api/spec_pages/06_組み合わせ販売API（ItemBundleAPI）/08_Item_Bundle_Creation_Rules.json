@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "組み合わせ販売API（ItemBundleAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/"
+  },
+  "feature_page": {
+    "name": "Item Bundle Creation Rules",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/bundle-creation-rules/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/bundle-creation-rules/",
+  "main_text": "サービス一覧へ戻る / ItemBundleAPI\n\nRMS WEB SERVICE : Item Bundle Creation Rules\n\n組み合わせの新規登録や更新には下記のルールがあります。\n\n : 組み合わせを新規登録、更新することができます。バリデーションなどのチェックはありません。\n\n : 組み合わせを新規登録、更新はできません。バリデーションチェックがあり、エラーが返却されます。\n\n \n\n対象\t親商品\t子商品\t理由\n予約商品\t  \t  \t\n\n組み合わせに利用できない商品タイプです。\n\n\n販売期間指定商品\t  \t  \t組み合わせに利用できない商品タイプです。\n項目選択肢別在庫商品(マルチSKU)\t \t  \t\n\n項目選択肢別在庫商品が直接に買い物カゴに追加できないため、\n\n子商品として、組み合わせに利用できない商品タイプです。\n\n\n項目選択肢（商品オプション）が属している商品 \t  \t   \t項目選択肢あり商品が直接に買い物カゴに追加できないため、\n\n子商品として、組み合わせに利用できない商品タイプです。\n\n\n闇市商品\t  \t   \t\n\n子商品として、組み合わせに利用できない商品タイプです。\n\n\n頒布会\t  \t  \t組み合わせに利用できない商品タイプです。\n倉庫指定商品\t \t \t -\n在庫設定なし商品\t \t \t -\n医薬品ジャンル商品\t  \t  \t医薬品ジャンル商品は組み合わせに利用できません。\n酒類ジャンル商品\t \t   \t酒類ジャンル商品は組み合わせに利用できません。\nコンタクトレンズジャンル商品\t \t   \tコンタクトレンズジャンル商品は組み合わせに利用できません。"
+}

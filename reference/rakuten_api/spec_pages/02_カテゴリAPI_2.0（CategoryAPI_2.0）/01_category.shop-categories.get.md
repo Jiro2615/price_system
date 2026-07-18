@@ -1,0 +1,431 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/categoryapi2/getcategory/
+サービス: カテゴリAPI 2.0（CategoryAPI 2.0）
+
+サービス一覧へ戻る / CategoryAPI 2.0
+
+RMS WEB SERVICE : category.shop-categories.get
+Overview
+この機能を利用すると、カテゴリIDを指定しカテゴリ情報を取得することができます。
+
+※機能の注意点
+・取得できるカテゴリ情報について
+カテゴリツリーに紐づいていないカテゴリの情報は取得できません。
+カテゴリをカテゴリツリーに紐づけるには、category.category-trees.upsertを利用してください。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories/category-ids/{categoryId}	GET
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+Path Parameter
+No	Parameter Name	Logical Name	Required	Type	Max Byte	Multiplicity	Description
+1	categoryId	カテゴリID	yes	string	40	1	
+Query Parameter
+No	Parameter Name	Logical Name	Required	Type	Max Byte	Multiplicity	Description
+1	breadcrumb	パンくずリスト	no	boolean	-	0,1	・true：指定したカテゴリと、パンくずでつながった全ての上位カテゴリ情報
+・false：指定したカテゴリ情報のみ（デフォルト）
+2	categorysetfields	カテゴリセットフィールド	no	enum	-	0,1	レスポンスの”breadcrumbs“内の以下のカテゴリセット情報を取得したい場合は指定。
+複数指定する場合はカンマ区切り。
+
+・TITLE：カテゴリセット名
+・CATEGORY_SET_FEATURES：カテゴリセット設定
+・CREATED：カテゴリセットの登録日時
+・UPDATED： カテゴリセットの更新日時
+3	categoryfields	カテゴリフィールド	no	enum	-	0,1	レスポンスの”breadcrumbs“内の以下のカテゴリ情報を取得したい場合は指定。
+複数指定する場合はカンマ区切り。
+
+・CATEGORY_SET_ID：カテゴリセットID
+・TITLE：カテゴリ名
+・CATEGORY_FEATURES：カテゴリ設定
+・DESCRIPTION：カテゴリ説明文
+・ADDITIONALDESCRIPTION：カテゴリ説明文下
+・IMAGES：カテゴリ画像
+・LAYOUT：カテゴリレイアウト
+・CREATED：カテゴリの登録日時
+・UPDATED：カテゴリの更新日時
+HTTP Body
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	application/json
+HTTP Body
+成功した場合
+No	Parameter Name	Logical Name	Not Null	Type	Max Byte	Multiplicity	Description
+L1	L2	L3	L4
+1	categoryId	カテゴリID	yes	string	40	1	型は文字列だが、値は数値。
+2	categorySetId	カテゴリセットID	yes	string	20	1	数字または"etc"。
+カテゴリセットを利用していない場合は「0」。
+3	title	カテゴリ名	yes	string	60	1	
+4	categoryFeatures	カテゴリ設定	yes	object	-	1	
+5		display	カテゴリ表示	yes	boolean	-	1	・true：表示
+・false：非表示
+6		categoryPageViewMode	カテゴリページ表示形式	yes	enum	-	1	・LIST：リスト形式
+・GALLERY：ウィンドウショッピング形式
+・PLURAL ：1ページ複数商品形式
+7	description	カテゴリ説明文	no	object	-	0,1	
+8		pc	カテゴリ説明文上	no	string	8000	0,1	PC用カテゴリ説明文の上部。
+9		sp	スマートフォン用カテゴリ説明文	no	string	8000	0,1	
+10	additionalDescription	カテゴリ説明文下	no	string	8000	0,1	PC用カテゴリ説明文の下部。
+11	images	カテゴリ画像	no	list<object>	-	0,1	
+12		type	カテゴリ画像種別	yes	enum	-	0,1	・CABINET：R-Cabinetの画像
+・GOLD：GOLDの画像
+・ABSOLUTE： 楽天市場おすすめ画像
+13		location	カテゴリ画像URL	yes	string	255	0,1	カテゴリ画像種別が「CABINET」「GOLD」の場合、画像URLの"/画像パス”部分。
+
+CABINET： https://image.rakuten.co.jp/[SHOP_URL]cabinet/画像パス
+GOLD： https://www.rakuten.ne.jp/gold/[SHOP_URL]/画像パス
+例: "/myfolder-1/tv01.jpg"
+
+「ABSOLUTE」を指定した場合、URL全文。
+例："https://image.rakuten.co.jp/com/img/rms/cabinet/recommend_new/imgXXX.jpg"
+14		alt	カテゴリ画像名(ALT)	no	string	255	0,1	
+15	layout	カテゴリレイアウト	yes	object	-	1	
+16		navigationId	ヘッダー・フッター・レフトナビのテンプレートID	yes	number	-	1	
+17		layoutCategorySequenceId	表示項目の並び順テンプレートID	yes	number	-	1	
+18		smallDescriptionId	共通説明文（小）テンプレートID	yes	number	-	1	
+19		showcaseId	目玉商品テンプレートID	yes	number	-	1	
+20		largeDescriptionId	共通説明文（大）テンプレートID	yes	number	-	1	
+21	created	登録日時	yes	string	-	1	カテゴリの登録日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+22	updated	更新日時	yes	string	-	1	カテゴリの更新日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+23	breadcrumbs	パンくず	no	object	-	0,1	所属情報。
+breadcrumbにtrueを指定した場合に返される。
+24		categorySet	カテゴリセット	yes	object	-	0,1	
+25			categorySetId	カテゴリセットID	yes	string	20	0,1	数字または"etc"。
+カテゴリセットを利用していない場合は「0」。
+26			title	カテゴリセット名	no	string	60	0,1	カテゴリセットを利用していない場合は全角スペース。
+27			categorySetFeatures	カテゴリセット設定	no	object	-	0,1	
+28				display	カテゴリセット表示	no	boolean	-	0,1	・true：表示
+・false：非表示
+29			created	登録日時	no	string	-	0,1	カテゴリセットの登録日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+30			updated	更新日時	no	string	-	0,1	カテゴリセットの更新日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+31		breadcrumbList	パンくずリスト	no	list<category>	-	0..4	すべての上位カテゴリ。
+ソートは階層昇順。
+32			categoryId	カテゴリID	no	string	40	0,1	型は文字列だが、値は数値。
+33			categorySetId	カテゴリセットID	no	string	20	0,1	数字または"etc"。
+カテゴリセットを利用していない場合は「0」。
+34			title	カテゴリ名	no	string	60	0,1	
+35			categoryFeatures	カテゴリ設定	no	object	-	0,1	
+36				display	カテゴリ表示	no	boolean	-	0,1	・true：表示
+・false：非表示
+37				categoryPageViewMode	カテゴリページ表示形式	no	enum	-	0,1	・LIST：リスト形式
+・GALLERY：ウィンドウショッピング形式
+・PLURAL ：1ページ複数商品形式
+38			description	カテゴリ説明文	no	object	-	0,1	
+39				pc	カテゴリ説明文上	no	string	8000	0,1	PC用カテゴリ説明文の上部。
+40				sp	スマートフォン用カテゴリ説明文	no	string	8000 	0,1	
+41			additionalDescription	カテゴリ説明文下	no	string	8000	0,1	PC用カテゴリ説明文の下部。
+42			images	カテゴリ画像	no	list<object>	-	0,1	
+43				type	カテゴリ画像種別	no	enum	-	0,1	・CABINET：R-Cabinetの画像
+・GOLD：GOLDの画像
+・ABSOLUTE： 楽天市場おすすめ画像
+44				location	カテゴリ画像URL	no	string	255	0,1	カテゴリ画像種別が「CABINET」「GOLD」の場合、画像URLの"/画像パス”部分。
+
+CABINET：https://image.rakuten.co.jp/[SHOP_URL]/cabinet/画像パス
+GOLD：https://www.rakuten.ne.jp/gold/[SHOP_URL]/画像パス
+例: "/myfolder-1/tv01.jpg"
+
+「ABSOLUTE」の場合、URL全文。
+例："https://image.rakuten.co.jp/com/img/rms/cabinet/recommend_new/imgXX.jpg"
+45				alt	カテゴリ画像名(ALT)	no	string	255	0,1	
+46			layout	カテゴリレイアウト	no	object	-	0,1	
+47				navigationId	ヘッダー・フッター・レフトナビテンプレートID	no	number	-	0,1	
+48				layoutCategorySequenceId	表示項目の並び順のテンプレートID	no	number	-	0,1	
+49				smallDescriptionId	共通説明文（小）のテンプレートID	no	number	-	0,1	
+50				showcaseId	目玉商品テンプレートID	no	number	-	0,1	
+51				largeDescriptionId	共通説明文（大）テンプレートID	no	number	-	0,1	
+52			created	登録日時	no	string	-	0,1	カテゴリの登録日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+53			updated	更新日時	no	string	-	0,1	カテゴリの更新日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。
+失敗した場合
+No	Parameter Name	Logical Name	Not Null	Type	Max Byte	Multiplicity	Description
+L1	L2
+1	errors	エラー	yes	List<error>	-	1..n	エラーのリスト
+2		code	コード	yes	string	-	1	メッセージコードの一覧はこちら。
+3		message	メッセージ	yes	string	-	1
+Sample
+サンプルで用いるカテゴリセット(categorySetId=32345)のカテゴリツリー状態は以下のようになっています
+
+
+成功した場合(QueryParameterに何も設定されていない場合)
+Request (curl コマンドを使った例)
+curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories/category-ids/12' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 200 OK)
+{
+    "categoryId": "12",
+    "categorySetId": "32345",
+    "title": "カテゴリ12",
+    "categoryFeatures": {
+        "display": true,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "aaa",
+        "sp": "aaa"
+    },
+    "additionalDescription": "aaa",
+    "images": [
+        {
+            "type": "CABINET",
+            "location": "/washingmachine.jpg",
+            "alt": "全自動洗濯機1"
+        }
+    ],
+    "layout": {
+        "navigationId": 0,
+        "layoutCategorySequenceId": 0,
+        "smallDescriptionId": 0,
+        "showcaseId": 0,
+        "largeDescriptionId": 0
+    },
+    "created": "2021-06-14T17:45:10+09:00",
+    "updated": "2021-10-21T11:48:12+09:00"
+}
+成功した場合(QueryParameterにbreadcrumb=trueのみ設定された場合)
+Request (curl コマンドを使った例)
+curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories/category-ids/12?breadcrumb=true' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 200 OK)
+{
+    "categoryId": "12",
+    "categorySetId": "32345",
+    "title": "カテゴリ12",
+    "categoryFeatures": {
+        "display": true,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "aaa",
+        "sp": "aaa"
+    },
+    "additionalDescription": "aaa",
+    "images": [
+        {
+            "type": "CABINET",
+            "location": "/washingmachine.jpg",
+            "alt": "全自動洗濯機1"
+        }
+    ],
+    "layout": {
+        "navigationId": 0,
+        "layoutCategorySequenceId": 0,
+        "smallDescriptionId": 0,
+        "showcaseId": 0,
+        "largeDescriptionId": 0
+    },
+    "created": "2021-06-14T17:45:10+09:00",
+    "updated": "2021-10-21T11:48:12+09:00",
+    "breadcrumbs": {
+        "categorySet": {
+            "categorySetId": "32345"
+        },
+        "breadcrumbList": [
+            {
+                "categoryId": "1"
+            },
+            {
+                "categoryId": "2"
+            },
+            {
+                "categoryId": "5"
+            },
+            {
+                "categoryId": "8"
+            }
+        ]
+    }
+}
+成功した場合(QueryParameterにbreadcrumb=trueを、categorysetfieldsとcategoryfieldsに全てのパラメータを設定された場合)
+Request (curl コマンドを使った例)
+curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories/category-ids/12?breadcrumb=true&
+categorysetfields=TITLE,CATEGORY_SET_FEATURES,CREATED,UPDATED&
+categoryfields=CATEGORY_SET_ID,TITLE,CATEGORY_FEATURES,DESCRIPTION,ADDITIONALDESCRIPTION,IMAGES,LAYOUT,CREATED,UPDATED' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 200 OK)
+{
+    "categoryId": "12",
+    "categorySetId": "32345",
+    "title": "カテゴリ12",
+    "categoryFeatures": {
+        "display": true,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "aaa",
+        "sp": "aaa"
+    },
+    "additionalDescription": "aaa",
+    "images": [
+        {
+            "type": "CABINET",
+            "location": "/washingmachine.jpg",
+            "alt": "全自動洗濯機1"
+        }
+    ],
+    "layout": {
+        "navigationId": 0,
+        "layoutCategorySequenceId": 0,
+        "smallDescriptionId": 0,
+        "showcaseId": 0,
+        "largeDescriptionId": 0
+    },
+    "created": "2021-06-14T17:45:10+09:00",
+    "updated": "2021-10-21T11:48:12+09:00",
+    "breadcrumbs": {
+        "categorySet": {
+            "categorySetId": "32345",
+            "title": "CategorySet",
+            "categorySetFeatures": {
+                "display": true
+            },
+            "created": "2021-04-23T16:55:27+09:00",
+            "updated": "2023-06-01T19:18:48+09:00"
+        },
+        "breadcrumbList": [
+            {
+                "categoryId": "1",
+                "categorySetId": "32345",
+                "title": "カテゴリ1",
+                "categoryFeatures": {
+                    "display": true,
+                    "categoryPageViewMode": "LIST"
+                },
+                "description": {
+                    "pc": "aaa",
+                    "sp": "aaa"
+                },
+                "additionalDescription": "aaa",
+                "images": [
+                    {
+                        "type": "CABINET",
+                        "location": "/washingmachine.jpg",
+                        "alt": "全自動洗濯機1"
+                    }
+                ],
+                "layout": {
+                    "navigationId": 0,
+                    "layoutCategorySequenceId": 0,
+                    "smallDescriptionId": 0,
+                    "showcaseId": 0,
+                    "largeDescriptionId": 0
+                },
+                "created": "2021-06-14T17:45:10+09:00",
+                "updated": "2021-10-21T11:48:12+09:00"
+            },
+            {
+                "categoryId": "2",
+                "categorySetId": "32345",
+                "title": "カテゴリ2",
+                "categoryFeatures": {
+                    "display": true,
+                    "categoryPageViewMode": "LIST"
+                },
+                "description": {
+                    "pc": "aaa",
+                    "sp": "aaa"
+                },
+                "additionalDescription": "aaa",
+                "images": [
+                    {
+                        "type": "CABINET",
+                        "location": "/washingmachine.jpg",
+                        "alt": "全自動洗濯機1"
+                    }
+                ],
+                "layout": {
+                    "navigationId": 0,
+                    "layoutCategorySequenceId": 0,
+                    "smallDescriptionId": 0,
+                    "showcaseId": 0,
+                    "largeDescriptionId": 0
+                },
+                "created": "2021-06-14T17:45:10+09:00",
+                "updated": "2021-10-21T11:48:12+09:00"
+            },
+            {
+                "categoryId": "5",
+                "categorySetId": "32345",
+                "title": "カテゴリ5",
+                "categoryFeatures": {
+                    "display": true,
+                    "categoryPageViewMode": "LIST"
+                },
+                "description": {
+                    "pc": "aaa",
+                    "sp": "aaa"
+                },
+                "additionalDescription": "aaa",
+                "images": [
+                    {
+                        "type": "CABINET",
+                        "location": "/washingmachine.jpg",
+                        "alt": "全自動洗濯機1"
+                    }
+                ],
+                "layout": {
+                    "navigationId": 0,
+                    "layoutCategorySequenceId": 0,
+                    "smallDescriptionId": 0,
+                    "showcaseId": 0,
+                    "largeDescriptionId": 0
+                },
+                "created": "2021-06-14T17:45:10+09:00",
+                "updated": "2021-10-21T11:48:12+09:00"
+            },
+            {
+                "categoryId": "8",
+                "categorySetId": "32345",
+                "title": "カテゴリ8",
+                "categoryFeatures": {
+                    "display": true,
+                    "categoryPageViewMode": "LIST"
+                },
+                "description": {
+                    "pc": "aaa",
+                    "sp": "aaa"
+                },
+                "additionalDescription": "aaa",
+                "images": [
+                    {
+                        "type": "CABINET",
+                        "location": "/washingmachine.jpg",
+                        "alt": "全自動洗濯機1"
+                    }
+                ],
+                "layout": {
+                    "navigationId": 0,
+                    "layoutCategorySequenceId": 0,
+                    "smallDescriptionId": 0,
+                    "showcaseId": 0,
+                    "largeDescriptionId": 0
+                },
+                "created": "2021-06-14T17:45:10+09:00",
+                "updated": "2021-10-21T11:48:12+09:00"
+            }
+        ]
+    }
+}
+失敗した場合
+Request (curl コマンドを使った例)
+curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories/category-ids/31613' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 400 Bad Request)
+{
+    "errors": [
+        {
+            "code": "GE0014",
+            "message": "No category found for inputs; categoryId=31613"
+        }
+    ]
+}

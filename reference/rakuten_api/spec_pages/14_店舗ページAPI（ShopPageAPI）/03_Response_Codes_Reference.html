@@ -1,0 +1,1015 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock35528" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/">ShopPageAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : ShopPageAPI Response Code Reference</span></h1>
+</div>
+<span><font color="red">※SKUプロジェクトにてチェック内容が変更となるエラーについては背景色を緑に変更しています。</font></span><br>
+<h2 id="HTTP Status Code">HTTP Status Code</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>Status</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">200</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">OK</td>
+      <td class="confluenceTd give_space">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">204</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">No Content</td>
+      <td class="confluenceTd give_space">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">リクエストが不正です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">401</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Unauthorized</td>
+      <td class="confluenceTd give_space">インターフェースの呼び出し権限がありません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">404</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd give_space">リクエストパスが見つかりません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">405</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Method Not Allowed</td>
+      <td class="confluenceTd give_space">指定されたメソッドはサポートされていません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">415</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Unsupported Media Type</td>
+      <td class="confluenceTd give_space">指定されたメディアタイプはサポートされていません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">422</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Unprocessable Entity</td>
+      <td class="confluenceTd give_space">リクエストボディに不正があって処理が継続できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">サーバ内部にエラーが発生しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">503</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Service Unavailable</td>
+      <td class="confluenceTd give_space">サービスが一時的に過負荷やメンテナンスで使用不可能です。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<span>※400と422の違い、400はHTTP  HeaderやQuery Parameterにエラーがあった場合や、HTTP Bodyのフォーマットにエラーがあった場合に返されます。422はHTTP Bodyのフォーマットが正しく、各Parameterの値チェックなどでエラーが発生した場合に返されます。</span><br>
+<h2 id="Error code list">Error code list</h2>
+<span>ShopPageAPIで扱うエラーコードの一覧は以下の通りです。</span><br>
+<h3 id="Generic errors">Generic errors</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Error Code</b></th>
+      <th class="confluenceTh"><b>Error Message</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>MetaData</b></th>
+      <th class="confluenceTh"><b>Staus Code</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0001</td>
+      <td class="confluenceTd give_space">Invalid value on field {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストパスに不正な値が含まれます。
+
+{0}:エラーが発生したリクエストパス</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0002</td>
+      <td class="confluenceTd give_space">Invalid value on parameter {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">クエリパラメータが正しくありません。
+
+{0}:エラーが発生したパラメータ名</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0003</td>
+      <td class="confluenceTd give_space">Invalid value on header {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストヘッダの内容が正しくありません。
+
+{0}:エラーが発生したヘッダー名</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0005</td>
+      <td class="confluenceTd give_space">Missing required parameter {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">必須のクエリパラメータが未指定です。
+
+{0}:エラーが発生したパラメータ名</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0006</td>
+      <td class="confluenceTd give_space">Missing required header {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">必須のリクエストヘッダが未指定です。
+
+{0}:エラーが発生したヘッダー名</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0007</td>
+      <td class="confluenceTd give_space">Requested path does not exist</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストパスが見つかりません。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">404</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0008</td>
+      <td class="confluenceTd give_space">The call is unauthorized. Check Authorization header</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">インターフェース呼び出し権限がありません。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">401</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0009</td>
+      <td class="confluenceTd give_space">The HTTP method utilized is not supported by this resource</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">このメソッドはサポートされていません。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">405</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0011</td>
+      <td class="confluenceTd give_space">Request body cannot be processed</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディが正しくありません。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0012</td>
+      <td class="confluenceTd give_space">Media Type {0} is not supported</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定されたメディアタイプはサポートされていません。
+{0}:エラーが発生したメディアタイプ</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">415</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0014</td>
+      <td class="confluenceTd give_space">The resource with id: {0} does not exist.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定されたIDをもつリソースは存在しません。
+
+{0}:値</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">404</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE1001</td>
+      <td class="confluenceTd give_space">The resource with {0}: {1} already exist</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された値をもつリソースが既に存在します。
+
+{0}:キー
+{1}:値</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE1002</td>
+      <td class="confluenceTd give_space">Operation is forbidden for layout type {0}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">そのAPIで操作できないレイアウトタイプが指定されています。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">X0000</td>
+      <td class="confluenceTd give_space">An unexpected error has occurred</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">予期せぬエラーが発生しました。</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Business validation errors">Business validation errors</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Error Code</b></th>
+      <th class="confluenceTh"><b>Error Message</b></th>
+      <th class="confluenceTh"><b>MetaData</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Staus Code</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0001</td>
+      <td class="confluenceTd give_space">Missing required field</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">必要なフィールドが指定されていません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0002</td>
+      <td class="confluenceTd give_space">Length Exceeded</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String), 
+  "max": #(Integer)
+}</td>
+      <td class="confluenceTd give_space">文字列の文字数が上限を超えています。
+propertyPath:エラーが発生したパラメータ名
+max:最大文字数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0003</td>
+      <td class="confluenceTd give_space">Number of elements exceeds limit</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String),
+  "max": #(Integer),
+  "detail": #(String)
+}</td>
+      <td class="confluenceTd give_space">要素数が上限を超えています。
+propertyPath:エラーが発生したパラメータ名
+max:最大要素数
+detail:要素の詳細情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0004</td>
+      <td class="confluenceTd give_space">Unapproved Links</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">フィールドに許可されない外部リンクが含まれます。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0005</td>
+      <td class="confluenceTd give_space">Illegal characters</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">フィールドに不正な文字が含まれます。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0006</td>
+      <td class="confluenceTd give_space">Unapproved html</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String), 
+  "invalidValueList": [
+    {
+      "tag": #(String), 
+      "attribute": #(String), 
+      "value": #(String) 
+    }
+  ]
+}</td>
+      <td class="confluenceTd give_space">フィールドに許可されないHTMLタグが含まれます。
+propertyPath:エラーが発生したパラメータ名
+invalidaValueList[]:エラーがあったタグまたは属性のリスト
+
+invalidaValueList[].tag: エラーがあったタグ名
+invalidValueList[].attribute: エラーがあった属性名
+invalidValueList[].value: エラーの値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0007</td>
+      <td class="confluenceTd give_space">Number out of range</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String), 
+  "min": #(Integer), 
+  "max": #(Integer) 
+}</td>
+      <td class="confluenceTd give_space">フィールドの数値が許容範囲外です。
+propertyPath:エラーが発生したパラメータ名
+min:最小値
+max:最大値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0008</td>
+      <td class="confluenceTd give_space">Unapproved image path format</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">許可されない画像パスです。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0009</td>
+      <td class="confluenceTd give_space">Missing dependent input</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">依存入力がありません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0010</td>
+      <td class="confluenceTd give_space">The field cannot be set</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">条件によりフィールドの値をセットできません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0011</td>
+      <td class="confluenceTd give_space">The field cannot be updated</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">このフィールドは更新できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0012</td>
+      <td class="confluenceTd give_space">The combination of values is invalid</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">無効な組み合わせが含まれています。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0013</td>
+      <td class="confluenceTd give_space">The Widget type cannot be created/updated</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String),
+  "detail": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定されたパーツ種別は登録または更新ができません。
+propertyPath:エラーが発生したパラメータ名
+detail:エラーの詳細情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0014</td>
+      <td class="confluenceTd give_space">The page cannot be created</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "detail": #(String) 
+}</td>
+      <td class="confluenceTd give_space">指定されたレイアウトは登録できません。
+detail:エラーの詳細情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0015</td>
+      <td class="confluenceTd give_space">Unapproved contents</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定された値は入力できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0016</td>
+      <td class="confluenceTd give_space">Specified value does not match any of the acceptable values</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">無効な値が指定されています。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0101</td>
+      <td class="confluenceTd give_space">Requested category not found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定されたIDのカテゴリが見つかりません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0102</td>
+      <td class="confluenceTd give_space">Requested category is non-displayable</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定されたIDのカテゴリは表示不可です。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0103</td>
+      <td class="confluenceTd give_space">Requested category is not allowed category type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定されたIDのカテゴリは指定できない種別のカテゴリIDです。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0201</td>
+      <td class="confluenceTd give_space">Requested item not found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定された商品管理番号をもつ商品が見つかりません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">21</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0202</td>
+      <td class="confluenceTd give_space">Requested item is&nbsp;not allowed item type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">この商品種別は許可されていません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">22</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">BE0203</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">Requested item is soko item</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">{
+  "propertyPath": #(String)
+}</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">倉庫指定商品／仮倉庫の商品は登録できません。
+SKU移行後は上記に加え、すべてのSKUが倉庫指定の商品も登録できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">23</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0204</td>
+      <td class="confluenceTd give_space">Requested item is&nbsp;yamiichi item</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">闇市商品は登録できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">24</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0205</td>
+      <td class="confluenceTd give_space">Requested item is search disable item</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">検索不可商品は登録できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">25</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0206</td>
+      <td class="confluenceTd give_space">Requested item is adult item</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">アダルト商品は登録できません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">26</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0301</td>
+      <td class="confluenceTd give_space">Invalid format</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String), 
+  "detail": #(String) 
+}</td>
+      <td class="confluenceTd give_space">フォーマットが不正です。
+propertyPath:エラーが発生したパラメータ名
+detail:フォーマットの詳細情報
+※ 日付の場合は、Format must be YYYY-MM-DDThh:mm:ssZなど</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">27</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0302</td>
+      <td class="confluenceTd give_space">Invalid period settings</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">公開開始時間は公開終了時間よりも早い必要があります。
+公開終了時間は公開開始時間よりも遅い必要があります。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">28</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0304</td>
+      <td class="confluenceTd give_space">Invalid minimum set time of startTime</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">公開開始時間は現在時刻の1分後以降である必要があります。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">29</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0305</td>
+      <td class="confluenceTd give_space">Reservation time overlapping</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">公開開始時間と公開終了時間は他の予約の時間帯と重ならない必要があります。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">30</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0306</td>
+      <td class="confluenceTd give_space">Value Not Unique</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">値が一意ではありません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">31</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0307</td>
+      <td class="confluenceTd give_space">Widget already used</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "linked": [
+    {
+      "layoutId": #(String) 
+    }
+  ]
+}</td>
+      <td class="confluenceTd give_space">パーツを削除もしくはレイアウトに紐付ける場合、そのパーツは他のレイアウトに紐づけられていない必要があります。
+linked[]:パーツが紐づけされているレイアウトのリスト
+
+linked[].layoutId:パーツが紐づけれているレイアウトのID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0308</td>
+      <td class="confluenceTd give_space">Specifying a layout that cannot be deleted</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">指定されたレイアウトは削除できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">33</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0309</td>
+      <td class="confluenceTd give_space">Specifying a layout that cannot be replaced</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">デフォルトのレイアウトのみ置き換えることができます。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">34</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0310</td>
+      <td class="confluenceTd give_space">Dependent data cannot be found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "linked": [
+    {
+      "widgetId": #(String),
+      "navigationId":#(String)
+    }
+  ]
+}</td>
+      <td class="confluenceTd give_space">依存データを更新できませんでした。
+linked[]:更新できなかったデータのリスト
+
+linked[].widgetId:更新できなかったパーツのID
+linked[].navigationId:更新できなかったナビゲーションのID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">35</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0312</td>
+      <td class="confluenceTd give_space">First public layout must be default layout</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">初回のレイアウト公開はデフォルトレイアウトの必要があります。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">36</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0313</td>
+      <td class="confluenceTd give_space">Invalid settings of startTime and endTime</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">公開開始時間もしくは公開終了時間の指定が不正です。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">37</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0314</td>
+      <td class="confluenceTd give_space">Invalid min and max price settings</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">最低価格もしくは最高価格の指定が不正です。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">38</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0315</td>
+      <td class="confluenceTd give_space">Invalid minimum set time of endTime</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">公開終了時間の最小値よりも早い時間が設定されています。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">39</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0316</td>
+      <td class="confluenceTd give_space">URL exceeded max slashes limit</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String),
+  "max": #(Integer)
+}</td>
+      <td class="confluenceTd give_space">URLに指定できる最大の"/"数を超えています。
+propertyPath:エラーが発生したパラメータ名
+max:最大の"/"数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">40</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0317</td>
+      <td class="confluenceTd give_space">URL part is out of range</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String),
+  "min": #(Integer),
+  "max": #(Integer)
+}</td>
+      <td class="confluenceTd give_space">URLの"/"間に指定された文字が範囲内に収まっていません。
+propertyPath:エラーが発生したパラメータ名
+max:最大の文字数
+min:最小の文字数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">41</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0401</td>
+      <td class="confluenceTd give_space">Requested couponCode not found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定されたクーポンコードをもつクーポンが見つかりません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">42</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0402</td>
+      <td class="confluenceTd give_space">Requested couponCode is not displayable</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">クーポンの状態は公開可能である必要があります。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">43</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0403</td>
+      <td class="confluenceTd give_space">Requested couponCode is invalid period</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">有効期間内のクーポンを指定する必要があります。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">44</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0404</td>
+      <td class="confluenceTd give_space">Requested couponCode is reached the usage limit</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">クーポンの全利用回数上限を超えています。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">45</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0405</td>
+      <td class="confluenceTd give_space">Requested couponCode is not allowed discount type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">定額値引き、もしくは定率値引きのクーポンを指定する必要があります。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">46</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0501</td>
+      <td class="confluenceTd give_space">Requested video is not found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定された動画IDが存在しません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">47</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0502</td>
+      <td class="confluenceTd give_space">Requested video is not owned by the shop</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">{
+  "propertyPath": #(String)
+}</td>
+      <td class="confluenceTd give_space">指定された動画IDはこのショップでは使えません。
+propertyPath:エラーが発生したパラメータ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">48</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">BE0601</td>
+      <td class="confluenceTd give_space">Shop is out of target genres</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">この店舗ジャンルでは実行することはできません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">422</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

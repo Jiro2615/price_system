@@ -3,15 +3,34 @@ from __future__ import annotations
 import asyncio
 import importlib
 from pathlib import Path
+from typing import Any
 
 from scripts.listing.models import AmazonCheckResult
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 LOCAL_MODULE_PATH = BASE_DIR / "scripts" / "price_check_one_asin_db.py"
+REQUIRED_MODULE_ATTRIBUTES = ("check_amazon_one",)
+OPTIONAL_MODULE_ATTRIBUTES = ("log_result_summary",)
 
 
 _amazon_module = None
+
+
+def _validate_amazon_module(module: Any) -> Any:
+    missing_required: list[str] = []
+    for name in REQUIRED_MODULE_ATTRIBUTES:
+        if not callable(getattr(module, name, None)):
+            missing_required.append(name)
+
+    if missing_required:
+        joined = ", ".join(sorted(missing_required))
+        raise RuntimeError(
+            "Amazon checker module is missing required callable(s): "
+            f"{joined}"
+        )
+
+    return module
 
 
 def _load_amazon_module():
@@ -23,7 +42,7 @@ def _load_amazon_module():
         raise RuntimeError(f"Amazon checker not found in current worktree: {LOCAL_MODULE_PATH}")
 
     module = importlib.import_module("scripts.price_check_one_asin_db")
-    _amazon_module = module
+    _amazon_module = _validate_amazon_module(module)
     return module
 
 
@@ -35,27 +54,34 @@ async def fetch_amazon_result(
 ) -> AmazonCheckResult:
     module = _load_amazon_module()
     captured: dict[str, object] = {}
-    original_logger = module.log_result_summary
+    original_logger = getattr(module, "log_result_summary", None)
 
-    def capture_logger(requested_asin: str, page_asin: str, current_url: str, result: dict[str, object]) -> None:
-        captured["requested_asin"] = requested_asin
-        captured["page_asin"] = page_asin
-        captured["current_url"] = current_url
-        return original_logger(requested_asin, page_asin, current_url, result)
+    if callable(original_logger):
+        def capture_logger(requested_asin: str, page_asin: str, current_url: str, result: dict[str, object]) -> None:
+            captured["requested_asin"] = requested_asin
+            captured["page_asin"] = page_asin
+            captured["current_url"] = current_url
+            return original_logger(requested_asin, page_asin, current_url, result)
 
-    module.log_result_summary = capture_logger
-    try:
+        module.log_result_summary = capture_logger
+        try:
+            result = await module.check_amazon_one(
+                asin.strip().upper(),
+                page_timeout_ms=page_timeout_ms,
+                debug_html=debug_html,
+            )
+        finally:
+            module.log_result_summary = original_logger
+    else:
         result = await module.check_amazon_one(
             asin.strip().upper(),
             page_timeout_ms=page_timeout_ms,
             debug_html=debug_html,
         )
-    finally:
-        module.log_result_summary = original_logger
 
     return AmazonCheckResult(
         requested_asin=str(captured.get("requested_asin", asin.strip().upper())),
-        page_asin=str(captured.get("page_asin", "")),
+        page_asin=str(captured.get("page_asin", result.get("asin", "")) or ""),
         title=str(result.get("title", "") or ""),
         amazon_price=result.get("amazon_price"),
         available_qty=result.get("available_qty"),
@@ -64,7 +90,7 @@ async def fetch_amazon_result(
         business_ng=bool(result.get("business_ng")),
         system_error=bool(result.get("system_error")),
         ng_reason=str(result.get("ng_reason", "") or ""),
-        current_url=str(captured.get("current_url", "") or ""),
+        current_url=str(captured.get("current_url", result.get("current_url", "")) or ""),
     )
 
 

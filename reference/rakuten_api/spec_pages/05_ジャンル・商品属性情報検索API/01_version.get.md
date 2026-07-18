@@ -1,0 +1,65 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/versionget/
+サービス: ジャンル・商品属性情報検索API
+
+サービス一覧へ戻る / NavigationAPI 2.0
+
+RMS WEB SERVICE : version.get
+Overview
+この機能を利用すると、ジャンル及び、商品属性情報が変更された最終日時を取得することができます。
+店舗様でジャンル情報を独自に保持される場合、その情報が最新か否かを確認する際にご利用ください。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/2.0/navigation/version	GET
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+Path Parameter
+None
+
+Query Parameter
+None
+
+HTTP Body
+None
+
+Response
+HTTP Headers
+No	Key	Value
+1	Content-Type	application/json;  charset=utf-8
+HTTP Body
+成功した場合
+
+Level 1: base
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+1	version	バージョン情報	yes	version	1	ジャンル及び、商品属性定義のバージョン情報
+Level 2: version
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+1	id	バージョンID	yes	integer	1	バージョンID
+2	fixedAt	更新日時	yes	string	1	ジャンル及び、商品属性情報の更新最終日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)。
+
+失敗した場合
+
+Level 1: base
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+1	errors	エラー	yes	errors	1	エラー情報
+Level 2: error
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+1	code	エラーコード	yes	string	1	メッセージコードの一覧はこちら。
+2	message	メッセージ	yes	string	1
+Sample
+成功した場合
+Request (curl コマンドを使った例)
+curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/navigation/version' \
+--header 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+Response in JSON format (Status: 200 OK)
+{
+    "version": {
+        "id": 24,
+        "fixedAt": "2023-01-19T09:11:54+09:00"
+    }
+}

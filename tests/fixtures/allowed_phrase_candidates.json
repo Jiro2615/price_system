@@ -1,0 +1,295 @@
+{
+  "summary": {
+    "source_files": [
+      "reference/legacy_listing/replacelist_rakuten.txt",
+      "reference/legacy_listing/kinsiword_rakuten.txt",
+      "docs/legacy_rakuten_listing_spec.md"
+    ],
+    "total_replacement_rows": 978,
+    "space_insertion_rows": 505,
+    "removal_rows": 431,
+    "row_classification_counts": {
+      "high": 457,
+      "medium": 23,
+      "low": 25,
+      "unrelated": 473
+    },
+    "notes": [
+      "Counts are heuristic and intended for migration planning only.",
+      "This fixture is not a production allow-phrase master."
+    ]
+  },
+  "focus_candidates": [
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "アルコールフリー",
+      "legacy_replacement": "アル コールフリー",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks the current forbidden word アルコール while preserving the full phrase.",
+      "human_review_required": false,
+      "replacement_source": "アルコールフリー",
+      "space_insert_positions": [
+        2
+      ]
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "エチルアルコール",
+      "legacy_replacement": "エチルアル コール",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Ingredient phrase split only by whitespace; strong legacy evidence for false-positive avoidance.",
+      "human_review_required": false,
+      "replacement_source": "エチルアルコール",
+      "space_insert_positions": [
+        5
+      ]
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "ステアリルアルコール",
+      "legacy_replacement": "ステアリルアル コール",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Ingredient phrase split only by whitespace; strong legacy evidence for false-positive avoidance.",
+      "human_review_required": false,
+      "replacement_source": "ステアリルアルコール",
+      "space_insert_positions": [
+        7
+      ]
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "セテアリルアルコール",
+      "legacy_replacement": "セテアリルアル コール",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Ingredient phrase split only by whitespace; strong legacy evidence for false-positive avoidance.",
+      "human_review_required": false,
+      "replacement_source": "セテアリルアルコール",
+      "space_insert_positions": [
+        7
+      ]
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "ベヘニルアルコール",
+      "legacy_replacement": "ベヘニルアル コール",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Ingredient phrase split only by whitespace; strong legacy evidence for false-positive avoidance.",
+      "human_review_required": false,
+      "replacement_source": "ベヘニルアルコール",
+      "space_insert_positions": [
+        6
+      ]
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrase": "変性アルコール",
+      "legacy_replacement": "変性アル コール",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Ingredient phrase split only by whitespace; strong legacy evidence for false-positive avoidance.",
+      "human_review_required": false,
+      "replacement_source": "変性アルコール",
+      "space_insert_positions": [
+        4
+      ]
+    },
+    {
+      "forbidden_word": "スキン",
+      "allowed_phrase": "スキンケース",
+      "legacy_replacement": "スキ ンケース",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スキン and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スキンケース",
+      "space_insert_positions": [
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スキン",
+      "allowed_phrase": "スキンタイプ",
+      "legacy_replacement": "ス キ ンタイプ",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スキン and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スキンタイプ",
+      "space_insert_positions": [
+        1,
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スキン",
+      "allowed_phrase": "スキントーン",
+      "legacy_replacement": "ス キ ントーン",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スキン and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スキントーン",
+      "space_insert_positions": [
+        1,
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スキン",
+      "allowed_phrase": "スキンプロテクトミルク",
+      "legacy_replacement": "スキ ンプロテクトミルク",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スキン and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スキンプロテクトミルク",
+      "space_insert_positions": [
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrase": "スプレーボトル",
+      "legacy_replacement": "ス プ レーボトル",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スプレー and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スプレーボトル",
+      "space_insert_positions": [
+        1,
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrase": "オイルスプレー",
+      "legacy_replacement": "オイルス プレー",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スプレー and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "オイルスプレー",
+      "space_insert_positions": [
+        4
+      ]
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrase": "スプレーしない",
+      "legacy_replacement": "スプ レーしない",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スプレー and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スプレーしない",
+      "space_insert_positions": [
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrase": "スプレー機能",
+      "legacy_replacement": "スプ レー機能",
+      "classification": "high",
+      "confidence": "high",
+      "reason": "Whitespace-only replacement breaks スプレー and keeps the exact original phrase.",
+      "human_review_required": false,
+      "replacement_source": "スプレー機能",
+      "space_insert_positions": [
+        2
+      ]
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrase": "スプレー塗料で作られた",
+      "legacy_replacement": "スプ レー塗 料で作られた",
+      "classification": "medium",
+      "confidence": "medium",
+      "reason": "Whitespace-only replacement breaks スプレー, but 塗料 is also split so the intent may be multi-rule avoidance rather than one clean allow phrase.",
+      "human_review_required": true,
+      "replacement_source": "スプレー塗料で作られた",
+      "space_insert_positions": [
+        2,
+        5
+      ]
+    },
+    {
+      "forbidden_word": "クリ",
+      "allowed_phrase": "クリア",
+      "legacy_replacement": "ク リア",
+      "classification": "medium",
+      "confidence": "medium",
+      "reason": "Legacy whitespace masking exists, but no direct current forbidden-word match could be proven from the present kinsiword master.",
+      "human_review_required": true,
+      "replacement_source": "クリア",
+      "space_insert_positions": [
+        1
+      ]
+    },
+    {
+      "forbidden_word": "防犯",
+      "allowed_phrase": "人感センサーライト 防犯カメラ",
+      "legacy_replacement": "人感センサーライト 防 犯カメラ",
+      "classification": "medium",
+      "confidence": "medium",
+      "reason": "Legacy masking likely targets 防犯, but カメラ also overlaps nearby logic so phrase-level review is needed.",
+      "human_review_required": true,
+      "replacement_source": "人感センサーライト 防犯カメラ",
+      "space_insert_positions": [
+        11
+      ]
+    },
+    {
+      "forbidden_word": "ガソリン",
+      "allowed_phrase": "4輪ガソリン/ディーゼル車両用",
+      "legacy_replacement": "4輪ガソ リン/ディー ゼル車両用",
+      "classification": "medium",
+      "confidence": "medium",
+      "reason": "Both ガソリン and ディーゼル are split, so migration should stay phrase-specific rather than word-family-wide.",
+      "human_review_required": true,
+      "replacement_source": "4輪ガソリン/ディーゼル車両用",
+      "space_insert_positions": [
+        4,
+        10
+      ]
+    }
+  ],
+  "non_avoidance_examples": [
+    {
+      "source": "Amazon.co.jp限定",
+      "replacement": "ネット限定",
+      "classification": "unrelated",
+      "reason": "Meaning-changing substitution, not phrase masking."
+    },
+    {
+      "source": "Amazon限定ブランド",
+      "replacement": "ネット限定ブ ラ ン ド",
+      "classification": "unrelated",
+      "reason": "Contains a split term, but the leading Amazon-to-network rewrite changes meaning and should not be migrated automatically."
+    },
+    {
+      "source": "BMP",
+      "replacement": "WMF",
+      "classification": "unrelated",
+      "reason": "Format substitution, not prohibited-word avoidance."
+    },
+    {
+      "source": "?",
+      "replacement": "・",
+      "classification": "unrelated",
+      "reason": "Punctuation normalization."
+    },
+    {
+      "source": "100%満足保証:全額返金または返品保証、",
+      "replacement": "",
+      "classification": "unrelated",
+      "reason": "Removal-only cleanup or policy-text deletion."
+    }
+  ]
+}

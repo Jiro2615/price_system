@@ -1,0 +1,85 @@
+サービス一覧へ戻る / CategoryAPI 2.0
+
+RMS WEB SERVICE : category.item-mappings.upsert
+Overview
+この機能を利用すると、指定した商品管理番号の表示先カテゴリの登録や変更をすることができます。
+カテゴリとの紐付けを解除する場合は、category.item-mappings.delete を利用してください。
+存在しない商品管理番号を指定したことでエラーにはなりませんが、カテゴリとの紐づけは、最終更新日から24時間以降に削除いたします。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/2.0/categories/item-mappings/manage-numbers/{manageNumber}	PUT
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+2	Content-Type	application/json
+Path Parameter
+No	Parameter Name	Logical Name	Required	Type	Max Byte	Multiplicity	Description
+1	manageNumber	商品管理番号	yes	string	32	1	以下の英数字、記号が使用可能。
+・"a~z"
+・"A~Z"
+・"0-9"
+・"-", "_"
+大文字は小文字に自動変換。
+HTTP Body
+No	Parameter Name	Logical Name	Required	Type	Max Byte	Multiplicity	Description
+1	categoryIds	カテゴリID	yes	list<string>	-	1...5	型は文字列だが、値は数値。
+2	mainPluralCategoryId	メインカテゴリID	条件付必須	string	40	0,1	カテゴリIDに「1ページ複数商品形式」のカテゴリを指定した場合必須。
+categoryIdsに指定したcategoryIdの内、1つのみ指定可能。
+
+※RMS画面では「1ページ複数商品カテゴリ メインページ設定」
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	application/json
+HTTP Body
+成功した場合
+None
+
+失敗した場合
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+L1	L2	L3
+1	errors	エラー	yes	List<error>	1..n	データ作成する際に発生したエラーのリスト
+2		code	コード	yes	string	1	メッセージコードの一覧はこちら
+3		message	メッセージ	yes	string	1
+4		metadata	メタデータ	no	object	0,1	エラーの補足情報
+5			propertyPath	属性パス	no	string	0,1	発生したエラーの位置
+Sample
+成功した場合
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/item-mappings/manage-numbers/mng123' \
+--header 'Authorization: ESA xxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "categoryIds": [
+    "1234567890",
+    "1234567891"
+    ],
+    "mainPluralCategoryId": "1234567890"
+}'
+Response in JSON format (Status: 204 No Content)
+失敗した場合
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/item-mappings/manage-numbers/mng123' \
+--header 'Authorization: ESA xxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "categoryIds": [
+    "1234567890",
+    "1234567890"
+    ],
+    "mainPluralCategoryId": "1234567890"
+}'
+Response in JSON format (Status: 400 Bad Request)
+{
+    "errors": [
+        {
+            "code": "IE0104",
+            "message": "Duplicate categoryId in categoryIds: 1234567890.",
+            "metadata": {
+                "propertyPath": "categoryIds[1]"
+            }
+        }
+    ]
+}

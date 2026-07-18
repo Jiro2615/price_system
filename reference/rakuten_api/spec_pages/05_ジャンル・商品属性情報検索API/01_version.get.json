@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "ジャンル・商品属性情報検索API",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/"
+  },
+  "feature_page": {
+    "name": "version.get",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/versionget/",
+    "description": "ジャンル及び、商品属性情報が変更された最終日時を取得することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/versionget/",
+  "main_text": "サービス一覧へ戻る / NavigationAPI 2.0\n\nRMS WEB SERVICE : version.get\nOverview\nこの機能を利用すると、ジャンル及び、商品属性情報が変更された最終日時を取得することができます。\n店舗様でジャンル情報を独自に保持される場合、その情報が最新か否かを確認する際にご利用ください。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/2.0/navigation/version\tGET\nRequest\nHTTP Header\nNo\tKey\tValue\n1\tAuthorization\tESA Base64(serviceSecret:licenseKey)\nPath Parameter\nNone\n\nQuery Parameter\nNone\n\nHTTP Body\nNone\n\nResponse\nHTTP Headers\nNo\tKey\tValue\n1\tContent-Type\tapplication/json;  charset=utf-8\nHTTP Body\n成功した場合\n\nLevel 1: base\nNo\tParameter Name\tLogical Name\tNot Null\tType\tMultiplicity\tDescription\n1\tversion\tバージョン情報\tyes\tversion\t1\tジャンル及び、商品属性定義のバージョン情報\nLevel 2: version\nNo\tParameter Name\tLogical Name\tNot Null\tType\tMultiplicity\tDescription\n1\tid\tバージョンID\tyes\tinteger\t1\tバージョンID\n2\tfixedAt\t更新日時\tyes\tstring\t1\tジャンル及び、商品属性情報の更新最終日時。\nフォーマットはISO 8601、タイムゾーンは日本標準時(JST)。\n\n失敗した場合\n\nLevel 1: base\nNo\tParameter Name\tLogical Name\tNot Null\tType\tMultiplicity\tDescription\n1\terrors\tエラー\tyes\terrors\t1\tエラー情報\nLevel 2: error\nNo\tParameter Name\tLogical Name\tNot Null\tType\tMultiplicity\tDescription\n1\tcode\tエラーコード\tyes\tstring\t1\tメッセージコードの一覧はこちら。\n2\tmessage\tメッセージ\tyes\tstring\t1\nSample\n成功した場合\nRequest (curl コマンドを使った例)\ncurl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/navigation/version' \\\n--header 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'\nResponse in JSON format (Status: 200 OK)\n{\n    \"version\": {\n        \"id\": 24,\n        \"fixedAt\": \"2023-01-19T09:11:54+09:00\"\n    }\n}"
+}

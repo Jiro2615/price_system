@@ -1,0 +1,747 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37498" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/">システムイベント通知サービス</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : 受注情報通知</span></h1>
+</div>
+<span>「受注情報通知」は新規受注が発生したタイミングでの受注特定情報を通知する機能です。</span><br>
+<span>実行の前に、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice#制約事項">RMS WEB SERVICE : システムイベント通知サービス/４．制約事項</a>」をご確認ください。</span><br>
+<br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP&nbsp;Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">POST</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">text/xml</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Length</td>
+      <td class="confluenceTd give_space"><font color="blue">※Request Bodyのサイズ値が入る</font></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<h4 id="XML:orderNotifyModel">XML:orderNotifyModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderNotifyModel.<b>authModel</b></td>
+      <td class="confluenceTd give_space">認証モデル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">オブジェクト</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderNotifyModel.<b>orderInfoNotifyModel</b></td>
+      <td class="confluenceTd give_space">受注情報通知モデル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">配列
+＜オブジェクト＞</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1...n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:authModel">XML:authModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">authModel.<b>contractId</b></td>
+      <td class="confluenceTd give_space">契約ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">API利用者ID
+半角記号英数字最大255桁
+例）X1X1234</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">authModel.<b>shopUrl</b></td>
+      <td class="confluenceTd give_space">ショップURL</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">店舗URL
+半角記号英数字最大255桁
+例）_rakutentest</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">authModel.<b>authKey</b></td>
+      <td class="confluenceTd give_space">認証キー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">システムイベント通知サービス用認証キーがセットされます
+半角英数字最大255桁
+例）Aq12wc456fg</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:orderInfoNotifyModel">XML:orderInfoNotifyModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderInfoNotifyModel.<b>orderNumber</b></td>
+      <td class="confluenceTd give_space">受注番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">受注番号形式
+半角記号数字最大255桁
+例）251542-20120403-4794587
+受注番号は全桁で一意となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderInfoNotifyModel.<b>seqId</b></td>
+      <td class="confluenceTd give_space">更新シーケンスID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角数字最大11桁
+有効範囲：0～2147483647
+例）0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderInfoNotifyModel.<b>orderDate</b></td>
+      <td class="confluenceTd give_space">注文日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">日付形式
+フォーマット：yyyy/mm/dd hh:mm:ss</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderInfoNotifyModel.<b>orderType</b></td>
+      <td class="confluenceTd give_space">注文種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角数字最大1桁
+　1：通常購入
+　4：定期購入
+　5：頒布会
+　6：予約商品</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderInfoNotifyModel.<b>basketModel</b></td>
+      <td class="confluenceTd give_space">商品モデルリスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">配列
+＜オブジェクト＞</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1...n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:basketModel">XML:basketModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>itemId</b></td>
+      <td class="confluenceTd give_space">商品ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角数字最大11桁
+有効範囲：0～2147483647
+例）10000002</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>pageURL</b></td>
+      <td class="confluenceTd give_space">商品URL</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角記号英数字最大255桁
+例）/&lt;店舗URL&gt;/&lt;商品管理番号&gt;/</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>inventoryType</b></td>
+      <td class="confluenceTd give_space">在庫タイプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角数字最大1桁
+0：在庫設定なし
+1：通常在庫設定
+2：項目選択肢在庫設定</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>units</b></td>
+      <td class="confluenceTd give_space">注文数（個数）</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">半角数字最大11桁
+例）2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>orgItemNumber</b></td>
+      <td class="confluenceTd give_space">元商品番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大255桁</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>itemNumber</b></td>
+      <td class="confluenceTd give_space">商品番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">65535</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大65535桁</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>selectedChoice</b></td>
+      <td class="confluenceTd give_space">商品オプション（項目選択肢）項目名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">65535</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大65535桁
+<font color="blue">※1.</font>
+半角の「&amp;」と「"」が含まれている場合は除去されます。
+全角の「＆」と「”」は除去されません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>h_choice_c_name	</b></td>
+      <td class="confluenceTd give_space">選択肢子番号（横軸）</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">128</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大128桁
+現在は値が入らず空タグになります</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>v_choice_c_name</b></td>
+      <td class="confluenceTd give_space">選択肢子番号（縦軸）</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">128</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大128桁
+現在は値が入らず空タグになります</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">basketModel.<b>skuModel</b></td>
+      <td class="confluenceTd give_space">SKUモデルリスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">配列
+＜オブジェクト＞</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">〇</td>
+      <td class="confluenceTd give_space">1...n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<span>　　　<font color="blue">※1. 形式は下記のとおり</font></span><br>
+<span>　　　　　　<font color="blue">商品オプション（項目選択肢）の項目名:商品オプション（項目選択肢）選択肢名称</font></span><br>
+<span>　　　　　　<font color="blue">※選択肢が複数ある場合は改行<lf>で区切られて値が設定されます</lf></font></span><br>
+<h4 id="XML:skuModel">XML:skuModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">skuModel.<b>variantId</b></td>
+      <td class="confluenceTd give_space">SKU管理番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大255桁</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">skuModel.<b>merchantDefinedSkuId</b></td>
+      <td class="confluenceTd give_space">システム連携用SKU番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大255桁
+SKU在庫設定の商品以外の場合空タグになります</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">skuModel.<b>skuInfo</b></td>
+      <td class="confluenceTd give_space">SKU情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">65535</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">全角文字含む、最大65535桁
+<font color="blue">※2.</font>
+SKU在庫設定の商品以外の場合空タグになります。
+半角の「&amp;」と「"」が含まれている場合は除去されます。
+全角の「＆」と「”」は除去されません。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<span>　　　<font color="blue">※2. 形式は下記のとおり</font></span><br>
+<span>　　　　　　<font color="blue">SKU在庫設定の商品の場合・・・項目選択肢別在庫用項目名:項目選択肢別在庫用選択肢名称</font></span><br>
+<span>　　　　　　<font color="blue">※選択肢が複数ある場合は改行<lf>で区切られて値が設定されます</lf></font></span><br>
+<h4 id="Request Sample">Request Sample</h4>
+<div id="sampleRequest Sample" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+&lt;orderNotifyModel&gt;
+    &lt;authModel&gt;
+        &lt;contractId&gt;xxxxxxxx&lt;/contractId&gt;
+        &lt;shopUrl&gt;shop_url&lt;/shopUrl&gt;
+        &lt;authKey&gt;123456789&lt;/authKey&gt;
+    &lt;/authModel&gt;
+    &lt;orderInfoNotifyModel&gt;
+        &lt;orderNumber&gt;251542-20130912-0399380105&lt;/orderNumber&gt;
+        &lt;seqId&gt;0&lt;/seqId&gt;
+        &lt;orderDate&gt;2013/09/12 10:55:15&lt;/orderDate&gt;
+        &lt;orderType&gt;1&lt;/orderType&gt;
+        &lt;basketModel&gt;
+            &lt;itemId&gt;10000059&lt;/itemId&gt;
+            &lt;pageURL&gt;/shop_url/10000059/&lt;/pageURL&gt;
+            &lt;inventoryType&gt;2&lt;/inventoryType&gt;
+            &lt;units&gt;1&lt;/units&gt;
+            &lt;orgItemNumber&gt;&lt;/orgItemNumber&gt;
+            &lt;itemNumber&gt;商品番号&lt;/itemNumber&gt;
+            &lt;selectedChoice&gt;商品オプションA項目名:選択肢A1
+商品オプションC項目名:選択肢C3&lt;/selectedChoice&gt;
+            &lt;h_choice_c_name&gt;&lt;/h_choice_c_name&gt;
+            &lt;v_choice_c_name&gt;&lt;/v_choice_c_name&gt;
+            &lt;skuModel&gt;
+                &lt;variantId&gt;11111&lt;/variantId&gt;
+                &lt;merchantDefinedSkuId&gt;sku-1&lt;/merchantDefinedSkuId&gt;
+                &lt;skuInfo&gt;SKU項目S:選択肢L
+SKU項目C:選択肢B&lt;/skuInfo&gt;
+            &lt;/skuModel&gt;
+ &nbsp; &nbsp; &nbsp; &nbsp;&lt;/basketModel&gt;
+    &lt;/orderInfoNotifyModel&gt;
+&lt;/orderNotifyModel&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Response">Response</h2>
+<h3 id="Http Header">Http Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">text/xml</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Length</td>
+      <td class="confluenceTd give_space"><font color="blue">※Response Bodyのサイズ値が入る</font></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Http Body">Http Body</h3>
+<h4 id="XML:responseModel">XML:responseModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">responseModel.<b>resultCode</b></td>
+      <td class="confluenceTd give_space">処理結果コード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列</td>
+      <td class="confluenceTd give_space">255</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">処理結果コードの詳細は下記参照
+<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/readytouseservice/">Ready to use service </a>3.2.2. 通知受信モジュールの実装</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Response Sample">Response Sample</h4>
+<div id="sampleResponse Sample" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+&lt;responseModel&gt;
+        &lt;resultCode&gt;N-000-000&lt;/resultCode&gt;
+&lt;/responseModel&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

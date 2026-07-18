@@ -1,0 +1,64 @@
+サービス一覧へ戻る / ReserveAPI
+
+RMS WEB SERVICE : reserve.cancelWhole.update
+Overview
+この機能を利用すると、予約・定期・頒布会の申込について、申込の完全キャンセルを行うことができます。
+「申込中」ステータスの申込にのみ有効です。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/reserve/cancelReservation	POST
+Request
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Body
+No	Parameter Name	Description	Required	Multiple	Type	Default	Note	Sample
+1	reserveNumber	申込番号	Yes	No	String	-		123456-20191204-262709-r
+2	changeReasonDetailApply	キャンセル理由	Yes	No	Number	-	
+Value	Description
+1	お客様都合：キャンセル
+5	お客様都合：いたずら
+6	お客様都合：その他
+8	お客様都合：途中解約
+22	店舗様都合：欠品
+23	店舗様都合：予約商品販売中止
+24	店舗様都合：その他
+	1
+Request Sample
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/1.0/reserve/cancelReservation \
+  -H 'Authorization:ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "reserveNumber":"123456-20200409-9195583-r",
+    "changeReasonDetailApply":1
+  }'
+Response
+Response Header
+Key	Value
+Content-Type	application/json; charset=utf-8
+Response Body
+No	Parameter Name	Description	Type	Not Null	Note	Sample
+1	messageType	メッセージ種別	String	Yes	・INFO
+・ERROR	INFO
+2	messageCode	メッセージコード	String	Yes	Response Code Reference の一覧は こちら	RESERVE_EXT_API_CANCEL_RESERVATION_ERROR_001
+3	message	メッセージ	String	Yes	指定された申込番号は既にキャンセルされています。
+4	reserveNumber	申込番号	String	No		123456-20230409-9195583-r
+Response Sample
+正常終了の場合
+{    
+    "messageType": "INFO",
+    "messageCode": "RESERVE_EXT_API_CANCEL_RESERVATION_INFO_100",
+    "message": "申込キャンセル処理が完了しました。",
+    "reserveNumber": "123456-20230409-9195583-r"
+}
+必須パラメータ不足等により後続処理が行えない場合
+{    
+    "messageType": "ERROR",
+    "messageCode": "RESERVE_EXT_API_CANCEL_RESERVATION_ERROR_001",
+    "message": "changeReasonDetailApplyの項目・値を指定して下さい。",
+    "reserveNumber": "123456-20200409-9195583-r"
+}

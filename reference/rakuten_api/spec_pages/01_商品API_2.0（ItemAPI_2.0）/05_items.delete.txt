@@ -1,0 +1,53 @@
+サービス一覧へ戻る / ItemAPI 2.0
+
+RMS WEB SERVICE : items.delete
+Overview
+この機能を利用すると、商品管理番号を指定し、商品情報を削除することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{manageNumber}	DELETE
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+Path Parameter
+No	Parameter Name	Logical Name	Required	Type	Multiplicity	Description
+1	manageNumber	商品管理番号	yes	string	1	1件のみ指定可能。
+HTTP Body
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	application/json
+HTTP Body
+成功した場合
+None
+
+失敗した場合
+
+No	Parameter Name	Logical Name	Not Null	Type	Multiplicity	Description
+L1	L2
+1	errors		エラー	yes	List<error>	1..n	エラーのリスト。
+2		code	コード	yes	string	1	メッセージコードの一覧はこちら。
+3		message	メッセージ	yes	string	1
+Sample
+成功した場合
+Request (curl コマンドを使った例)
+curl --location --request DELETE 'https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/10093069' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 204 No Content)
+失敗した場合
+Request (curl コマンドを使った例)
+curl --location --request DELETE 'https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/10093069' \
+--header 'Authorization: ESA xxx'
+Response in JSON format (Status: 404 Not Found)
+{
+    "errors": [
+        {
+            "code": "GE0014",
+            "message": "No item found for inputs; manageNumber=10093069"
+        }
+    ]
+}

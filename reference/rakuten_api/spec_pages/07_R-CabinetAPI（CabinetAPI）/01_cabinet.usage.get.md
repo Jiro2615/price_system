@@ -1,0 +1,191 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetusageget/
+サービス: R-CabinetAPI（CabinetAPI）
+
+サービス一覧へ戻る / CabinetAPI
+
+
+RMS WEB SERVICE : cabinet.usage.get
+
+
+
+
+この機能を利用すると、R-Cabinetの利用状況を取得することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/cabinet/usage/get	GET
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+
+　None
+
+HTTP Body
+
+　None
+
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML:result
+No	Element	Description	Type	
+
+Size(byte)
+
+	
+
+Multiplicity
+
+	Note
+1	
+
+result.status
+
+	ステータス	XML:status	-	1	
+
+interfaceId=cabinet.usage.get
+
+
+2	
+
+result.cabinetUsageGetResult
+
+	
+
+キャビネット利用情報取得結果
+
+	
+
+XML : cabinetUsageGetResult
+
+
+	-	1	
+XML:cabinetUsageGetResult
+No	Element	Description	Type	
+
+Size(byte)
+
+	
+
+Multiplicity
+
+	Note
+1	
+
+cabinetUsageGetResult.resultCode
+
+	
+
+結果コード
+
+	
+
+Integer
+
+	4	1	
+2	
+
+cabinetUsageGetResult.MaxSpace
+
+	
+
+契約容量 (MB)
+
+	
+
+Integer
+
+	10	1	
+3	
+
+cabinetUsageGetResult.FolderMax
+
+	
+
+フォルダ数上限
+
+	
+
+Integer
+
+	10	1	
+4	
+
+cabinetUsageGetResult.FileMax
+
+	
+
+フォルダ内画像数上限
+
+	
+
+Integer
+
+	10	1	
+5	
+
+cabinetUsageGetResult.UseSpace
+
+	
+
+利用容量 (KB)
+
+	
+
+Decimal
+
+	10,3
+※少数点第3位まで
+	1	
+6	
+
+cabinetUsageGetResult.AvailSpace
+
+	
+
+利用可能容量 (KB)
+
+	
+
+Decimal
+
+	10,3
+※少数点第3位まで	1	契約容量 - 利用容量
+7	
+
+cabinetUsageGetResult.UseFolderCount
+
+	
+
+利用フォルダ数
+
+	
+
+Integer
+
+	10	1	
+8	cabinetUsageGetResult.AvailFolderCount	利用可能フォルダ数	Integer	10	1	フォルダ数上限 - 利用フォルダ数
+Response sample
+
+
+ <?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>cabinet.usage.get</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>714a4983-555f-42d9-aeea-89dae89f2f55</requestId>
+    </status>
+     
+    <cabinetUsageGetResult>
+        <resultCode>0</resultCode>
+        <MaxSpace>100</MaxSpace>
+        <!-- omission -->
+    </cabinetUsageResult>
+</result>

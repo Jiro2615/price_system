@@ -1,0 +1,184 @@
+サービス一覧へ戻る / システムイベント通知サービス / システム情報通知
+
+RMS WEB SERVICE : 商品一括編集完了通知
+
+ 
+
+「システム情報通知」の商品一括編集完了通知サービスで提供される、格納データについて定義します。
+インターフェース項目は、「システム情報通知」の内容に準じます。
+
+
+
+
+実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項 」をご確認ください。
+
+
+
+
+こちらの通知はSKU移行前店舗様とSKU移行後店舗様によってデータ内容が異なります。
+「CSV商品一括編集機能」の仕様をご確認ください。
+
+
+
+
+商品一括編集完了通知
+
+
+No	
+
+Element
+
+	Description	Sample	
+
+Note
+
+
+Element Name	Attribute Value	Element Name	Attribute Value
+1	
+
+value1
+
+	
+
+fileName
+
+	データ1	商品一括編集.csv名	
+
+SKU移行前：item.csv
+SKU移行後：normal-item_sale04-11.csv
+
+	
+
+アップロードしたファイル名
+
+
+2	
+
+value2
+
+	
+
+processDate
+
+	データ2	処理日時	
+
+2013/11/01 15:15
+
+	
+
+YYYY/MM/DD HH:mm
+
+
+
+3	
+
+value3
+
+	
+
+insertCount
+
+	データ3	処理件数(登録)	
+
+0
+
+	
+
+SKU移行前：正常に登録できた件数
+SKU移行後：常に'0'になります
+
+
+4	
+
+value4
+
+	
+
+updateCount
+
+	データ4	処理 件数(更新)	
+
+1
+
+	
+
+SKU移行前：正常に更新できた件数
+SKU移行後：正常に登録出来た数と更新出来た数の合計値
+
+
+5	
+
+value5
+
+	
+
+deleteCount
+
+	データ5	処理件数(削除)	
+
+0
+
+	
+
+正常に削除できた件数
+
+
+6	
+
+value6
+
+	
+
+errorCount
+
+	データ6	処理件数(エラー)	1	
+
+エラーとなった件数
+
+
+7	
+
+value7
+
+	
+
+errorFilePath
+
+	データ7	エラーログファイルパス	SKU移行前：ritem/logs/item.20130521133309357.csv
+SKU移行後：ritem/logs/normal-item_sale04-11.20330303135309357.csv	
+
+エラーログの出力場所
+※エラーが無い場合は空文字となる 
+
+
+8	
+
+value8
+
+	
+
+-
+
+	データ8	-	-	
+
+
+9	
+
+value9
+
+	
+
+-
+
+	データ9	-	-	
+
+
+10	
+
+value10
+
+	
+
+-
+
+	データ10	-	-

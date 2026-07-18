@@ -1,0 +1,174 @@
+サービス一覧へ戻る / RakutenPayOrderAPI
+
+RMS WEB SERVICE : updateOrderSubStatus
+Overview
+
+この機能を利用すると、複数の楽天ペイ注文の「受注情報のサブステータス」を一括で更新することができます。
+
+こちらは同期処理となります。
+
+Endpoint
+Endpoint
+https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderSubStatus/
+Request
+Request Method
+Method
+POST
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Parameter
+Level 1: base
+No	Logical Name	Parameter Name	Reqired	Type	Max Byte	Default	Description	Sample
+1	サブステータスID	subStatusId	yes	Number	10	-	サブステータスを指定する場合、サブステータスIDを指定
+サブステータスをクリアする場合、Nullを指定	3423
+2	注文番号リスト	orderNumberList	yes	List <String>	4096	-	最大 100 件まで指定可能	["502763-20171027-00006701","502763-20171027-00006702"]
+Response
+HTTP Status
+Code	Status	Description
+200	OK	リクエストが成功した。
+400	Bad Request	リクエストが不正である。
+404	Not Found	Request-URI に一致するものを見つけられなかった。
+405	Method Not Allowed	許可されていないメソッドを使用しようとした。
+500	Internal Server Error	サーバ内部にエラーが発生した。
+503	Service Unavailable	サービスが一時的に過負荷やメンテナンスで使用不可能である。
+Response Header
+Key	Value
+Content-Type	application/json;charset=utf-8
+Response Parameter
+Level 1: base
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	メッセージモデルリスト	MessageModelList	yes	List <MessageModel>	-	-		
+Level 2: MessageModel
+No	Logical Name	Parameter Name	Not Null	Type	Max Byte	Default	Description	Sample
+1	メッセージ種別	messageType	yes	String	16	-	以下のいずれか
+
+・INFO
+・ERROR
+・WARNING	INFO
+2	メッセージコード	messageCode	yes	String	128	-	メッセージコードの一覧はこちら	MESSAGE_CODE_SAMPLE
+3	メッセージ	message	yes	String	1024	-	メッセージサンプル
+4	注文番号	orderNumber	no	String	382	-		502763-20171027-00006701
+Sample
+サブステータス更新が全件成功した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderSubStatus/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "subStatusId": 3423,
+    "orderNumberList": ["123456-20180101-00111801", "123456-20180101-00112801", "123456-20180101-00113801"]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "MessageModelList": [
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101",
+            "message": "サブステータスの更新設定が完了しました。",
+            "orderNumber": "123456-20180101-00111801"
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101",
+            "message": "サブステータスの更新設定が完了しました。",
+            "orderNumber": "123456-20180101-00112801"
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101",
+            "message": "サブステータスの更新設定が完了しました。",
+            "orderNumber": "123456-20180101-00113801"
+        }
+    ]
+}
+サブステータス更新が一部成功した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderSubStatus/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "subStatusId": 3423,
+    "orderNumberList": ["123456-20180101-00111801", "123456-20180101-00112801", "123456-20180101-00113801"]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "MessageModelList": [
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101",
+            "message": "サブステータスの更新設定が完了しました。",
+            "orderNumber": "123456-20180101-00111801"
+        },
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_102",
+            "message": "指定された注文番号、サブステータスでは更新できません。",
+            "orderNumber": "123456-20180101-00112801"
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_INFO_101",
+            "message": "サブステータスの更新設定が完了しました。",
+            "orderNumber": "123456-20180101-00113801"
+        }
+    ]
+}
+サブステータス更新が全件失敗した場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderSubStatus/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "subStatusId": 3423,
+    "orderNumberList": ["123456-20180101-00111801", "123456-20180101-00112801", "123456-20180101-00113801"]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "MessageModelList": [
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_102",
+            "message": "指定された注文番号、サブステータスでは更新できません。",
+            "orderNumber": "123456-20180101-00111801"
+        },
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_102",
+            "message": "指定された注文番号、サブステータスでは更新できません。",
+            "orderNumber": "123456-20180101-00112801"
+        },
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_101",
+            "message": "指定された注文番号は既にキャンセルされているため、サブステータスの更新が出来る状態ではありませんでした。",
+            "orderNumber": "123456-20180101-00113801"
+        }
+    ]
+}
+パラメータの指定に誤りがあった場合
+Request (curl コマンドを使った例)
+curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderSubStatus/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8'
+  -d '{}'
+Response in JSON format (Status: 400 Bad Request)
+{
+    "MessageModelList": [
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_009",
+            "message": "subStatusIdの項目を指定して下さい。"
+        },
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSUBSTATUS_ERROR_009",
+            "message": "orderNumberListの項目を指定して下さい。"
+        }
+    ]
+}

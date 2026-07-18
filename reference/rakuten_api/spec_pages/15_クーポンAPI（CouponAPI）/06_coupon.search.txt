@@ -1,0 +1,249 @@
+サービス一覧へ戻る / CouponAPI
+
+RMS WEB SERVICE : coupon.search
+この機能を利用すると、条件を指定してクーポン情報を検索することができます。
+
+
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/coupon/search	GET
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+No	Parameter	Description	Type	Mandatory	Multiplicity	Note
+1	couponName	クーポン名	String		0,1	
+2	couponCode	クーポンコード	String		0,1	
+3	itemUrl	商品管理番号	String		0,1	
+4	couponStartDate	クーポン有効期間（開始日時）	dateTime		0,1	yyyy-MM-ddTHH:mm:ss+09:00
+※ただし有効値はYYYY-MMまで
+5	couponEndDate	クーポン有効期間（終了日時）	dateTime		0,1	yyyy-MM-ddTHH:mm:ss+09:00
+※ただし有効値はYYYY-MMまで
+6	hits	件数	int		0,1	デフォルト： 30
+最大：1000
+7	page	ページ番号	int		0,1	デフォルト： 1
+HTTP Body
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML:result
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	result.status	ステータス	XML:status	-	1	interfaceId = coupon.search
+2	result.errors	エラー情報リスト	XML:errors	-	0,1	
+3	result.allCount	データ件数	int	4	0,1	
+4	result.coupons	クーポン情報リスト	XML:coupons	-	0,1	
+XML:errors
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	errors.error	エラー情報	XML:error	-	1..n	
+XML:error
+No	Element	Description	Type   	Size(byte)	Multiplicity	Note
+1	error.code	エラーコード	String	-	1	詳細は、CouponAPI Response Codes Referenceを参照してください。
+2	error.message	エラーメッセージ	String	-	1	詳細は、CouponAPI Response Codes Referenceを参照してください。
+XML:coupons
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	coupons.coupon	クーポン情報	XML:coupon	-	0..n	
+XML:coupon
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	coupon.couponCode	クーポンコード	String	19	1	
+2	coupon.couponName	クーポン名	String	60	1	
+3	coupon.couponCaption	クーポン詳細説明文	String	200	0,1	
+4	coupon.couponStartDate	クーポン有効期間（開始日時）	dateTime	-	1	YYYY-MM-DDThh:mm:ss+09:00
+5	coupon.couponEndDate	クーポン有効期間（終了日時）	dateTime	-	1	YYYY-MM-DDThh:mm:ss+09:00
+6	coupon.shopId	店舗ID	String	20	1	
+7	coupon.shopUrl	店舗URL	String	20	1	
+8	coupon.shopName	店舗名	String	765	1	
+9	coupon.couponImage	クーポン画像	String	-	1	
+10	coupon.pcGetUrl	取得URL (PC)	String	-	1	
+11	coupon.issueCount	クーポンの全利用回数上限	int	4	1	
+12	coupon.getCount	獲得数	int	4	1	
+13	coupon.availCount	利用数	int	4	1	
+14	coupon.itemType	商品タイプ	int	4	1	1： 単一商品
+3： 複数商品
+4： 受注
+5： 送料無料
+15	coupon.discountType	値引きプラン	int	4	1	1： 定額値引き
+2： 定率値引き
+4： 送料無料
+16	coupon.discountFactor	割引因子	int	4	1	discountTypeによって、値が異なります。
+
+discountType	discountFactor
+1	1 ～ 999999999： 値引き額
+2	1 ～ 99： 値引き率
+4	1： 送料無料
+
+
+17	coupon.memberAvailMaxCount	1ユーザあたりの利用回数上限	int	4	1	
+18	coupon.multiRankCond	複数会員ランク条件	XML:multiRankCond	-	1	
+19	coupon.pcRedirectUrl	リダイレクトURL（PC）	String	-	1	
+20	coupon.combineFlag	併用可否フラグ	int	4	1
+	0： 併用不可
+1： 併用可
+21	coupon.displayFlag	公開設定フラグ	int	4	1	0： 限定公開（クーポン獲得URLを配布）
+1： 全ユーザに公開
+22	coupon.couponStatus	クーポンステータス	int	4	1	3： 本発行
+6： 終了
+
+23	coupon.regDate	登録日時	dateTime	-	1	
+24	coupon.lastUpdateDate	最終更新日時	dateTime	-	1	
+25	coupon.otherConditions	その他条件リスト	XML:otherConditions	-	1	
+XML:multiRankCond
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	multiRankCond.rankCond	会員ランク条件	int	4	1..5	0： 条件なし
+1： レギュラー
+2： シルバー
+3： ゴールド
+4： プラチナ
+5： ダイヤモンド
+XML:otherConditions
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	otherConditions.otherCondition	その他条件	XML:otherCondition	-	1..n	
+XML:otherCondition
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	otherCondition.conditionTypeCode	その他条件コード	String	20	1	RS001： デバイス指定
+RS002： 販売方法
+RS003： 利用金額
+RS004： 利用個数
+RS006： 対象楽天特別会員プログラム
+2	otherCondition.startValue	開始値	String	60	1	conditionTypeCodeによって、値が異なります。
+
+conditionTypeCode	startValue
+RS001	0： PC
+1： モバイル
+RS002	0： 通常購入
+1： 定期購入
+99： 通常＆定期購入
+RS003	0 ～ 999999999： 金額
+RS004	0 ～ 999999999： 個数
+RS006	1 : 楽天学割会員限定
+2 : 楽天プレミアム会員限定
+
+
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.search</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>714a4983-555f-42d9-aeea-89dae89f2f55</requestId>
+        <requests>
+            <couponName/>
+            <couponCode/>
+            <itemUrl/>
+            <couponStartDate/>
+            <couponEndDate/>
+            <hits>1</hits>
+            <page/>
+        </requests>
+    </status>
+    <allCount>5</allCount>
+    <coupons>
+        <coupon>
+            <couponCode>ZWY1-GV27-8DQJ-DGUT</couponCode>
+            <couponName>coupon_001</couponName>
+            <couponCaption>test123456789</couponCaption>
+            <couponStartDate>2014-06-29T00:00:00+09:00</couponStartDate>
+            <couponEndDate>2014-06-30T23:59:59+09:00</couponEndDate>
+            <shopId>286747</shopId>
+            <shopUrl>https://www.rakuten.co.jp/shop001/</shopUrl>
+            <shopName>街の電気屋さん</shopName>
+            <couponImage/>
+            <pcGetUrl>https://coupon.rakuten.co.jp/getCoupon?getkey=R1YyNy1aV1kxLThEUUotREdVVA--&amp;rt=</pcGetUrl>
+            <issueCount>100</issueCount>
+            <getCount>0</getCount>
+            <availCount>0</availCount>
+            <itemType>1</itemType>
+            <discountType>1</discountType>
+            <discountFactor>700</discountFactor>
+            <memberAvailMaxCount>100</memberAvailMaxCount>
+            <multiRankCond>
+                 <rankCond>2</rankCond>
+                 <rankCond>3</rankCond>
+                 <rankCond>5</rankCond>
+            </multiRankCond>
+            <pcRedirectUrl>https://www.rakuten.co.jp/shop001/</pcRedirectUrl>
+            <combineFlag>0</combineFlag>
+            <displayFlag>1</displayFlag>
+            <couponStatus>3</couponStatus>
+            <regDate>2014-06-11T21:00:46+09:00</regDate>
+            <lastUpdateDate>2014-06-11T21:02:39+09:00</lastUpdateDate>
+            <otherConditions>
+                 <otherCondition>
+                      <conditionTypeCode>RS001</conditionTypeCode>
+                      <startValue>0</startValue>
+                 </otherCondition>
+                 <otherCondition>
+                      <conditionTypeCode>RS001</conditionTypeCode>
+                      <startValue>1</startValue>
+                 </otherCondition>
+                 <otherCondition>
+                      <conditionTypeCode>RS002</conditionTypeCode>
+                      <startValue>0</startValue>
+                 </otherCondition>
+            </otherConditions>
+        </coupon>
+        <coupon>
+            ・・・
+        </coupon>
+        <coupon>
+            ・・・
+        </coupon>
+        <coupon>
+            ・・・
+        </coupon>
+        <coupon>
+            ・・・
+        </coupon>
+    </coupons>
+</result>
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+     <status>
+        <interfaceId>coupon.search</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>714a4983-555f-42d9-aeea-89dae89f2f55</requestId>
+        <requests>
+            <couponName/>
+            <couponCode/>
+            <itemUrl/>
+            <couponStartDate/>
+            <couponEndDate/>
+            <hits>1</hits>
+            <page/>
+        </requests>
+    </status>
+    <errors>
+        <error>
+            <code>COUPON_E030-002</code>
+            <message>couponCode.out_of_bounds</message>
+        </error>
+    </errors>
+</result>
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+     <status>
+        <interfaceId>coupon.search</interfaceId>
+        <systemStatus>NG</systemStatus>
+        <message>ParameterError</message>
+        <requestId>918e7ed1-2cc9-41a4-832a-16ee931b016f</requestId>
+        <requests>
+            <couponName/>
+            <couponCode/>
+            <itemUrl/>
+            <couponStartDate>invalid</couponStartDate>
+            <couponEndDate/>
+            <hits/>
+            <page/>
+        </requests>
+    </status>
+</result>

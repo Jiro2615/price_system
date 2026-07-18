@@ -1,0 +1,888 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock31538" class="HTMLBlock">
+<style>.give_space{white-space: pre;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/purchaseitemapi/">PurchaseItemAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : PurchaseItemAPI 共通認証エラー</span></h1>
+</div>
+<h2 id="認証エラーレスポンスフォーマット (Authentication Error Response Format）">認証エラーレスポンスフォーマット (Authentication Error Response Format）</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh"><b>ESA Response</b></th>
+      <th class="confluenceTh" colspan="3"><b>API Response</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Error Case</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Error Code</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Message</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>HTTP Response Code</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">AUTH_ERROR</td>
+      <td class="confluenceTd give_space">ES01-01</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Un-Authorised</td>
+      <td class="confluenceTd give_space">401</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">API_MAINTENANCE</td>
+      <td class="confluenceTd give_space">ES01-02</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">API In Maintenance</td>
+      <td class="confluenceTd give_space">503</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">MAX_QPS_OVER</td>
+      <td class="confluenceTd give_space">ES01-03</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Forbidden- Exceeded QPS Limitation</td>
+      <td class="confluenceTd give_space">403</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">MAX_QPM_OVER</td>
+      <td class="confluenceTd give_space">ES01-04</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Forbidden- Exceeded QPM Limitation</td>
+      <td class="confluenceTd give_space">403</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">MAX_CONNECTION_OVER</td>
+      <td class="confluenceTd give_space">ES01-05</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Forbidden- Exceeded Number of Connection Limitation</td>
+      <td class="confluenceTd give_space">403</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">INTERNAL_ERROR</td>
+      <td class="confluenceTd give_space">ES01-06</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">500</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">UNEXPECTED_ERROR</td>
+      <td class="confluenceTd give_space">ES01-07</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">500</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="認証エラー (AUTH_ERROR)">認証エラー (AUTH_ERROR)</h3>
+<div id="sample認証エラー (AUTH_ERROR)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 401
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-01",
+    "message": "Un-Authorised"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="メンテナンス (API_MAINTENANCE)">メンテナンス (API_MAINTENANCE)</h3>
+<div id="sampleメンテナンス (API_MAINTENANCE)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 503
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-02",
+    "message": "API In Maintenance"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="QPS制限エラー (MAX_QPS_OVER)">QPS制限エラー (MAX_QPS_OVER)</h3>
+<div id="sampleQPS制限エラー (MAX_QPS_OVER)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-03",
+    "message": "Forbidden- Exceeded QPS Limitation"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="QPM制限エラー (MAX_QPM_OVER)">QPM制限エラー (MAX_QPM_OVER)</h3>
+<div id="sampleQPM制限エラー (MAX_QPM_OVER)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-04",
+    "message": "Forbidden- Exceeded QPM Limitation"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="最大コネクションエラー (MAX_CONNECTION_OVER)">最大コネクションエラー (MAX_CONNECTION_OVER)</h3>
+<div id="sample最大コネクションエラー (MAX_CONNECTION_OVER)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-05",
+    "message": "Forbidden- Exceeded Number of Connection Limitation"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="サーバ側エラー（INTERNAL_ERROR）">サーバ側エラー（INTERNAL_ERROR）</h3>
+<div id="sampleサーバ側エラー（INTERNAL_ERROR）" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-06",
+    "message": "Internal Server Error"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="不明なエラー (UNEXPECTED_ERROR)">不明なエラー (UNEXPECTED_ERROR)</h3>
+<div id="sample不明なエラー (UNEXPECTED_ERROR)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-07",
+    "message": "Internal Server Error"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="リクエストデータチェックレスポンスフォーマット (Request Validation Error Response Format)">リクエストデータチェックレスポンスフォーマット (Request Validation Error Response Format)</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Condition</b></th>
+      <th class="confluenceTh"><b>ErrorCode</b></th>
+      <th class="confluenceTh"><b>Message</b></th>
+      <th class="confluenceTh"><b>HTTP Response Code</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Application Exception in Universal Authentication Module</td>
+      <td class="confluenceTd give_space">ES02-01</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Application Exception</td>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">アプリケーション例外</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">System Exception in Universal Authentication Module</td>
+      <td class="confluenceTd give_space">ES02-02</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">System Exception</td>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">システム例外</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Connection Exception with ESB MongoDB</td>
+      <td class="confluenceTd give_space">ES02-03</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">内部サーバーエラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Connection Exception or Timeout with ESA API</td>
+      <td class="confluenceTd give_space">ES03-01</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Gateway</td>
+      <td class="confluenceTd give_space">502</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ゲートウェイエラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Connection Exception or Timeout with API Provider</td>
+      <td class="confluenceTd give_space">ES03-02</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Gateway</td>
+      <td class="confluenceTd give_space">502</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ゲートウェイエラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Authorization" is Empty or Not Exist or In-Valid Formate</td>
+      <td class="confluenceTd give_space">ES04-01</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Authorization" ヘッダ未指定エラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Accept" is Empty or Not Exist</td>
+      <td class="confluenceTd give_space">ES04-02</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Accept"ヘッダ未指定エラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Accept" is un-supported value</td>
+      <td class="confluenceTd give_space">ES04-03</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Unsupported Media Type</td>
+      <td class="confluenceTd give_space">415</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"Accept"ヘッダ値不正エラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Un supported Method in Request</td>
+      <td class="confluenceTd give_space">ES04-04</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Method Not Allowed</td>
+      <td class="confluenceTd give_space">405</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">未サポートメソッド指定エラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Extra Request Path Parameter</td>
+      <td class="confluenceTd give_space">ES05-05</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエスト不正エラー</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Not Recognized Endpoint</td>
+      <td class="confluenceTd give_space">ES05-06</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd give_space">404</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">不明なエンドポイントエラー</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="アプリケーション例外 (Application Exception)">アプリケーション例外 (Application Exception)</h3>
+<div id="sampleアプリケーション例外 (Application Exception)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES02-01",
+    "message": "Application Exception"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="システム例外 (System Exception)">システム例外 (System Exception)</h3>
+<div id="sampleシステム例外 (System Exception)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body:
+{
+  "Results": {
+    "errorCode": "ES02-02",
+    "message": "System Exception"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="内部サーバエラー (Internal Server Error)">内部サーバエラー (Internal Server Error)</h3>
+<div id="sample内部サーバエラー (Internal Server Error)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body:
+{
+  "Results": {
+    "errorCode": "ES02-03",
+    "message": "Internal Server Error"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="ゲートウェイエラー (Connection Exception or Timeout with ESA API)">ゲートウェイエラー (Connection Exception or Timeout with ESA API)</h3>
+<div id="sampleゲートウェイエラー (Connection Exception or Timeout with ESA API)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 502
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES03-01",
+    "message": "Bad Gateway"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="ゲートウェイエラー (Connection Exception or Timeout with API Provider)">ゲートウェイエラー (Connection Exception or Timeout with API Provider)</h3>
+<div id="sampleゲートウェイエラー (Connection Exception or Timeout with API Provider)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 502
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES03-02",
+    "message": "Bad Gateway"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="&quot;Authorization&quot; ヘッダ未指定エラー (&quot;Authorization&quot; is Empty or Not Exist or In-Valid Format)">"Authorization" ヘッダ未指定エラー ("Authorization" is Empty or Not Exist or In-Valid Format)</h3>
+<div id="sample&quot;Authorization&quot; ヘッダ未指定エラー (&quot;Authorization&quot; is Empty or Not Exist or In-Valid Format)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-01",
+    "message": "Bad Request"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="&quot;Accept&quot;ヘッダ未指定エラー (&quot;Accept&quot; is Empty or Not Exist)">"Accept"ヘッダ未指定エラー ("Accept" is Empty or Not Exist)</h3>
+<div id="sample&quot;Accept&quot;ヘッダ未指定エラー (&quot;Accept&quot; is Empty or Not Exist)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-02",
+    "message": "Bad Request"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="&quot;Accept&quot;ヘッダ値不正エラー (&quot;Accept&quot; is un-supported value)">"Accept"ヘッダ値不正エラー ("Accept" is un-supported value)</h3>
+<div id="sample&quot;Accept&quot;ヘッダ値不正エラー (&quot;Accept&quot; is un-supported value)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 415
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-03",
+    "message": "Unsupported Media Type"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="未サポートメソッド指定エラー (Un supported Method in Request)">未サポートメソッド指定エラー (Un supported Method in Request)</h3>
+<div id="sample未サポートメソッド指定エラー (Un supported Method in Request)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status : 405
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-04",
+    "message": "Method Not Allowed"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="リクエスト不正エラー (Extra Request Path Parameter)">リクエスト不正エラー (Extra Request Path Parameter)</h3>
+<div id="sampleリクエスト不正エラー (Extra Request Path Parameter)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES05-05",
+    "message": "Bad Request"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="不明なエンドポイントエラー (Not Recognized Endpoint)">不明なエンドポイントエラー (Not Recognized Endpoint)</h3>
+<div id="sample不明なエンドポイントエラー (Not Recognized Endpoint)" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">Response Status: 404
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES05-06",
+    "message": "Not Found"
+  }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

@@ -1,0 +1,43 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/messagecodereference/
+サービス: 問い合わせ管理API（InquiryManagementAPI）
+
+サービス一覧へ戻る / InquiryManagementAPI
+
+RMS WEB SERVICE : InquiryManagementAPI Error Codes Reference
+
+
+1. 共通エラーレスポンス
+
+
+No.	Code	Message	Targets	Description
+1	IE000	internal server error		以下以外のエラー
+2	IE001	bad parameter	<name of bad parameter>	パラメータが不正
+3	IE002	request method is not supported		request method is not supported
+4	IE003	authentication error		認証エラー（認証キーから取得したshopIdと、操作しようとするデータのshopIdが一致しない）
+
+
+2. Samples
+
+
+IE000
+{
+"error":
+    {
+        "code":"IE000",
+        "message":"internal server error"
+    }
+}
+
+IE001
+{
+"error":
+    {
+        "code":"IE001",
+        "message":"bad parameter",
+        "targets":{
+            "shopId":"must match \"[^0-9]*\""
+        }
+    }
+}

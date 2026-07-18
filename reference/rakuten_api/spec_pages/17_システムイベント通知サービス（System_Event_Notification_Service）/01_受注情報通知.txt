@@ -1,0 +1,141 @@
+サービス一覧へ戻る / システムイベント通知サービス
+
+RMS WEB SERVICE : 受注情報通知
+「受注情報通知」は新規受注が発生したタイミングでの受注特定情報を通知する機能です。
+実行の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。
+
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+-	POST
+Request
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+2	Content-Length	※Request Bodyのサイズ値が入る
+HTTP Body
+XML:orderNotifyModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	orderNotifyModel.authModel	認証モデル	オブジェクト	-	○	1	
+2	orderNotifyModel.orderInfoNotifyModel	受注情報通知モデル	配列
+＜オブジェクト＞	-	○	1...n	
+XML:authModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	authModel.contractId	契約ID	文字列	255	○	1	API利用者ID
+半角記号英数字最大255桁
+例）X1X1234
+2	authModel.shopUrl	ショップURL	文字列	255	○	1	店舗URL
+半角記号英数字最大255桁
+例）_rakutentest
+3	authModel.authKey	認証キー	文字列	255	○	1	システムイベント通知サービス用認証キーがセットされます
+半角英数字最大255桁
+例）Aq12wc456fg
+XML:orderInfoNotifyModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	orderInfoNotifyModel.orderNumber	受注番号	文字列	255	〇	1	受注番号形式
+半角記号数字最大255桁
+例）251542-20120403-4794587
+受注番号は全桁で一意となります。
+2	orderInfoNotifyModel.seqId	更新シーケンスID	文字列	11	〇	1	半角数字最大11桁
+有効範囲：0～2147483647
+例）0
+3	orderInfoNotifyModel.orderDate	注文日時	文字列	-	〇	1	日付形式
+フォーマット：yyyy/mm/dd hh:mm:ss
+4	orderInfoNotifyModel.orderType	注文種別	文字列	1	〇	1	半角数字最大1桁
+　1：通常購入
+　4：定期購入
+　5：頒布会
+　6：予約商品
+5	orderInfoNotifyModel.basketModel	商品モデルリスト	配列
+＜オブジェクト＞	-	〇	1...n	
+XML:basketModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	basketModel.itemId	商品ID	文字列	11	〇	1	半角数字最大11桁
+有効範囲：0～2147483647
+例）10000002
+2	basketModel.pageURL	商品URL	文字列	255	〇	1	半角記号英数字最大255桁
+例）/<店舗URL>/<商品管理番号>/
+3	basketModel.inventoryType	在庫タイプ	文字列	1	〇	1	半角数字最大1桁
+0：在庫設定なし
+1：通常在庫設定
+2：項目選択肢在庫設定
+4	basketModel.units	注文数（個数）	文字列	11	〇	1	半角数字最大11桁
+例）2
+5	basketModel.orgItemNumber	元商品番号	文字列	255	-	1	全角文字含む、最大255桁
+6	basketModel.itemNumber	商品番号	文字列	65535	-	1	全角文字含む、最大65535桁
+7	basketModel.selectedChoice	商品オプション（項目選択肢）項目名	文字列	65535	-	1	全角文字含む、最大65535桁
+※1.
+半角の「&」と「"」が含まれている場合は除去されます。
+全角の「＆」と「”」は除去されません。
+8	basketModel.h_choice_c_name		選択肢子番号（横軸）	文字列	128	-	1	全角文字含む、最大128桁
+現在は値が入らず空タグになります
+9	basketModel.v_choice_c_name	選択肢子番号（縦軸）	文字列	128	-	1	全角文字含む、最大128桁
+現在は値が入らず空タグになります
+10	basketModel.skuModel	SKUモデルリスト	配列
+＜オブジェクト＞	-	〇	1...n	
+　　　※1. 形式は下記のとおり
+　　　　　　商品オプション（項目選択肢）の項目名:商品オプション（項目選択肢）選択肢名称
+　　　　　　※選択肢が複数ある場合は改行で区切られて値が設定されます
+
+XML:skuModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	skuModel.variantId	SKU管理番号	文字列	255	-	1	全角文字含む、最大255桁
+2	skuModel.merchantDefinedSkuId	システム連携用SKU番号	文字列	255	-	1	全角文字含む、最大255桁
+SKU在庫設定の商品以外の場合空タグになります
+3	skuModel.skuInfo	SKU情報	文字列	65535	-	1	全角文字含む、最大65535桁
+※2.
+SKU在庫設定の商品以外の場合空タグになります。
+半角の「&」と「"」が含まれている場合は除去されます。
+全角の「＆」と「”」は除去されません。
+　　　※2. 形式は下記のとおり
+　　　　　　SKU在庫設定の商品の場合・・・項目選択肢別在庫用項目名:項目選択肢別在庫用選択肢名称
+　　　　　　※選択肢が複数ある場合は改行で区切られて値が設定されます
+
+Request Sample
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<orderNotifyModel>
+    <authModel>
+        <contractId>xxxxxxxx</contractId>
+        <shopUrl>shop_url</shopUrl>
+        <authKey>123456789</authKey>
+    </authModel>
+    <orderInfoNotifyModel>
+        <orderNumber>251542-20130912-0399380105</orderNumber>
+        <seqId>0</seqId>
+        <orderDate>2013/09/12 10:55:15</orderDate>
+        <orderType>1</orderType>
+        <basketModel>
+            <itemId>10000059</itemId>
+            <pageURL>/shop_url/10000059/</pageURL>
+            <inventoryType>2</inventoryType>
+            <units>1</units>
+            <orgItemNumber></orgItemNumber>
+            <itemNumber>商品番号</itemNumber>
+            <selectedChoice>商品オプションA項目名:選択肢A1
+商品オプションC項目名:選択肢C3</selectedChoice>
+            <h_choice_c_name></h_choice_c_name>
+            <v_choice_c_name></v_choice_c_name>
+            <skuModel>
+                <variantId>11111</variantId>
+                <merchantDefinedSkuId>sku-1</merchantDefinedSkuId>
+                <skuInfo>SKU項目S:選択肢L
+SKU項目C:選択肢B</skuInfo>
+            </skuModel>
+        </basketModel>
+    </orderInfoNotifyModel>
+</orderNotifyModel>
+Response
+Http Header
+No	Element	Description
+1	Content-Type	text/xml
+2	Content-Length	※Response Bodyのサイズ値が入る
+Http Body
+XML:responseModel
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	responseModel.resultCode	処理結果コード	文字列	255	1	処理結果コードの詳細は下記参照
+Ready to use service 3.2.2. 通知受信モジュールの実装
+Response Sample
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<responseModel>
+        <resultCode>N-000-000</resultCode>
+</responseModel>

@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "R-CabinetAPI（CabinetAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"
+  },
+  "feature_page": {
+    "name": "Codes Reference",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetapicodesreference/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetapicodesreference/",
+  "main_text": "サービス一覧へ戻る / CabinetAPI\n\n\nRMS WEB SERVICE : CabinetAPI Codes Reference\nResult Codes Reference\n\n\nNo\tCase\tHttp Status Code\tXML <resultCode> value\tDescription\n1\t正常終了\t200 (OK)\t0\t通常ケース\n2\tパラメータエラー\t400 (Bad Request)\n\n\t3001\tパラメータエラー\n3\t3002\t存在しない店舗を指定した\n4\t3003\t存在しない店舗を指定した\n5\t3004\t存在しない画像ファイルを指定した\n6\t3005\t存在しないフォルダを指定した\n7\t3006\tファイル数上限エラー\n8\t3007\t既に存在している画像名を指定した\n9\t3008\t画像サイズエラー(容量)\n10\t3009\t画像サイズエラー(大きさ)\n11\t3010\t画像未対応フォーマット\n12\t3011\t画像フォーマットエラー\n13\t3012\t利用可能容量オーバー\n\n\n14\n\n\t3013\tフォルダ数上限エラー\n15\t3014\t階層エラー\n※3階層目のフォルダにさらにフォルダ作ろうとした\n16\t3015\t同名フォルダ(folder_path)が存在\n17\tシステムエラー\n\n\n\t500 (Internal Server Error)\t6001\tシステムエラー\n18\t6002\tシステムエラー\n19\t6003\tシステムエラー\n20\t6004\tキャッシュエラー\n21\t6009\tシステムエラー\n22\tメンテナンス\t503 (Service Unavailable)\t1001\tシステムエラー"
+}

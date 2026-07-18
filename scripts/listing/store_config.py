@@ -13,6 +13,7 @@ from scripts.listing.models import StoreSettings
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 ENV_PATH = BASE_DIR / ".env"
+DEFAULT_LISTING_IMAGE_LIMIT = 1
 
 
 def _env_names(store_code: str, suffix: str) -> tuple[str, str]:
@@ -35,6 +36,13 @@ def _to_int(value, default: int) -> int:
     return int(float(value))
 
 
+def _to_optional_positive_int(value) -> int | None:
+    if value is None or str(value).strip() == "":
+        return None
+    parsed = int(float(value))
+    return parsed if parsed > 0 else None
+
+
 def _to_float(value, default: float) -> float:
     if value is None or value == "":
         return default
@@ -51,6 +59,42 @@ def _to_bool(value, default: bool) -> bool:
 
 def _to_list(value: str) -> list[str]:
     return [item.strip() for item in str(value or "").split(",") if item.strip()]
+
+
+def _normalize_folder_path(value: str) -> str:
+    normalized = str(value or "").replace("\\", "/").strip()
+    return normalized.strip("/")
+
+
+def _default_cabinet_config(store_code: str) -> dict[str, object]:
+    if str(store_code).strip().lower() == "rakuten_1":
+        return {
+            "folder_id": 13584708,
+            "folder_name": "listing_test",
+            "folder_path": "r_2025042547/listing_test",
+            "shop_url": "ecprime500",
+            "folder_node": 2,
+        }
+    return {}
+
+
+def get_store_cabinet_config(store_code: str) -> dict[str, object]:
+    defaults = _default_cabinet_config(store_code)
+    folder_id_raw = _get_env(store_code, "CABINET_FOLDER_ID", str(defaults.get("folder_id", "")))
+    folder_name = _get_env(store_code, "CABINET_FOLDER_NAME", str(defaults.get("folder_name", "")))
+    folder_path = _normalize_folder_path(_get_env(store_code, "CABINET_FOLDER_PATH", str(defaults.get("folder_path", ""))))
+    shop_url = _get_env(store_code, "CABINET_SHOP_URL", str(defaults.get("shop_url", "")))
+    folder_node_raw = _get_env(store_code, "CABINET_FOLDER_NODE", str(defaults.get("folder_node", "")))
+    result = {
+        "folder_id": _to_int(folder_id_raw, 0) if str(folder_id_raw).strip() else None,
+        "folder_name": str(folder_name or "").strip(),
+        "folder_path": folder_path,
+        "shop_url": str(shop_url or "").strip(),
+        "folder_node": _to_int(folder_node_raw, 0) if str(folder_node_raw).strip() else None,
+    }
+    if not result["folder_id"] or not result["folder_path"] or not result["shop_url"]:
+        return {}
+    return result
 
 
 def _decimal_to_float(value, default: float) -> float:
@@ -123,8 +167,6 @@ def get_store_settings(store_code: str) -> StoreSettings:
     effective_rounding_unit = _to_int(_get_env(store_code, "ROUNDING_UNIT", ""), int(rule_rounding_unit or rounding_unit or 1))
     effective_profit_rate = _to_float(_get_env(store_code, "PROFIT_RATE", ""), float(profit_rate or 0.0))
     effective_profit_amount = _to_int(_get_env(store_code, "PROFIT_AMOUNT", ""), int(profit_amount or 300))
-    min_avg90_sellers = _to_float(_get_env(store_code, "MIN_AVG90_SELLERS", "3.5"), 3.5)
-
     ship_from_ids = _to_list(_get_env(store_code, "SHIP_FROM_IDS", "1"))
     if not ship_from_ids:
         raise RuntimeError(f"ship_from_ids is empty: store_code={store_code}")
@@ -146,6 +188,8 @@ def get_store_settings(store_code: str) -> StoreSettings:
         normal_delivery_time_id=_to_int(_get_env(store_code, "NORMAL_DELIVERY_TIME_ID", "1"), 1),
         back_order_delivery_time_id=_to_int(_get_env(store_code, "BACK_ORDER_DELIVERY_TIME_ID", "1"), 1),
         ship_from_ids=ship_from_ids,
-        min_avg90_sellers=min_avg90_sellers,
+        cabinet=get_store_cabinet_config(store_code),
         management_suffix=_get_env(store_code, "MANAGEMENT_SUFFIX", "187") or "187",
+        send_inventory_delivery_ids=_to_bool(_get_env(store_code, "SEND_INVENTORY_DELIVERY_IDS", ""), False),
+        listing_image_limit=_to_optional_positive_int(_get_env(store_code, "LISTING_IMAGE_LIMIT", str(DEFAULT_LISTING_IMAGE_LIMIT))),
     )

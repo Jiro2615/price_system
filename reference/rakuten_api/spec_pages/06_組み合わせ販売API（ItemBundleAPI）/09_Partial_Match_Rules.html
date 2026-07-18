@@ -1,0 +1,338 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a>&nbsp;/&nbsp;<a href="/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/">ItemBundleAPI</a></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : Item Bundle Partial Match Rules</span></h1><h2 id="Overview">Overview</h2><p>検索時の動作は下記のガイドラインで定義されております。</p><h3 id="日本語">日本語</h3>
+<div id="HTMLBlock21459" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+    <th class="confluenceTh">組み合わせ管理名称</th>
+    <th style="min-width:100px;" class="confluenceTh">検索キーワード</th>
+    <th class="confluenceTh">詳細</th>
+    <th style="min-width:50px;" class="confluenceTh">検索結果</th>
+    </tr>
+<tr>
+  <td class="confluenceTd" rowspan="6">日本語で検索するときの注意点および例</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索</td>
+  <td class="confluenceTd">漢字で検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索可能</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">けんさく</td>
+  <td class="confluenceTd">組み合わせ管理名称にある漢字テキストを平仮名で検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索不可</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">ケンサク</td>
+  <td class="confluenceTd">組み合わせ管理名称にある漢字テキストをカタカナで検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索不可</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">とき</td>
+  <td class="confluenceTd">平仮名で検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索可能</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">トキ</td>
+  <td class="confluenceTd">組み合わせ管理名称にある平仮名テキストをカタカナで検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索不可</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">注</td>
+  <td class="confluenceTd">漢字一文字で検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索可能</td>
+</tr>
+  </tbody>
+</table></div><h3 id="全角文字と半角文字">全角文字と半角文字</h3><ul>
+<li>半角文字の検索キーワードでは、全角文字のテキストを検索できません。</li>
+<li>同様に、全角文字の検索キーワードでは、半角文字のテキストを検索できません。</li>
+</ul>
+<p>&nbsp;</p>
+<div id="HTMLBlock21458" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+    <th class="confluenceTh">組み合わせ管理名称</th>
+    <th style="min-width:150px;" class="confluenceTh">検索キーワード</th>
+    <th class="confluenceTh">詳細</th>
+    <th style="min-width:50px;" class="confluenceTh">検索結果</th>
+    </tr>
+<tr>
+  <td class="confluenceTd" rowspan="2">ＤＯＵＢＬＥ　ＢＹＴＥ</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">ＤＯＵＢＬＥ　ＢＹＴＥ</td>
+  <td class="confluenceTd">組み合わせ管理名称にある全角テキストを全角キーワードで検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索可能</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">DOUBLE</td>
+  <td class="confluenceTd">組み合わせ管理名称にある全角テキストを半角キーワードで検索</td>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">検索不可</td>
+</tr>
+  </tbody>
+</table></div><h3 id="記号">記号</h3><p>一部の記号で検索する場合は、対象文字をエンコードする必要があります。詳細は下記リストの通りです。</p>
+<p>&nbsp;</p>
+<div id="HTMLBlock21633" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+    <th class="confluenceTh">記号</th>
+    <th class="confluenceTh">エンコード</th>
+    </tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">^</td>
+  <td class="confluenceTd">%5E</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">{</td>
+  <td class="confluenceTd">%7B</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">}</td>
+  <td class="confluenceTd">%7D</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">|</td>
+  <td class="confluenceTd">%7C</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">\</td>
+  <td class="confluenceTd">%5C</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">#</td>
+  <td class="confluenceTd">%23</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">+</td>
+  <td class="confluenceTd">%2B</td>
+</tr>
+<tr>
+  <td class="confluenceTd highlight-red" data-highlight-colour="red">&amp;</td>
+  <td class="confluenceTd">%26</td>
+</tr>
+  </tbody>
+</table></div><p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a>&nbsp;/&nbsp;<a href="/merchant-portal/view/ja/common/1-1_service_index/reserveapi/">ReserveAPI</a></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : reserve.earlyCommit.update</span></h1><h2 id="Overview">Overview</h2><p><span>この機能を利用すると、一括で早期確定を行うことができます。</span></p><h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div id="HTMLBlock26495" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">Endpoint</th>
+      <th class="confluenceTh">HTTP&nbsp;Method</th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">
+        <p><span class="nolink">https://api.rms.rakuten.co.jp/es/1.0/reserve/earlyCommitReservations</span></p>
+      </td>
+      <td class="highlight-red confluenceTd" style="text-align: center;" data-highlight-colour="red" data-mce-style="text-align: center;">POST</td>
+    </tr>
+  </tbody>
+</table></div><h2 id="Request">Request</h2><h3 id="Request Header">Request Header</h3>
+<div id="HTMLBlock26367" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">Key</th>
+      <th class="confluenceTh">Value</th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">
+        <p>Authorization</p>
+      </td>
+      <td class="confluenceTd highlight-red" data-highlight-colour="red">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Content-Type</td>
+      <td class="confluenceTd highlight-red" data-highlight-colour="red">application/json; charset=utf-8</td>
+    </tr>
+  </tbody>
+</table></div><h2 id="Request Body">Request Body</h2><h3 id="Level 1: base">Level 1: base</h3>
+<div id="HTMLBlock26496" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Multiple</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh" style="min-width:170px"><b>Note</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">reserveKeyList</td>
+      <td class="confluenceTd">更新対象リスト</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">no</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">list&lt;reserveKeyListModel&gt;</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">	
+更新する申込番号と詳細IDの組み合わせのリスト<br>
+最大500件まで指定可能</td>
+      <td class="confluenceTd"></td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+</div><h3 id="Level 2: reserveKeyListModel">Level 2: reserveKeyListModel</h3>
+<div id="HTMLBlock26711" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Multiple</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh" style="min-width:170px"><b>Note</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">reserveNumber</td>
+      <td class="confluenceTd">申込番号</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">yes</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">string</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">123456-20191204-262709-r</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">detailId</td>
+      <td class="confluenceTd">お届け回（詳細ID）</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">yes</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">number</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0以上の値が指定可能<br><br>
+0を指定した場合、直近のお届け回が更新される<br><br>
+1つの申込番号につき、1件の詳細IDのみ指定できる<br></td>
+      <td class="confluenceTd">1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div><h3 id="Request Sample">Request Sample</h3>
+<div id="HTMLBlock26984" class="HTMLBlock">
+<div class="table-wrap"><table class="wrapped confluenceTable"><colgroup><col></colgroup><tbody><tr><td colspan="1" class="confluenceTd"><div class="content-wrapper"><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code"><div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;"><b>Request (curl コマンドを使った例)</b></div><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl -X POST \
+  https://api.rms.rakuten.co.jp/es/1.0/reserve/earlyCommitReservations \
+  -H 'Authorization:ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "reserveKeyList": [
+        {
+            "reserveNumber":"123456-20200409-9195583-r",
+            "detailId":1
+        },
+        {
+            "reserveNumber":"123456-20200109-9186222-r",
+            "detailId":3
+        },
+        {
+            "reserveNumber":"123456-20200310-9187001-r",
+            "detailId":2
+        },
+        {
+            "reserveNumber":"123456-20200412-9197655-r",
+            "detailId":1
+        }
+    ]
+}'</pre>
+</div></div></div></td></tr></tbody></table></div></div><h2 id="Response">Response</h2><h3 id="Response Header">Response Header</h3>
+<div id="HTMLBlock26515" class="HTMLBlock">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">Key</th>
+      <th class="confluenceTh">Value</th>
+    </tr>
+      <tr><td class="confluenceTd">Content-Type</td>
+      <td class="confluenceTd highlight-red" data-highlight-colour="red">application/json; charset=utf-8</td>
+    </tr>
+  </tbody>
+</table></div><h3 id="Response Body">Response Body</h3><h4 id="Level 1: base">Level 1: base</h4>
+<div id="HTMLBlock26722" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>No</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Parameter Name</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Description</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Type</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Not Null</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Note</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Sample</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">responseDatetime</td>
+      <td class="confluenceTd">レスポンス時刻</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">date</td>
+      <td class="confluenceTd">yes</td>
+      <td class="confluenceTd">yyyy-MM-ddTHH:mm:ssZ</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">2019-12-18T10:52:20+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd" rowspan="3">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">summaryResultMessage</td>
+      <td class="confluenceTd" rowspan="3">処理結果メッセージのまとめ</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">string</td>
+      <td class="confluenceTd" rowspan="3">yes</td>
+      <td class="confluenceTd" rowspan="3">リクエストした問い合わせの内、何件が正常終了したのかを表す</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">10件中3件正常終了しました</td>
+    </tr>
+    <tr>
+    </tr>
+    <tr>
+    </tr>
+    <tr>
+      <td class="confluenceTd" rowspan="4">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="4">updateResultList</td>
+      <td class="confluenceTd" rowspan="4">各申込番号の処理結果のリスト</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="4">list&lt;updateUnitResponseModel&gt;</td>
+      <td class="confluenceTd" rowspan="4">yes</td>
+      <td class="confluenceTd" rowspan="4">以下の場合、更新処理への続行ができないため、詳細に1件のみ返却する。<br><br>・必須パラメーターが指定されていない<br>・リクエスト件数が上限を超える<br>・認証失敗</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="4">
+Response Sample 内 <a href="#no mandatory parameter">必須パラメータ不足等により後続処理が行えない場合</a> 参照</td>
+    </tr>
+    <tr>
+    </tr>
+    <tr>
+    </tr>
+    <tr>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div><h4 id="Level 2: updateUnitResponseModel">Level 2: updateUnitResponseModel</h4>
+<div id="HTMLBlock26712" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>No</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Parameter Name</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Description</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Type</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Not Null</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Note</b></td>
+      <td class="highlight-grey confluenceTd" data-highlight-colour="grey"><b>Sample</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">reserveNumber</td>
+      <td class="confluenceTd">申込番号</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">string</td>
+      <td class="confluenceTd">no</td>
+      <td class="confluenceTd">後続処理できない場合の返却値はnull</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">123456-20200409-9195583-r</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">detailId</td>
+      <td class="confluenceTd">更新対象の明細ID</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">number</td>
+      <td class="confluenceTd">yes</td>
+      <td class="confluenceTd">リクエスト時0で指定した場合、実際に更新対象の詳細IDが設定される<br><br>後続処理できない場合の返却値は-1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">resultCode</td>
+      <td class="confluenceTd">処理結果コード</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">string</td>
+      <td class="confluenceTd">yes</td>
+      <td class="confluenceTd">Response Code Reference の一覧は <a href="/merchant-portal/view/ja/common/1-1_service_index/reserveapi/responsecodereference">こちら</a></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">N00-000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">resultMessage</td>
+      <td class="confluenceTd">処理結果メッセージ</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">string</td>
+      <td class="confluenceTd">yes</td>
+      <td class="confluenceTd">Response Code Reference の一覧は <a href="/merchant-portal/view/ja/common/1-1_service_index/reserveapi/responsecodereference">こちら</a></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">正常終了しました</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div><h3 id="Response Sample">Response Sample</h3><h4 id="リクエストがすべて成功した場合">リクエストがすべて成功した場合</h4>
+<div id="HTMLBlock26644" class="HTMLBlock">
+<div class="table-wrap"><table class="wrapped confluenceTable"><colgroup><col></colgroup><tbody><tr><td colspan="1" class="confluenceTd"><div class="content-wrapper"><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code"><div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;"><b>Response (Status: 200 OK)</b></div><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "responseDatetime": "2020-04-18T00:31:23+0900",
+    "summaryResultMessage": "4件中4件正常終了しました",
+    "updateResultList": [
+        {
+            "reserveNumber": "123456-20200409-9195583-r",
+            "detailId": "1",
+            "resultCode": "N00-000",
+            "resultMessage": "正常終了しました"
+        },
+        {
+            "reserveNumber": "123456-20200109-9186222-r",
+            "detailId": "3",
+            "resultCode": "N00-000",
+            "resultMessage": "正常終了しました"
+        },
+        {
+            "reserveNumber": "123456-20200310-9187001-r",
+            "detailId": "2",
+            "resultCode": "N00-000",
+            "resultMessage": "正常終了しました"
+        }
+        {
+            "reserveNumber": "123456-20200412-9197655-r",
+            "detailId": "1",
+            "resultCode": "N00-000",
+            "resultMessage": "正常終了しました"
+        }
+    ]
+}</pre>
+</div></div></div></td></tr></tbody></table></div></div><h4 id="リクエストが一部失敗した場合">リクエストが一部失敗した場合</h4>
+<div id="HTMLBlock26645" class="HTMLBlock">
+<div class="table-wrap"><table class="wrapped confluenceTable"><colgroup><col></colgroup><tbody><tr><td colspan="1" class="confluenceTd"><div class="content-wrapper"><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code"><div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;"><b>Response (Status: 200 OK)</b></div><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "responseDatetime": "2020-04-18T00:31:23+0900",
+    "summaryResultMessage": "4件中1件正常終了しました",
+    "updateResultList": [
+        {
+            "reserveNumber": "123456-20200409-9195583-r",
+            "detailId": "1",
+            "resultCode": "N00-000",
+            "resultMessage": "正常終了しました"
+        },
+        {
+            "reserveNumber": "123456-20200109-9186222-r",
+            "detailId": "3",
+            "resultCode": "E01-002",
+            "resultMessage": "有効な詳細IDを指定してください"
+        },
+        {
+            "reserveNumber": "123456-20200310-9187001-r",
+            "detailId": "2",
+            "resultCode": "E02-001",
+            "resultMessage": "対象のお届け回が存在しません"
+        },
+        {
+            "reserveNumber": "123456-20200412-9197655-r",
+            "detailId": "1",
+            "resultCode": "E02-002",
+            "resultMessage": "既に早期確定準備中のため更新できません"
+        }
+    ]
+}</pre>
+</div></div></div></td></tr></tbody></table></div></div><h4 id="必須パラメータ不足等により後続処理が行えない場合">必須パラメータ不足等により後続処理が行えない場合</h4>
+<div id="HTMLBlock26646" class="HTMLBlock">
+<h1 id="no mandatory parameter"></h1>
+
+<div class="table-wrap"><table class="wrapped confluenceTable"><colgroup><col></colgroup><tbody><tr><td colspan="1" class="confluenceTd"><div class="content-wrapper"><div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code"><div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;"><b>Response (Status: 200 OK)</b></div><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "responseDatetime": "2020-03-18T00:31:23+0900",
+    "summaryResultMessage": "0件正常終了しました",
+    "updateResultList": [
+        {
+            "reserveNumber": null,
+            "detailId": -1,
+            "resultCode": "E01-000",
+            "resultMessage": "必須パラメーター店舗IDを必ず指定してください"
+        }
+    ]
+}</pre>
+</div></div></div></td></tr></tbody></table></div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

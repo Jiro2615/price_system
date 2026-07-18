@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "システムイベント通知サービス（System Event Notification Service）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"
+  },
+  "feature_page": {
+    "name": "警告表示注文通知",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/cautiondisplaynotice/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/cautiondisplaynotice/",
+  "main_text": "サービス一覧へ戻る / システムイベント通知サービス / システム情報通知\n\nRMS WEB SERVICE : 警告表示注文通知\n「システム情報通知」の警告表示注文通知サービスで提供される、格納データについて定義します。\nインターフェース項目は、「システム情報通知」の内容に準じます。\n\n実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。\n\n警告表示注文通知\nNo\tElement\tDescription\tSample\tNote\nElement Name\tAttribute Value\tElement Name\tAttribute Value\n1\tvalue1\torderNumber\tデータ1\t受注番号\t201990-20130708-0243110105\tshopID-yyyymmdd-**********\n\n全桁で一意の値となり、末尾の数字(**********)はランダムに発行され桁数も増減する可能性があります。\n2\tvalue2\tcautionDisplayType\tデータ2\t警告コード\t1\t1: 慎重な対応を要する注文（処理可）（RMS注文一覧・詳細表示でピンクの注文）\n2: 楽天側でキャンセル予定の注文（RMS注文一覧・詳細表示でグレーの注文）※\n\n※キャンセルの予告となります。通知を受け取った時点ではまだキャンセルされていません。\n3\tvalue3\toccurrenceDatetime\tデータ3\t警告表示開始日時\t2018/01/13 19:05:13\tYYYY/MM/DD hh:mm:ss\n4\tvalue4\tcautionDisplayDetailType\tデータ4\t警告表示タイプ詳細\t101\t101: 前払い未払いに注意\n102: 受取拒否に注意\n103: 注意長期不在による受取拒否に注意\n104: 開梱後の返品に注意\n105: 高いサービスレベルの要望に注意\n\n※2021年10月13日（水）以降に、value2の警告コード（cautionDisplayType）が「1: 慎重な対応を要する注文（処理可）」と判断された注文に、本項目が出力されます。\n2021年10月13日（水）以前に、value2の警告コード（cautionDisplayType）が「1: 慎重な対応を要する注文（処理可）」と判断された注文、または「1: 慎重な対応を要する注文（処理可）」以外と判断された注文には、本項目は出力されません。（value4=\"\"となります。）\n5\tvalue5\t-\tデータ5\t\t\t\n6\tvalue6\t-\tデータ6\t\t\t\n7\tvalue7\t-\tデータ7\t\t\t\n8\tvalue8\t-\tデータ8\t\t\t\n9\tvalue9\t-\tデータ9\t\t\t\n10\tvalue10\t-\tデータ10"
+}

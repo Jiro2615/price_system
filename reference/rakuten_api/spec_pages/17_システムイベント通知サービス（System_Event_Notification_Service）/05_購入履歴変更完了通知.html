@@ -1,0 +1,591 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37437" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/">システムイベント通知サービス</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotification/">システム情報通知</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : 購入履歴変更通知</span></h1>
+</div>
+<span>「システム情報通知」の購入履歴変更通知サービスで提供されれる、格納データについて定義します。</span><br>
+<span>インターフェース項目は、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotification/">システム情報通知</a>」の内容に準じます。</span><br>
+<br>
+<span>ユーザが購入履歴変更機能で、何も変更せずに更新ボタンだけを押した場合、システムイベント通知サービスからの通知は行われませんのでご了承ください。</span><br>
+<br>
+<span>実装の前に、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice#制約事項">RMS WEB SERVICE : システムイベント通知サービス/４．制約事項</a>」をご確認ください。</span><br>
+<h2 id="クレジットカード変更">クレジットカード変更</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh" colspan="2"><b>Element</b></th>
+      <th class="confluenceTh" colspan="2"><b>Description</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Sample</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value1</td>
+      <td class="confluenceTd give_space">operation</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ1</td>
+      <td class="confluenceTd give_space">オペレーション</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">update</td>
+      <td class="confluenceTd give_space">update : 更新</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value2</td>
+      <td class="confluenceTd give_space">orderNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ2</td>
+      <td class="confluenceTd give_space">受注番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">201990-20130708-0243110105</td>
+      <td class="confluenceTd give_space">xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value3</td>
+      <td class="confluenceTd give_space">subkey</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ3</td>
+      <td class="confluenceTd give_space">識別キー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0</td>
+      <td class="confluenceTd give_space">固定値</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value4</td>
+      <td class="confluenceTd give_space">class</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ4</td>
+      <td class="confluenceTd give_space">更新対象モデル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">cardModel</td>
+      <td class="confluenceTd give_space">cardModel : クレジットカード変更モデル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value5</td>
+      <td class="confluenceTd give_space">field</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ5</td>
+      <td class="confluenceTd give_space">更新対象フィールド</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">cardNo</td>
+      <td class="confluenceTd give_space">変更対象のフィールド名がセットされます
+　cardNo : カード番号
+　expYM : 有効期限
+　brandName : カード会社
+　ownerName : 名義人
+　payType : 分割選択（支払種別）
+　installmentDesc : 分割回数</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value6</td>
+      <td class="confluenceTd give_space">before</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ6</td>
+      <td class="confluenceTd give_space">変更前値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value7</td>
+      <td class="confluenceTd give_space">after</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ7</td>
+      <td class="confluenceTd give_space">変更後値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value8</td>
+      <td class="confluenceTd give_space">orderType</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ8</td>
+      <td class="confluenceTd give_space">販売種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value9</td>
+      <td class="confluenceTd give_space">orderDate</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ9</td>
+      <td class="confluenceTd give_space">注文日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-07-08 14:18:49</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value10</td>
+      <td class="confluenceTd give_space">timestamp</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ10</td>
+      <td class="confluenceTd give_space">タイムスタンプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-09-12 14:19:00</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="支払方法変更">支払方法変更</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh" colspan="2"><b>Element</b></th>
+      <th class="confluenceTh" colspan="2"><b>Description</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Sample</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value1</td>
+      <td class="confluenceTd give_space">operation</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ1</td>
+      <td class="confluenceTd give_space">オペレーション</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">update</td>
+      <td class="confluenceTd give_space">update : 更新</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value2</td>
+      <td class="confluenceTd give_space">orderNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ2</td>
+      <td class="confluenceTd give_space">受注番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">201990-20130708-0243110105</td>
+      <td class="confluenceTd give_space">xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value3</td>
+      <td class="confluenceTd give_space">subkey</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ3</td>
+      <td class="confluenceTd give_space">識別キー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0</td>
+      <td class="confluenceTd give_space">固定値</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value4</td>
+      <td class="confluenceTd give_space">class</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ4</td>
+      <td class="confluenceTd give_space">更新対象モデル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">settlementModel</td>
+      <td class="confluenceTd give_space">settlementModel : 支払方法変更モデル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value5</td>
+      <td class="confluenceTd give_space">field</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ5</td>
+      <td class="confluenceTd give_space">更新対象フィールド</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">settlementName</td>
+      <td class="confluenceTd give_space">変更対象のフィールド名がセットされます
+　settlementName : 支払い方法名</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value6</td>
+      <td class="confluenceTd give_space">before</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ6</td>
+      <td class="confluenceTd give_space">変更前値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value7</td>
+      <td class="confluenceTd give_space">after</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ7</td>
+      <td class="confluenceTd give_space">変更後値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value8</td>
+      <td class="confluenceTd give_space">orderType</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ8</td>
+      <td class="confluenceTd give_space">販売種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value9</td>
+      <td class="confluenceTd give_space">orderDate</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ9</td>
+      <td class="confluenceTd give_space">注文日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-07-08 14:18:49</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value10</td>
+      <td class="confluenceTd give_space">timestamp</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ10</td>
+      <td class="confluenceTd give_space">タイムスタンプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-09-12 14:19:00</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="注文キャンセル">注文キャンセル</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh" colspan="2"><b>Element</b></th>
+      <th class="confluenceTh" colspan="2"><b>Description</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Sample</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Element Name</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>Attribute Value</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value1</td>
+      <td class="confluenceTd give_space">operation</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ1</td>
+      <td class="confluenceTd give_space">オペレーション</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">cancel</td>
+      <td class="confluenceTd give_space">cancel : キャンセル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value2</td>
+      <td class="confluenceTd give_space">orderNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ2</td>
+      <td class="confluenceTd give_space">受注番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">201990-20130708-0243110105</td>
+      <td class="confluenceTd give_space">xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value3</td>
+      <td class="confluenceTd give_space">subkey</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ3</td>
+      <td class="confluenceTd give_space">識別キー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0</td>
+      <td class="confluenceTd give_space">固定値</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value4</td>
+      <td class="confluenceTd give_space">class</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ4</td>
+      <td class="confluenceTd give_space">更新対象モデル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">all</td>
+      <td class="confluenceTd give_space">all : 注文キャンセル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value5</td>
+      <td class="confluenceTd give_space">field</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ5</td>
+      <td class="confluenceTd give_space">更新対象フィールド</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">order</td>
+      <td class="confluenceTd give_space">変更対象のフィールド名がセットされます
+　order : 注文内容</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value6</td>
+      <td class="confluenceTd give_space">before</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ6</td>
+      <td class="confluenceTd give_space">変更前値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value7</td>
+      <td class="confluenceTd give_space">after</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ7</td>
+      <td class="confluenceTd give_space">変更後値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">常に空文字</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value8</td>
+      <td class="confluenceTd give_space">orderType</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ8</td>
+      <td class="confluenceTd give_space">販売種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value9</td>
+      <td class="confluenceTd give_space">orderDate</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ9</td>
+      <td class="confluenceTd give_space">注文日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-07-08 14:18:49</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">value10</td>
+      <td class="confluenceTd give_space">timestamp</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ10</td>
+      <td class="confluenceTd give_space">タイムスタンプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2013-09-12 14:19:00</td>
+      <td class="confluenceTd give_space">YYYY-MM-DD hh:mm:ss</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

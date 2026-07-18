@@ -1,0 +1,1857 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock33952" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/categoryapi2/">CategoryAPI 2.0</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : category.category-trees.get</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、カテゴリセットIDを指定しカテゴリツリー情報を取得することができます。</span><br>
+<span>カテゴリセットを利用していない場合、カテゴリセットIDには「0」を指定してください。</span><br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP&nbsp;Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/{categorySetId}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GET</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="Request Header">Request Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Authorization</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Path Parameter">Path Parameter</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">categorySetId</td>
+      <td class="confluenceTd give_space">カテゴリセットID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">40</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">カテゴリセットを利用していない場合、「0」を指定。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Query Parameter">Query Parameter</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">categorysetfields</td>
+      <td class="confluenceTd give_space">カテゴリセットフィールド</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下のカテゴリセット情報を取得したい場合は指定。
+複数指定する場合はカンマ区切り。
+
+・TITLE：カテゴリセット名
+・CATEGORY_SET_FEATURES：カテゴリセット設定
+・CREATED：カテゴリセットの登録日時
+・UPDATED： カテゴリセットの更新日時</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">categoryfields</td>
+      <td class="confluenceTd give_space">カテゴリフィールド</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下のカテゴリ情報を取得したい場合は指定。
+複数指定する場合はカンマ区切り。
+
+・CATEGORY_SET_ID：カテゴリセットID
+・TITLE：カテゴリ名
+・CATEGORY_FEATURES：カテゴリ設定
+・DESCRIPTION：カテゴリ説明文
+・ADDITIONALDESCRIPTION：カテゴリ説明文下
+・IMAGES：カテゴリ画像
+・LAYOUT：カテゴリレイアウト
+・CREATED：カテゴリの登録日時
+・UPDATED：カテゴリの更新日時</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<span>None</span><br>
+<h2 id="Response">Response</h2>
+<h3 id="HTTP Headers">HTTP Headers</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">application/json</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<h4 id="成功した場合">成功した場合</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh" colspan="6"><b>Parameter Name</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Logical Name</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Not Null</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Type</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Max Byte</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Multiplicity</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L1</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L2</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L3</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L4</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L5</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L6</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="6">categorySet</td>
+      <td class="confluenceTd give_space">カテゴリセット</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Query Parameterを指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">categorySetId</td>
+      <td class="confluenceTd give_space">カテゴリセットID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">20</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">数字または"etc"。
+カテゴリセットを利用していない場合は「0」。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">title</td>
+      <td class="confluenceTd give_space">カテゴリセット名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">60</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categorySetfields"で指定した場合に返される。
+カテゴリセットを利用していない場合は全角スペース。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">categorySetFeatures</td>
+      <td class="confluenceTd give_space">カテゴリセット設定</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categorySetfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="4">display</td>
+      <td class="confluenceTd give_space">カテゴリセット表示</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：表示
+・false：非表示</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">created</td>
+      <td class="confluenceTd give_space">カテゴリセットの登録日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categorySetfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">updated</td>
+      <td class="confluenceTd give_space">カテゴリセットの更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categorySetfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="6">categorySetId</td>
+      <td class="confluenceTd give_space">カテゴリセットID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Query Parameterを指定しない場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="6">rootNode</td>
+      <td class="confluenceTd give_space">ルートノード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="5">children</td>
+      <td class="confluenceTd give_space">子カテゴリのリスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">list&lt;object&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..30</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="4">category</td>
+      <td class="confluenceTd give_space">カテゴリ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">categoryId</td>
+      <td class="confluenceTd give_space">カテゴリID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">40</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">型は文字列だが、値は数値。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">categorySetId</td>
+      <td class="confluenceTd give_space">カテゴリセットID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">20</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+数字または"etc"。
+カテゴリセットを利用していない場合は「0」。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">title</td>
+      <td class="confluenceTd give_space">カテゴリ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">60</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">categoryFeatures</td>
+      <td class="confluenceTd give_space">カテゴリ設定</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">display</td>
+      <td class="confluenceTd give_space">カテゴリ表示</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：表示
+・false：非表示</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">categoryPageViewMode</td>
+      <td class="confluenceTd give_space">カテゴリページ表示形式</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・LIST：リスト形式
+・GALLERY：ウィンドウショッピング形式
+・PLURAL ：1ページ複数商品形式</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">description</td>
+      <td class="confluenceTd give_space">カテゴリ説明文</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">pc</td>
+      <td class="confluenceTd give_space">カテゴリ説明文上</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">PC用カテゴリ説明文の上部。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">sp</td>
+      <td class="confluenceTd give_space">スマートフォン用カテゴリ説明文</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">21</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">additionalDescription</td>
+      <td class="confluenceTd give_space">カテゴリ説明文下</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+PC用カテゴリ説明文の下部。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">22</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">images</td>
+      <td class="confluenceTd give_space">カテゴリ画像</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">23</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">type</td>
+      <td class="confluenceTd give_space">カテゴリ画像種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・CABINET：R-Cabinetの画像
+・GOLD：GOLDの画像
+・ABSOLUTE：楽天市場おすすめ画像</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">24</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">location</td>
+      <td class="confluenceTd give_space">カテゴリ画像URL</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">255</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">カテゴリ画像種別が「CABINET」「GOLD」の場合、画像URLの"/画像パス”部分。
+
+CABINET：https://image.rakuten.co.jp/[SHOP_URL]/cabinet<font color="red">/画像パス</font>
+GOLD：https://www.rakuten.ne.jp/gold/[SHOP_URL]<font color="red">/画像パス</font>
+例: "/myfolder-1/tv01.jpg"
+
+「ABSOLUTE」の場合、URL全文。
+例："https://image.rakuten.co.jp/com/img/rms/cabinet/recommend_new/imgXX.jpg"</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">25</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">alt</td>
+      <td class="confluenceTd give_space">カテゴリ画像名(ALT)</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">255</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">26</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">layout</td>
+      <td class="confluenceTd give_space">カテゴリレイアウト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">27</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">navigationId</td>
+      <td class="confluenceTd give_space">ヘッダー・フッター・レフトナビのテンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">28</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">layoutCategorySequenceId</td>
+      <td class="confluenceTd give_space">表示項目の並び順テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">29</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">smallDescriptionId</td>
+      <td class="confluenceTd give_space">共通説明文（小）テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">30</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">showcaseId</td>
+      <td class="confluenceTd give_space">目玉商品テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">31</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">largeDescriptionId</td>
+      <td class="confluenceTd give_space">共通説明文（大）テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">created</td>
+      <td class="confluenceTd give_space">カテゴリの登録日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">33</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">updated</td>
+      <td class="confluenceTd give_space">カテゴリの更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">34</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="4">children</td>
+      <td class="confluenceTd give_space">子カテゴリのリスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">list&lt;object&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0..30</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">35</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="3">category</td>
+      <td class="confluenceTd give_space">カテゴリ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">36</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">categoryId</td>
+      <td class="confluenceTd give_space">カテゴリID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">40</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">型は文字列だが、値は数値。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">37</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">categorySetId</td>
+      <td class="confluenceTd give_space">カテゴリセットID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">20</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+数字または"etc"。
+カテゴリセットを利用していない場合は「0」。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">38</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">title</td>
+      <td class="confluenceTd give_space">カテゴリ名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">60</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">39</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">categoryFeatures</td>
+      <td class="confluenceTd give_space">カテゴリ設定</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">40</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">display</td>
+      <td class="confluenceTd give_space">カテゴリ表示</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：表示
+・false：非表示</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">41</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">categoryPageViewMode</td>
+      <td class="confluenceTd give_space">カテゴリページ表示形式</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・LIST：リスト形式
+・GALLERY：ウィンドウショッピング形式
+・PLURAL ：1ページ複数商品形式</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">42</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">description</td>
+      <td class="confluenceTd give_space">カテゴリ説明文</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">43</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">pc</td>
+      <td class="confluenceTd give_space">カテゴリ説明文上</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">PC用カテゴリ説明文の上部。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">44</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">sp</td>
+      <td class="confluenceTd give_space">スマートフォン用カテゴリ説明文</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">45</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">additionalDescription</td>
+      <td class="confluenceTd give_space">カテゴリ説明文下</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">8000</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+PC用カテゴリ説明文の下部。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">46</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">images</td>
+      <td class="confluenceTd give_space">カテゴリ画像</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">47</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">type</td>
+      <td class="confluenceTd give_space">カテゴリ画像種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">enum</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・CABINET：R-Cabinetの画像
+・GOLD：GOLDの画像
+・ABSOLUTE：楽天市場おすすめ画像</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">48</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">location</td>
+      <td class="confluenceTd give_space">カテゴリ画像URL</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">255</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">カテゴリ画像種別が「CABINET」「GOLD」の場合、画像URLの"/画像パス”部分。
+
+CABINET：https://image.rakuten.co.jp/[SHOP_URL]/cabinet<font color="red">/画像パス</font>
+GOLD：https://www.rakuten.ne.jp/gold/[SHOP_URL]<font color="red">/画像パス</font>
+例: "/myfolder-1/tv01.jpg"
+
+「ABSOLUTE」の場合、URL全文。
+例："https://image.rakuten.co.jp/com/img/rms/cabinet/recommend_new/imgXX.jpg"</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">49</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">alt</td>
+      <td class="confluenceTd give_space">カテゴリ画像名(ALT)</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">255</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">50</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">layout</td>
+      <td class="confluenceTd give_space">カテゴリレイアウト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">object</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">51</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">navigationId</td>
+      <td class="confluenceTd give_space">ヘッダー・フッター・レフトナビのテンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">52</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">layoutCategorySequenceId</td>
+      <td class="confluenceTd give_space">表示項目の並び順テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">53</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">smallDescriptionId</td>
+      <td class="confluenceTd give_space">共通説明文（小）テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">54</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showcaseId</td>
+      <td class="confluenceTd give_space">目玉商品テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">55</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">largeDescriptionId</td>
+      <td class="confluenceTd give_space">共通説明文（大）テンプレートID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">56</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">created</td>
+      <td class="confluenceTd give_space">カテゴリの登録日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">57</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="2">updated</td>
+      <td class="confluenceTd give_space">カテゴリの更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">"categoryfields"で指定した場合に返される。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">58</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="6">created</td>
+      <td class="confluenceTd give_space">カテゴリツリーの登録日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">59</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" colspan="6">updated</td>
+      <td class="confluenceTd give_space">カテゴリツリーの更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フォーマットはISO 8601、タイムゾーンは日本標準時(JST)、秒まで。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<span></span><br>
+<h4 id="失敗した場合">失敗した場合</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh" rowspan="2"><b>No</b></th>
+      <th class="confluenceTh" colspan="2"><b>Parameter Name</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Logical Name</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Not Null</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Type</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Max Byte</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Multiplicity</b></th>
+      <th class="confluenceTh" rowspan="2"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L1</b></td>
+      <td class="highlight-grey confluenceTd give_space" data-highlight-colour="grey"><b>L2</b></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">errors</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">エラー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;error&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">エラーのリスト。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">code</td>
+      <td class="confluenceTd give_space">コード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="2">メッセージコードの一覧は<a href="/merchant-portal/view/ja/common/1-1_service_index/categoryapi2/codereference">こちら</a>。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">message</td>
+      <td class="confluenceTd give_space">メッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Sample">Sample</h2>
+<span>サンプルで用いるカテゴリセット(categorySetId=32345)のカテゴリツリー状態は以下のようになっています。</span><br>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/categoryset.jpg"></span><br>
+<h3 id="成功した場合(QueryParameterで何も設定していない場合)">成功した場合(QueryParameterで何も設定していない場合)</h3>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/32345' \
+--header 'Authorization: ESA xxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; "rootNode": {
+&nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "1",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "2",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "5",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "8",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "10"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "11"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "12"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "9"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "6"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "3",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "7"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "4"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; },
+&nbsp; &nbsp; "created": "2021-10-21T11:26:46+09:00",
+&nbsp; &nbsp; "updated": "2021-10-21T11:26:46+09:00"
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="成功した場合(QueryParameterで全てのFieldを設定した場合)">成功した場合(QueryParameterで全てのFieldを設定した場合)</h3>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/32345?categorysetfields=TITLE,CATEGORY_SET_FEATURES,CREATED,UPDATED&amp;categoryfields=CATEGORY_SET_ID,TITLE,CATEGORY_FEATURES,DESCRIPTION,ADDITIONALDESCRIPTION,IMAGES,LAYOUT,CREATED,UPDATED' \
+--header 'Authorization: ESA xxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "categorySet": {
+&nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; "title": "Tree 日本 1",
+&nbsp; &nbsp; &nbsp;&nbsp;&nbsp; "categorySetFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true
+&nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-03-10T00:56:02+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; "updated": "2023-06-02T17:26:30+09:00"
+&nbsp; &nbsp; },
+&nbsp; &nbsp; "rootNode": {
+&nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "1",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ1",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "2",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ2",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "5",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ5",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "8",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ8",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "10",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ10",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "11",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ11",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "12",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ12",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ9",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "6",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ6",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "3",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ3",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "children": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ7",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "category": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryId": "4",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categorySetId": "32345",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "title": "カテゴリ4",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "display": true,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "pc": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "sp": "aaa"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "additionalDescription": "aaa",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/washingmachine.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "全自動洗濯機1"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ],
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layout": {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "navigationId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "layoutCategorySequenceId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "smallDescriptionId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "showcaseId": 0,
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "largeDescriptionId": 0
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; },
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "created": "2021-06-14T17:45:10+09:00",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "updated": "2021-10-21T11:48:12+09:00"
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; &nbsp; &nbsp; ]
+&nbsp; &nbsp; },
+&nbsp; &nbsp; "created": "2021-10-21T11:26:46+09:00",
+&nbsp; &nbsp; "updated": "2021-10-21T11:26:46+09:00"
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="失敗した場合">失敗した場合</h3>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/xxx' \
+--header 'Authorization: ESA xxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "errors": [
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "code": "IE0002",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "message": "categorySetId has an invalid value : \"xxx\"."
+&nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; ]
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

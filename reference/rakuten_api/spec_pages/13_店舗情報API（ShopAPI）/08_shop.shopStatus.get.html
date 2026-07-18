@@ -1,0 +1,643 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37650" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/shopapi/">ShopAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : shop.shopStatus.get</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、特定機能の移行状況や利用状況を確認することができます。</span><br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP&nbsp;Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/1.0/shop/shopStatus/{statusKey}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GET</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Authorization</td>
+      <td class="confluenceTd give_space">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">application/xml; charset=UTF-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Path Parameters">Path Parameters</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">statusKey</td>
+      <td class="confluenceTd give_space">socialGiftParticipation: ソーシャルギフト利用申込</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Query Parameters">Query Parameters</h3>
+<span>None</span><br>
+<h2 id="Response">Response</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">content-type</td>
+      <td class="confluenceTd give_space">application/xml; charset=UTF-8</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">x-request-id</td>
+      <td class="confluenceTd give_space">UUID形式
+※API requestを特定する一意のIDです。問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Timestamp</td>
+      <td class="confluenceTd give_space">アクセス時のタイムスタンプ
+※問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<h4 id="Level 1: shopBizApiResponse">Level 1: shopBizApiResponse</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">resultCode</td>
+      <td class="confluenceTd give_space">結果コード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">resultMessageList</td>
+      <td class="confluenceTd give_space">メッセージ一覧</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">resultMessageList</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">result</td>
+      <td class="confluenceTd give_space">取得データ本体</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">topDisplayBizModel</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">No</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: resultMessageList">Level 2: resultMessageList</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">resultMessage</td>
+      <td class="confluenceTd give_space">メッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">resultMessage</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: resultMessage">Level 3: resultMessage</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">code</td>
+      <td class="confluenceTd give_space">コード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space" rowspan="2">詳細は、<a href="/merchant-portal/view/ja/common/1-1_service_index/shopapi/response-codes-reference/">ShopAPI Response Codes Reference</a>を参照してください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">message</td>
+      <td class="confluenceTd give_space">メッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: shopStatusBizModel">Level 2: shopStatusBizModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">shopStatus</td>
+      <td class="confluenceTd give_space">店舗ステータス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">shopStatus</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: shopStatus">Level 3: shopStatus</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">statusKey</td>
+      <td class="confluenceTd give_space">店舗ステータスのキー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space">socialGiftParticipation: ソーシャルギフト利用申込</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">statusValue</td>
+      <td class="confluenceTd give_space">店舗ステータスの値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Yes</td>
+      <td class="confluenceTd give_space">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>statusKey</b></th>
+      <th class="confluenceTh"><b>statusValue</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">socialGiftParticipation</td>
+      <td class="confluenceTd give_space">・NOT_USE: 未申込み
+・IN_USE: 利用中
+・UNAVAILABLE: 利用不可</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+※店舗ステータスの変更が反映されるまで10分程度かかる場合があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">statusUpdateTime</td>
+      <td class="confluenceTd give_space">店舗ステータス更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Date</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">No</td>
+      <td class="confluenceTd give_space">ISO 8601（YYYY-MM-DDThh:mm:ss±hh:mm）形式です。
+"statusKey"に"socialGiftParticipation"が指定されている場合は、この項目自体がレスポンスされません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">startTime</td>
+      <td class="confluenceTd give_space">開始日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Date</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">No</td>
+      <td class="confluenceTd give_space">ISO 8601（YYYY-MM-DDThh:mm:ss±hh:mm）形式です。
+"statusKey"に"socialGiftParticipation"が指定されている場合は、この項目自体がレスポンスされません。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Response Sample">Response Sample</h3>
+<div id="sampleresponse example (statusKey is socialGiftParticipation and statusValue is NOT_USE)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (statusKey is socialGiftParticipation and statusValue is NOT_USE)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse
+&nbsp; xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+&nbsp; &lt;resultCode&gt;N000&lt;/resultCode&gt;
+&nbsp; &lt;resultMessageList&gt;
+&nbsp; &nbsp; &lt;resultMessage&gt;
+&nbsp; &nbsp; &nbsp; &lt;code&gt;N000&lt;/code&gt;
+&nbsp; &nbsp; &nbsp; &lt;message&gt;Succeeded.&lt;/message&gt;
+&nbsp; &nbsp; &lt;/resultMessage&gt;
+&nbsp; &lt;/resultMessageList&gt;
+&nbsp; &lt;result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:shopStatusBizModel"&gt;
+&nbsp; &nbsp; &lt;shopStatus&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;statusKey&gt;socialGiftParticipation&lt;/statusKey&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;statusValue&gt;NOT_USE&lt;/statusValue&gt;
+ &nbsp; &nbsp; &nbsp;&lt;/shopStatus&gt;
+&nbsp; &lt;/result&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleresponse example (statusKey is socialGiftParticipation and statusValue is IN_USE)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (statusKey is socialGiftParticipation and statusValue is IN_USE)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse
+&nbsp; xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+&nbsp; &lt;resultCode&gt;N000&lt;/resultCode&gt;
+&nbsp; &lt;resultMessageList&gt;
+&nbsp; &nbsp; &lt;resultMessage&gt;
+&nbsp; &nbsp; &nbsp; &lt;code&gt;N000&lt;/code&gt;
+&nbsp; &nbsp; &nbsp; &lt;message&gt;Succeeded.&lt;/message&gt;
+&nbsp; &nbsp; &lt;/resultMessage&gt;
+&nbsp; &lt;/resultMessageList&gt;
+&nbsp; &lt;result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:shopStatusBizModel"&gt;
+&nbsp; &nbsp; &lt;shopStatus&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;statusKey&gt;socialGiftParticipation&lt;/statusKey&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;statusValue&gt;IN_USE&lt;/statusValue&gt;
+ &nbsp; &nbsp; &nbsp;&lt;/shopStatus&gt;
+&nbsp; &lt;/result&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleresponse example (statusKey is invalid)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (statusKey is invalid)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse&nbsp;
+&nbsp; xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+&nbsp; &lt;resultCode&gt;C003&lt;/resultCode&gt;
+&nbsp; &lt;resultMessageList&gt;
+&nbsp; &nbsp; &lt;resultMessage&gt;
+&nbsp; &nbsp; &nbsp; &lt;code&gt;C003&lt;/code&gt;
+&nbsp; &nbsp; &nbsp; &lt;message&gt;Requested resource is not found.&lt;/message&gt;
+&nbsp; &nbsp; &lt;/resultMessage&gt;
+&nbsp; &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleresponse example (error case)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (error case)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+&nbsp; &nbsp; &lt;resultCode&gt;E999&lt;/resultCode&gt;
+&nbsp; &nbsp; &lt;resultMessageList&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;resultMessage&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;code&gt;E999&lt;/code&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;message&gt;Unknown Execution error.&lt;/message&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;/resultMessage&gt;
+&nbsp; &nbsp; &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

@@ -1,0 +1,72 @@
+サービス一覧へ戻る / システムイベント通知サービス / システム情報通知
+
+RMS WEB SERVICE : 購入履歴変更通知
+「システム情報通知」の購入履歴変更通知サービスで提供されれる、格納データについて定義します。
+インターフェース項目は、「システム情報通知」の内容に準じます。
+
+ユーザが購入履歴変更機能で、何も変更せずに更新ボタンだけを押した場合、システムイベント通知サービスからの通知は行われませんのでご了承ください。
+
+実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。
+
+クレジットカード変更
+No	Element	Description	Sample	Note
+Element Name	Attribute Value	Element Name	Attribute Value
+1	value1	operation	データ1	オペレーション	update	update : 更新
+2	value2	orderNumber	データ2	受注番号	201990-20130708-0243110105	xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。
+3	value3	subkey	データ3	識別キー	0	固定値
+4	value4	class	データ4	更新対象モデル	cardModel	cardModel : クレジットカード変更モデル
+5	value5	field	データ5	更新対象フィールド	cardNo	変更対象のフィールド名がセットされます
+　cardNo : カード番号
+　expYM : 有効期限
+　brandName : カード会社
+　ownerName : 名義人
+　payType : 分割選択（支払種別）
+　installmentDesc : 分割回数
+6	value6	before	データ6	変更前値	-	常に空文字
+7	value7	after	データ7	変更後値	-	常に空文字
+8	value8	orderType	データ8	販売種別	1	1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約
+9	value9	orderDate	データ9	注文日時	2013-07-08 14:18:49	YYYY-MM-DD hh:mm:ss
+10	value10	timestamp	データ10	タイムスタンプ	2013-09-12 14:19:00	YYYY-MM-DD hh:mm:ss
+支払方法変更
+No	Element	Description	Sample	Note
+Element Name	Attribute Value	Element Name	Attribute Value
+1	value1	operation	データ1	オペレーション	update	update : 更新
+2	value2	orderNumber	データ2	受注番号	201990-20130708-0243110105	xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。
+3	value3	subkey	データ3	識別キー	0	固定値
+4	value4	class	データ4	更新対象モデル	settlementModel	settlementModel : 支払方法変更モデル
+5	value5	field	データ5	更新対象フィールド	settlementName	変更対象のフィールド名がセットされます
+　settlementName : 支払い方法名
+6	value6	before	データ6	変更前値	-	常に空文字
+7	value7	after	データ7	変更後値	-	常に空文字
+8	value8	orderType	データ8	販売種別	1	1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約
+9	value9	orderDate	データ9	注文日時	2013-07-08 14:18:49	YYYY-MM-DD hh:mm:ss
+10	value10	timestamp	データ10	タイムスタンプ	2013-09-12 14:19:00	YYYY-MM-DD hh:mm:ss
+注文キャンセル
+No	Element	Description	Sample	Note
+Element Name	Attribute Value	Element Name	Attribute Value
+1	value1	operation	データ1	オペレーション	cancel	cancel : キャンセル
+2	value2	orderNumber	データ2	受注番号	201990-20130708-0243110105	xxxxxx-xxxxxxxx-xxxxxxxxxx
+
+受注番号は全桁で一意となります。
+3	value3	subkey	データ3	識別キー	0	固定値
+4	value4	class	データ4	更新対象モデル	all	all : 注文キャンセル
+5	value5	field	データ5	更新対象フィールド	order	変更対象のフィールド名がセットされます
+　order : 注文内容
+6	value6	before	データ6	変更前値	-	常に空文字
+7	value7	after	データ7	変更後値	-	常に空文字
+8	value8	orderType	データ8	販売種別	1	1 : 通常購入
+4 : 定期購入
+5 : 頒布会
+6 : 予約
+9	value9	orderDate	データ9	注文日時	2013-07-08 14:18:49	YYYY-MM-DD hh:mm:ss
+10	value10	timestamp	データ10	タイムスタンプ	2013-09-12 14:19:00	YYYY-MM-DD hh:mm:ss

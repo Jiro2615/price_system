@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "楽天ペイ受注API（RakutenPayOrderAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/"
+  },
+  "feature_page": {
+    "name": "2019/11/26 版",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/responsesample",
+    "description": "・getOrder PayPal / Alipay 決済手段に関する Sample を バージョン 3 に追加・RakutenPayOrderAPI Response Sample PayPal / Alipay 決済手段に関する Sample を に追加 Note: 機能自体は2020年2月を予定しております。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/responsesample",
+  "main_text": "サービス一覧へ戻る\n\nRMS WEB SERVICE : RakutenPayOrderAPI Response Sample\nOverview\n\nこの機能を利用すると、これまで、APIリファレンスで公開していた楽天ペイ受注APIのレスポンスサンプルが、テスト用のエンドポイントから取得できるようになります。既定の注文番号を指定してリクエストいただくと、定型のレスポンスサンプルを返却します。\n\n実際の注文ステータスや情報の変更などはできません。\n\n各決済方法・配送方法の注文情報や各機能のレスポンスサンプルをご確認いただくためにご利用ください。\n\n共通Path\nPath\nhttps://api.rms.rakuten.co.jp/es/2.0/sample.order/\nRequest\nRequest Method\nMethod\nPOST\nRequest Header\nKey\tValue\nAuthorization\tESA Base64(serviceSecret:licenseKey)\nContent-Type\tapplication/json; charset=utf-8\nResponse\nHTTP Status\nCode\tStatus\tDescription\n200\tOK\tリクエストが成功した。\n400\tBad Request\tリクエストが不正である。\n404\tNot Found\tRequest-URI に一致するものを見つけられなかった。\n405\tMethod Not Allowed\t許可されていないメソッドを使用しようとした。\n500\tInternal Server Error\tサーバ内部にエラーが発生した。\n503\tService Unavailable\tサービスが一時的に過負荷やメンテナンスで使用不可能である。\nResponse Header\nKey\tValue\nContent-Type\tapplication/json;charset=utf-8\nResponse Parameter\n\n各機能の詳細に関しましては、以下のリンクをご参照ください。\n\n \n\nsearchOrder\ngetOrder\nconfirmOrder\nupdateOrderShipping\nupdateOrderShippingAsync\ngetResultUpdateOrderShippingAsync\ngetSubStatusList\nupdateOrderSubStatus\nupdateOrderMemo\nupdateOrderRemarks\nupdateOrderSender\nupdateOrderSenderAfterShipping\ncancelOrder\ncancelOrderAfterShipping\nupdateOrderOrderer\nupdateOrderDelivery\nsimulateCouponAmount\ngetPayment\nSample Files\n\nテスト用のエンドポイントで利用する定型リクエストと定型レスポンスはこちらからダウンロードいただけます。\n\n利用方法はダウンロードいただいたファイル内のマニュアルをご確認ください。\n\n \n\n2024/10/03 版\n更新履歴\nNo.\tVer.\tDate\tDescription\n1\t1.0\t2018/12/19\t初版\n2\t1.1\t2019/05/22\t2019年10月 増税対応版\n3\t1.2\t2019/11/26\t2020年1月 Alipay / PayPal 対応版\n4\t1.3\t2020/01/31\t2020年3月 共通の送料込みライン対応版\n5\t1.4\t2020/07/16\t2020年8月 領収書、前払い期限対応版\n6\t1.5\t2020/11/18\t2021年1月 クーポン再計算対応版\n7\t1.6\t2020/12/23\t2021年2月 決済手段変更機能対応版\n8\t1.7\t2021/11/15\t2021年12月 要注意ユーザー表示改善対応版\n9\t1.8\t2022/08/31\t2023年 SKUプロジェクト対応版\n10\t1.9\t2023/01/16\t2023年3月 発送明細ID登録時のレスポンス変更対応版\n11\t2.0\t2024/03/28\t2024年3月 配送品質向上制度対応版\n12\t2.1\t2024/07/05\t2024年3月 配送品質向上制度対応版(サンプル修正)\n13\t2.2\t2024/10/03\t2024年10月 置き配対応版"
+}

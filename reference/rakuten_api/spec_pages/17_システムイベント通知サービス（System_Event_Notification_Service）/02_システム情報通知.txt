@@ -1,0 +1,299 @@
+サービス一覧へ戻る / システムイベント通知サービス
+
+RMS WEB SERVICE : システム情報通知
+
+
+
+
+「システム情報通知」は、汎用インターフェースに基づいた様々なサービスの情報を通知する機能です。
+
+
+
+
+実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+-	POST
+Request
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+2	Content-Length	※Request Bodyのサイズ値が入る
+HTTP Body
+XML:notifyModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	notifyModel.authModel	
+
+認証モデル
+
+	オブジェクト	-	○	1	
+2	notifyModel.notifyInfoModel	通知情報モデル	
+
+配列
+＜オブジェクト＞
+
+	-	○	1...n	最大500件
+XML:authModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	authModel.contractId	契約ID	文字列	255	○	1	
+
+API利用者ID
+半角記号英数字最大255桁
+例）X1X1234 
+
+
+
+2	authModel.shopUrl	ショップURL	文字列	255	○	1	店舗URL
+半角記号英数字最大255桁
+例）_rakutentest
+3	authModel.authKey	認証キー	文字列	255	○	1	
+
+システムイベント通知サービス用認証キーがセットされます
+半角英数字最大255桁
+例）Aq12wc456fg
+
+XML:notifyInfoModel
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	notifyInfoModel.requestId	リクエストID	文字列	255	○	1	2015/08/18以降利用開始の場合
+(Version2.0をご利用の場合)のみ送信されます
+2	notifyInfoModel.serviceId	サービスID	
+
+文字列
+
+	11	○	1	有効範囲：0～2147483647
+3	notifyInfoModel.functionId	機能ID
+	文字列	11	○	1	有効範囲：0～2147483647
+4	notifyInfoModel.value1	
+
+データ1
+（属性名name)
+
+	
+
+属性：文字列
+　
+値：文字列
+
+	255
+/255	○	1	
+
+サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+
+
+5	notifyInfoModel.value2	
+
+データ2
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	
+
+255
+/255
+
+	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+6	notifyInfoModel.value3	
+
+データ3
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	
+
+255
+/255
+
+	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+7	notifyInfoModel.value4	
+
+データ4
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+8	notifyInfoModel.value5	
+
+データ5
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+9	notifyInfoModel.value6	
+
+データ6
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+10	notifyInfoModel.value7	
+
+データ7
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+11	notifyInfoModel.value8	
+
+データ8
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+12	notifyInfoModel.value9	
+
+データ9
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+13	notifyInfoModel.value10	
+
+データ10
+（属性名name)
+
+	
+
+属性：文字列
+ 
+値：文字列
+
+	255
+/255	○	1	サービスID、機能IDに紐づく対象データ
+全角文字含む　最大255桁
+例） xxx.csv
+Request Sample
+
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<notifyModel>
+    <authModel>
+        <contractId>xxxxxxxx</contractId>
+        <shopUrl> shop_url </shopUrl>
+        <authKey>123456789</authKey>
+    </authModel>
+    <notifyInfoModel>
+        <requestId>3000-3870e2bc-29fc-4f4f-848e-33312ad07e7d</requestId>
+        <serviceId>3000</serviceId>
+        <functionId>1100</functionId>
+        <value1 name="fileName">normal-item.csv</value1>
+        <value2 name="processDate">2015/05/01 15:59</value2>
+        <value3 name="insertCount">0</value3>
+        <value4 name="updateCount">5</value4>
+        <value5 name="deleteCount">0</value5>
+        <value6 name="errorCount">1</value6>
+        <value7 name="errorFilePath">ritem/logs/normal-item.20230501155904410.csv</value7>
+        <value8 name=""></value8>
+        <value9 name=""></value9>
+        <value10 name=""></value10>
+    </notifyInfoModel>
+</notifyModel>
+
+
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+2	Content-Length	※Request Bodyのサイズ値が入る
+HTTP Body
+XML:responseModel
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	responseModel.resultCode	処理結果コード	文字列	255	1	
+
+処理結果コードの詳細は下記参照
+Ready to use service 3.2.2. 通知受信モジュールの実装
+
+Response Sample
+
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<responseModel>
+	<resultCode>N-000-000</resultCode>
+</responseModel> 
+
+
+Service list
+
+　「システム情報通知」では以下のサービスを提供します。
+
+No	サービス名	通知内容
+1	商品一括編集完了通知	商品一括編集の処理が完了したことを通知します
+2	画像一括編集完了通知	画像一括編集の処理が完了したことを通知します
+3	購入履歴変更通知	購入履歴からの下記の変更タイミングと変更箇所を通知します
+・クレジットカード変更
+・支払方法変更
+・注文キャンセル
+
+4	再入荷リクエスト通知（SKU移行前）	SKU移行前の再入荷リクエスト内容を通知します
+5	再入荷リクエスト通知（SKU移行後）	SKU移行後の再入荷リクエスト内容を通知します
+注）SKU移行後も継続して利用希望の場合は、4100：再入荷リクエスト通知（SKU移行前）と別に、4200：再入荷リクエスト通知（SKU移行後）のお申込みが必要です
+6	審査結果通知	楽天側での決済の与信審査結果を通知します
+7	警告表示注文通知	警告表示されている注文がある場合通知します
+8	支払方法変更通知	「支払方法変更通知」は、楽天市場 決済代行センター業務において、購入者の支払方法を変更したタイミングで、対象受注・支払方法を通知します
+9	問い合わせユーザアクション通知	ユーザーから、新規問い合わせまたは返信があったことを通知します
+10	問い合わせ店舗アクション通知	店舗様からの新規問い合わせ、またはユーザーの問い合わせに返信したことを通知します
+11	購入申込通知	予約購入・定期購入・頒布会サービスにて、新規申込が発生したタイミングでの申込特定情報を通知します

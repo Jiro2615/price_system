@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "システムイベント通知サービス（System Event Notification Service）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"
+  },
+  "feature_page": {
+    "name": "画像一括編集完了通知",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationrcabinet/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationrcabinet/",
+  "main_text": "サービス一覧へ戻る / システムイベント通知サービス / システム情報通知\n\nRMS WEB SERVICE : 画像一括編集完了通知\n「システム情報通知」の画像一括編集完了通知サービスで提供される、格納データについて定義します。\nインターフェース項目は、「システム情報通知」の内容に準じます。\n\n実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。\n\n画像一括編集完了通知\nNo\tElement\tDescription\tSample\tNote\nElement Name\tAttribute Value\tElement Name\tAttribute Value\n1\tvalue1\tfileName\tデータ1\tファイル名\timageFile\t常に\"imageFile\" (固定値)\n2\tvalue2\tprocessDatetime\tデータ2\t処理日時\t2013/11/01 15:15\t処理をした日時\n　YYYY/MM/DD HH:mm\n3\tvalue3\tinsertCount\tデータ3\t処理件数(登録)\t10\t正常に登録できた件数\n4\tvalue4\terrorCount\tデータ4\t処理件数(エラー)\t10\tエラーとなった件数\n5\tvalue5\terrorFilePath\tデータ5\tエラーログファイルパス\tcabinet/logs/image_20131101151501.csv\tエラーログの出力場所\n※エラーが無い場合は空文字となる\n6\tvalue6\t空白\tデータ6\t-\t-\t常に空文字 (固定値)\n7\tvalue7\t空白\tデータ7\t-\t-\t常に空文字 (固定値)\n8\tvalue8\t空白\tデータ8\t-\t-\t常に空文字 (固定値)\n9\tvalue9\t空白\tデータ9\t-\t-\t常に空文字 (固定値)\n10\tvalue10\t空白\tデータ10\t-\t-\t常に空文字 (固定値)"
+}

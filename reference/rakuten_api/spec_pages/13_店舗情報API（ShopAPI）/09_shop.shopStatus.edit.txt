@@ -1,0 +1,87 @@
+サービス一覧へ戻る / ShopAPI
+
+RMS WEB SERVICE :shop.shopStatus.edit
+Overview
+この機能を利用すると、特定機能の移行状況や利用状況を更新することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/shop/shopStatus/{statusKey}	POST
+※現在指定可能な「statusKey」はありません。本機能は常に正常終了しますがデータは更新されません。
+
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+2	Content-Type	application/xml; charset=UTF-8
+Path Parameters
+No	Key	Value
+1	statusKey	※現在指定可能な値はありません。
+Query Parameters
+None
+
+HTTP Body
+Level 1: shopStatusBizModel
+No	Element	Description	Type	Max Byte	Required	Note
+1	updateModel	更新モデル	shopStatus	-	Yes	
+Level 2: shopStatus
+No	Element	Description	Type	Max Byte	Required	Note
+1	statusKey		店舗ステータスのキー	String	255	Yes	※現在指定可能な値はありません。
+2	statusValue	店舗ステータスの値	String	255	Yes	以下のいずれか
+・MIGRATED：PC用トップページを新店舗トップページに移行する
+Request Sample
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopStatusBizModel xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <updateModel>
+        <statusKey>pcTopMigration</statusKey>
+        <statusValue>MIGRATED</statusValue>
+    </updateModel>
+</shopbiz:shopStatusBizModel> 
+Response
+HTTP Header
+No	Key	Value
+1	content-type	application/xml; charset=UTF-8
+2	x-request-id	UUID形式
+※API requestを特定する一意のIDです。問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+3	Timestamp	アクセス時のタイムスタンプ
+※問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+HTTP Body
+Level 1: shopBizApiResponse
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultCode	結果コード	String	4	Yes	
+2	resultMessageList	メッセージ一覧	resultMessageList	-	Yes	
+Level 2: resultMessageList
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultMessage	メッセージ	resultMessage		-	Yes	
+Level 3: resultMessage
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	code	コード	String	4	Yes	詳細は、ShopAPI Response Codes Reference を参照してください。
+2	message	メッセージ	String	-	Yes
+3	resourceId	リソースID	String	-	No	（バリデーションエラー発生時のみ）問題が発生したリソースID。パラメータのフォーマットエラーなど特定の項目に関連してエラーが発生した場合にのみ設定されます。
+4	fieldId	フィールド名	String	-	No	（バリデーションエラー発生時のみ）問題が発生したフィールドID。パラメータのフォーマットエラーなど特定の項目に関連してエラーが発生した場合にのみ設定されます。
+5	validationErrorCode	バリデーションエラーコード	String	-	No	（バリデーションエラー発生時のみ）バリデーションエラーコード
+6	minValue	最小値	String	-	No	（バリデーションエラー発生時のみ）設定すべき値の範囲を示します。
+7	maxValue	最大値	String	-	No	（バリデーションエラー発生時のみ）設定すべき数値、または文字列長の範囲を示します。
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>E999</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>E999</code>
+            <message>Unknown Execution error.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>

@@ -1,0 +1,293 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/shipfromget/
+サービス: 店舗情報API（ShopAPI）
+
+サービス一覧へ戻る / ShopAPI
+
+RMS WEB SERVICE : shop.shipFrom.get
+Overview
+この機能を利用すると、配送リードタイム（出荷元住所と都道府県ごとの配送リードタイム）の設定を取得することができます。
+※SKU移行後の店舗様向けの機能です。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/shop/shipFrom	GET
+Request
+HTTP Header
+No	Key	Value
+1	Authorization	ESA Base64(serviceSecret:licenseKey)
+2	Content-Type	application/xml; charset=UTF-8
+Query Parameters
+No	Parameter	Description	Type	Required	Note
+1	shipFromId	配送リードタイムID	Integer	No	指定した shipFromId の情報を取得します。
+指定しない場合はすべての配送リードタイムを取得します。
+HTTP Body
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	content-type	application/xml; charset=UTF-8
+2	x-request-id	UUID形式
+※API requestを特定する一意のIDです。問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+3	Timestamp	アクセス時のタイムスタンプ
+※問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+HTTP Body
+Level 1: shopBizApiResponse
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultCode	結果コード	String	4	Yes	
+2	resultMessageList	メッセージ一覧	resultMessageList	-	Yes	
+3	result	取得データ本体	shipFromBizModel	-	No	
+Level 2: resultMessageList
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	resultMessage	メッセージ	resultMessage	-	Yes	
+Level 3: resultMessage
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	code	コード	String	4	Yes	詳細は、ShopAPI Response Codes Reference を参照してください。
+2	message	メッセージ	String	-	Yes
+Level 2: shipFromBizModel
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	shipFromList	配送リードタイム設定のリスト	shipFrom	-	Yes	
+Level 3: shipFrom
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	shipFromId	配送リードタイムID	String	10	No	
+2	name	管理名称	String	60	No	
+3	zipcodeFrom	出荷元郵便番号	String	7	No	"-"なしの7桁の数値
+4	deliveryLeadTimePerPrefecture	都道府県ごとの配送リードタイム	deliveryLeadTimePrefecture	-	No	
+5	defaultFlag	出荷元住所の自動選択	Short	5	No	0: 自動選択しない
+1: 自動選択対象
+
+※自動選択の対象にできるのは1つの配送リードタイムのみになります。
+Level 4: deliveryLeadTimePerPrefecture
+No	Element	Description	Type	Max Byte	Not Null	Note
+1	JP-01	北海道の配送リードタイム	Integer	10	Yes	フィールド名には、ISO 3166-2の規格で各都道府県に割り当てられているコード(JP-01からJP-47まで)が用いられます。
+2	JP-02	青森県の配送リードタイム	Integer	10	Yes	
+3	JP-03	岩手県の配送リードタイム	Integer	10	Yes	
+4	JP-04	宮城県の配送リードタイム	Integer	10	Yes	
+5	JP-05	秋田県の配送リードタイム	Integer	10	Yes	
+6	JP-06	山形県の配送リードタイム	Integer	10	Yes	
+7	JP-07	福島県の配送リードタイム	Integer	10	Yes	
+8	JP-08	茨城県の配送リードタイム	Integer	10	Yes	
+9	JP-09	栃木県の配送リードタイム	Integer	10	Yes	
+10	JP-10	群馬県の配送リードタイム	Integer	10	Yes	
+11	JP-11	埼玉県の配送リードタイム	Integer	10	Yes	
+12	JP-12	千葉県の配送リードタイム	Integer	10	Yes	
+13	JP-13	東京都の配送リードタイム	Integer	10	Yes	
+14	JP-14	神奈川県の配送リードタイム	Integer	10	Yes	
+15	JP-15	新潟県の配送リードタイム	Integer	10	Yes	
+16	JP-16	富山県の配送リードタイム	Integer	10	Yes	
+17	JP-17	石川県の配送リードタイム	Integer	10	Yes	
+18	JP-18	福井県の配送リードタイム	Integer	10	Yes	
+19	JP-19	山梨県の配送リードタイム	Integer	10	Yes	
+20	JP-20	長野県の配送リードタイム	Integer	10	Yes	
+21	JP-21	岐阜県の配送リードタイム	Integer	10	Yes	
+22	JP-22	静岡県の配送リードタイム	Integer	10	Yes	
+23	JP-23	愛知県の配送リードタイム	Integer	10	Yes	
+24	JP-24	三重県の配送リードタイム	Integer	10	Yes	
+25	JP-25	滋賀県の配送リードタイム	Integer	10	Yes	
+26	JP-26	京都府の配送リードタイム	Integer	10	Yes	
+27	JP-27	大阪府の配送リードタイム	Integer	10	Yes	
+28	JP-28	兵庫県の配送リードタイム	Integer	10	Yes	
+29	JP-29	奈良県の配送リードタイム	Integer	10	Yes	
+30	JP-30	和歌山県の配送リードタイム	Integer	10	Yes	
+31	JP-31	鳥取県の配送リードタイム	Integer	10	Yes	
+32	JP-32	島根県の配送リードタイム	Integer	10	Yes	
+33	JP-33	岡山県の配送リードタイム	Integer	10	Yes	
+34	JP-34	広島県の配送リードタイム	Integer	10	Yes	
+35	JP-35	山口県の配送リードタイム	Integer	10	Yes	
+36	JP-36	徳島県の配送リードタイム	Integer	10	Yes	
+37	JP-37	香川県の配送リードタイム	Integer	10	Yes	
+38	JP-38	愛媛県の配送リードタイム	Integer	10	Yes	
+39	JP-39	高知県の配送リードタイム	Integer	10	Yes	
+40	JP-40	福岡県の配送リードタイム	Integer	10	Yes	
+41	JP-41	佐賀県の配送リードタイム	Integer	10	Yes	
+42	JP-42	長崎県の配送リードタイム	Integer	10	Yes	
+43	JP-43	熊本県の配送リードタイム	Integer	10	Yes	
+44	JP-44	大分県の配送リードタイム	Integer	10	Yes	
+45	JP-45	宮崎県の配送リードタイム	Integer	10	Yes	
+46	JP-46	鹿児島県の配送リードタイム	Integer	10	Yes	
+47	JP-47	沖縄県の配送リードタイム	Integer	10	Yes	
+Response sample
+response example (SKU移行後、出荷元郵便番号あり、都道府県ごとの配送リードタイムなしの場合)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+    <result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:shipFromBizModel">
+        <shipFromList>
+            <shipFrom>
+                <shipFromId>41</shipFromId>
+                <name>出荷元リスト01</name>
+                <zipcodeFrom>1580094</zipcodeFrom>
+                <defaultFlag>1</defaultFlag>
+            </shipFrom>
+        </shipFromList>
+    </result>
+</shopbiz:shopBizApiResponse>
+response example (SKU移行後、出荷元郵便番号なし、都道府県ごとの配送リードタイムありの場合)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+    <result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:shipFromBizModel">
+        <shipFromList>
+            <shipFrom>
+                <shipFromId>42</shipFromId>
+                <name>配送リードタイムリスト02</name>
+                <deliveryLeadTimePerPrefecture>
+                    <JP-01>1</JP-01>
+                    <JP-02>1</JP-02>
+                    <JP-03>3</JP-03>
+                    <JP-04>3</JP-04>
+                    <JP-05>3</JP-05>
+                    <JP-06>3</JP-06>
+                    <JP-07>3</JP-07>
+                    <JP-08>3</JP-08>
+                    <JP-09>2</JP-09>
+                    <JP-10>2</JP-10>
+                    <JP-11>1</JP-11>
+                    <JP-12>1</JP-12>
+                    <JP-13>1</JP-13>
+                    <JP-14>1</JP-14>
+                    <JP-15>2</JP-15>
+                    <JP-16>2</JP-16>
+                    <JP-17>2</JP-17>
+                    <JP-18>2</JP-18>
+                    <JP-19>2</JP-19>
+                    <JP-20>2</JP-20>
+                    <JP-21>2</JP-21>
+                    <JP-22>2</JP-22>
+                    <JP-23>2</JP-23>
+                    <JP-24>3</JP-24>
+                    <JP-25>3</JP-25>
+                    <JP-26>3</JP-26>
+                    <JP-27>3</JP-27>
+                    <JP-28>3</JP-28>
+                    <JP-29>3</JP-29>
+                    <JP-30>3</JP-30>
+                    <JP-31>3</JP-31>
+                    <JP-32>3</JP-32>
+                    <JP-33>3</JP-33>
+                    <JP-34>4</JP-34>
+                    <JP-35>4</JP-35>
+                    <JP-36>4</JP-36>
+                    <JP-37>4</JP-37>
+                    <JP-38>4</JP-38>
+                    <JP-39>4</JP-39>
+                    <JP-40>4</JP-40>
+                    <JP-41>4</JP-41>
+                    <JP-42>4</JP-42>
+                    <JP-43>4</JP-43>
+                    <JP-44>4</JP-44>
+                    <JP-45>4</JP-45>
+                    <JP-46>4</JP-46>
+                    <JP-47>5</JP-47>
+                </deliveryLeadTimePerPrefecture>
+                <defaultFlag>1</defaultFlag>
+            </shipFrom>
+        </shipFromList>
+    </result>
+</shopbiz:shopBizApiResponse>
+response example (SKU移行後、出荷元郵便番号あり、都道府県ごとの配送リードタイムありの場合)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+    <result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:shipFromBizModel">
+        <shipFromList>
+            <shipFrom>
+                <shipFromId>43</shipFromId>
+                <name>配送リードタイムリスト03</name>
+                <zipcodeFrom>1580094</zipcodeFrom>
+                <deliveryLeadTimePerPrefecture>
+                    <JP-01>1</JP-01>
+                    <JP-02>1</JP-02>
+                    <JP-03>3</JP-03>
+                    <JP-04>3</JP-04>
+                    <JP-05>3</JP-05>
+                    <JP-06>3</JP-06>
+                    <JP-07>3</JP-07>
+                    <JP-08>3</JP-08>
+                    <JP-09>2</JP-09>
+                    <JP-10>2</JP-10>
+                    <JP-11>1</JP-11>
+                    <JP-12>1</JP-12>
+                    <JP-13>1</JP-13>
+                    <JP-14>1</JP-14>
+                    <JP-15>2</JP-15>
+                    <JP-16>2</JP-16>
+                    <JP-17>2</JP-17>
+                    <JP-18>2</JP-18>
+                    <JP-19>2</JP-19>
+                    <JP-20>2</JP-20>
+                    <JP-21>2</JP-21>
+                    <JP-22>2</JP-22>
+                    <JP-23>2</JP-23>
+                    <JP-24>3</JP-24>
+                    <JP-25>3</JP-25>
+                    <JP-26>3</JP-26>
+                    <JP-27>3</JP-27>
+                    <JP-28>3</JP-28>
+                    <JP-29>3</JP-29>
+                    <JP-30>3</JP-30>
+                    <JP-31>3</JP-31>
+                    <JP-32>3</JP-32>
+                    <JP-33>3</JP-33>
+                    <JP-34>4</JP-34>
+                    <JP-35>4</JP-35>
+                    <JP-36>4</JP-36>
+                    <JP-37>4</JP-37>
+                    <JP-38>4</JP-38>
+                    <JP-39>4</JP-39>
+                    <JP-40>4</JP-40>
+                    <JP-41>4</JP-41>
+                    <JP-42>4</JP-42>
+                    <JP-43>4</JP-43>
+                    <JP-44>4</JP-44>
+                    <JP-45>4</JP-45>
+                    <JP-46>4</JP-46>
+                    <JP-47>5</JP-47>
+                </deliveryLeadTimePerPrefecture>
+                <defaultFlag>1</defaultFlag>
+            </shipFrom>
+        </shipFromList>
+    </result>
+</shopbiz:shopBizApiResponse>
+response example (SKU移行前)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>C008</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>C008</code>
+            <message>Requested data is not found.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>E999</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>E999</code>
+            <message>Unknown Execution error.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>

@@ -1,4 +1,58 @@
-# docs/rakuten_price_system_design.md
+# 楽天価格・在庫更新システム設計メモ
+
+このファイルは価格・在庫更新系の設計メモです。
+楽天新規出品フローの詳細仕様、ファイル説明、API仕様の正本、運用手順は
+`docs/rakuten_listing_developer_guide.md` を参照してください。
+
+注意: このファイルの旧本文には文字コード不整合で読みにくい箇所が残っています。
+価格・在庫更新の最新方針は下記を正として扱い、旧本文は履歴参照扱いにしてください。
+
+## 現行方針
+
+日次更新と一括更新は別の運用として扱います。
+
+### 日次・通常更新
+
+- Amazonページ確認で価格、在庫、発送可否、ギフト可否を取得する。
+- DB上で `target_price` / `target_stock` を計算する。
+- 少量・通常運用の価格更新は楽天Item API patch系で行う。
+- 在庫更新はInventory APIのbulk/upsert系を優先する。
+- CSVは日次更新の標準ルートではありません。
+
+### 一括・全体更新
+
+次のような全体再計算・大量更新時だけCSVを使います。
+
+- 価格ルール変更
+- 利益計算ロジック変更
+- Amazonポイント処理変更
+- 丸め処理変更
+- 店舗全体の価格方針変更
+
+CSV更新は「大量更新用の砲台」として扱い、日次の小回り更新とは分けます。
+
+### CSVエラー時の扱い
+
+- CSVエラーログが出ても全件失敗とは限らない。
+- 成功行はDBへ反映する。
+- エラー商品は `rakuten_csv_update_blocked = true` として、次回CSVから除外する。
+- blocked商品で価格・在庫更新が必要な場合はAPI更新へ回す。
+- `/ritem/batch` からCSVが消え、settle wait後もエラーログがなければ成功扱いにする。
+
+### 主要スクリプト
+
+- `scripts/price_check_from_db.py`: Amazon確認。
+- `scripts/calc_store_targets.py`: target price/stock計算。
+- `scripts/show_update_targets.py`: 更新対象確認。
+- `scripts/rakuten_price_patch.py`: API価格更新。
+- `scripts/rakuten_inventory_bulk_upsert.py`: API在庫更新。
+- `scripts/rakuten_csv_price_update_flow.py`: CSV一括更新フロー。
+- `scripts/rakuten_listing_prepare.py`: 新規出品dry-run入口。
+- `scripts/rakuten_listing_db_sync.py`: 新規出品成功後のDB同期。
+
+---
+
+## 旧本文
 
 ## システム概要
 このシステムは、Amazonを仕入れ/参照元、楽天を販売先として、価格・在庫・発送可否を管理する。
@@ -38,7 +92,7 @@
 - エラー時、成功分反映 + エラー商品blocked化
 
 ## CSVエラーへの考え方
-CSVでエラーが出ても全件失敗とは限らない。  
+CSVでエラーが出ても全件失敗とは限らない。
 楽天の処理結果は「正常 N件、エラー M件」の部分成功になり得る。
 
 そのため、エラーCSVが出た場合:

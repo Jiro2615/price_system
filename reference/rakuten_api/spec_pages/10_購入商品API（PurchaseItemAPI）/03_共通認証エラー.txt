@@ -1,0 +1,260 @@
+サービス一覧へ戻る / PurchaseItemAPI
+
+RMS WEB SERVICE : PurchaseItemAPI 共通認証エラー
+認証エラーレスポンスフォーマット (Authentication Error Response Format）
+No	ESA Response	API Response
+Error Case	Error Code	Message	HTTP Response Code
+1	AUTH_ERROR	ES01-01	Un-Authorised	401
+2	API_MAINTENANCE	ES01-02	API In Maintenance	503
+3	MAX_QPS_OVER	ES01-03	Forbidden- Exceeded QPS Limitation	403
+4	MAX_QPM_OVER	ES01-04	Forbidden- Exceeded QPM Limitation	403
+5	MAX_CONNECTION_OVER	ES01-05	Forbidden- Exceeded Number of Connection Limitation	403
+6	INTERNAL_ERROR	ES01-06	Internal Server Error	500
+7	UNEXPECTED_ERROR	ES01-07	Internal Server Error	500
+認証エラー (AUTH_ERROR)
+Response Status: 401
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-01",
+    "message": "Un-Authorised"
+  }
+}
+メンテナンス (API_MAINTENANCE)
+Response Status: 503
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-02",
+    "message": "API In Maintenance"
+  }
+}
+QPS制限エラー (MAX_QPS_OVER)
+Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-03",
+    "message": "Forbidden- Exceeded QPS Limitation"
+  }
+}
+QPM制限エラー (MAX_QPM_OVER)
+Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-04",
+    "message": "Forbidden- Exceeded QPM Limitation"
+  }
+}
+最大コネクションエラー (MAX_CONNECTION_OVER)
+Response Status: 403
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-05",
+    "message": "Forbidden- Exceeded Number of Connection Limitation"
+  }
+}
+サーバ側エラー（INTERNAL_ERROR）
+Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-06",
+    "message": "Internal Server Error"
+  }
+}
+不明なエラー (UNEXPECTED_ERROR)
+Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:02
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES01-07",
+    "message": "Internal Server Error"
+  }
+}
+リクエストデータチェックレスポンスフォーマット (Request Validation Error Response Format)
+No	Condition	ErrorCode	Message	HTTP Response Code	Description
+1	Application Exception in Universal Authentication Module	ES02-01	Application Exception	500	アプリケーション例外
+2	System Exception in Universal Authentication Module	ES02-02	System Exception	500	システム例外
+3	Connection Exception with ESB MongoDB	ES02-03	Internal Server Error	500	内部サーバーエラー
+4	Connection Exception or Timeout with ESA API	ES03-01	Bad Gateway	502	ゲートウェイエラー
+5	Connection Exception or Timeout with API Provider	ES03-02	Bad Gateway	502	ゲートウェイエラー
+6	"Authorization" is Empty or Not Exist or In-Valid Formate	ES04-01	Bad Request	400	"Authorization" ヘッダ未指定エラー
+7	"Accept" is Empty or Not Exist	ES04-02	Bad Request	400	"Accept"ヘッダ未指定エラー
+8	"Accept" is un-supported value	ES04-03	Unsupported Media Type	415	"Accept"ヘッダ値不正エラー
+9	Un supported Method in Request	ES04-04	Method Not Allowed	405	未サポートメソッド指定エラー
+10	Extra Request Path Parameter	ES05-05	Bad Request	400	リクエスト不正エラー
+11	Not Recognized Endpoint	ES05-06	Not Found	404	不明なエンドポイントエラー
+アプリケーション例外 (Application Exception)
+Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES02-01",
+    "message": "Application Exception"
+  }
+}
+システム例外 (System Exception)
+Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body:
+{
+  "Results": {
+    "errorCode": "ES02-02",
+    "message": "System Exception"
+  }
+}
+内部サーバエラー (Internal Server Error)
+Response Status: 500
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body:
+{
+  "Results": {
+    "errorCode": "ES02-03",
+    "message": "Internal Server Error"
+  }
+}
+ゲートウェイエラー (Connection Exception or Timeout with ESA API)
+Response Status: 502
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES03-01",
+    "message": "Bad Gateway"
+  }
+}
+ゲートウェイエラー (Connection Exception or Timeout with API Provider)
+Response Status: 502
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES03-02",
+    "message": "Bad Gateway"
+  }
+}
+"Authorization" ヘッダ未指定エラー ("Authorization" is Empty or Not Exist or In-Valid Format)
+Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-01",
+    "message": "Bad Request"
+  }
+}
+"Accept"ヘッダ未指定エラー ("Accept" is Empty or Not Exist)
+Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-02",
+    "message": "Bad Request"
+  }
+}
+"Accept"ヘッダ値不正エラー ("Accept" is un-supported value)
+Response Status: 415
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-03",
+    "message": "Unsupported Media Type"
+  }
+}
+未サポートメソッド指定エラー (Un supported Method in Request)
+Response Status : 405
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES04-04",
+    "message": "Method Not Allowed"
+  }
+}
+リクエスト不正エラー (Extra Request Path Parameter)
+Response Status: 400
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES05-05",
+    "message": "Bad Request"
+  }
+}
+不明なエンドポイントエラー (Not Recognized Endpoint)
+Response Status: 404
+Content-Type: application/json; charset=utf-8
+REQUEST-ID: 7279e9ae-279d-4bef-81ba-3cd75c09440c
+Timestamp: 2022-05-10T05:43:03
+ 
+Response Body :
+{
+  "Results": {
+    "errorCode": "ES05-06",
+    "message": "Not Found"
+  }
+}

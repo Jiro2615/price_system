@@ -1,0 +1,45 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetapicodesreference/
+サービス: R-CabinetAPI（CabinetAPI）
+
+サービス一覧へ戻る / CabinetAPI
+
+
+RMS WEB SERVICE : CabinetAPI Codes Reference
+Result Codes Reference
+
+
+No	Case	Http Status Code	XML <resultCode> value	Description
+1	正常終了	200 (OK)	0	通常ケース
+2	パラメータエラー	400 (Bad Request)
+
+	3001	パラメータエラー
+3	3002	存在しない店舗を指定した
+4	3003	存在しない店舗を指定した
+5	3004	存在しない画像ファイルを指定した
+6	3005	存在しないフォルダを指定した
+7	3006	ファイル数上限エラー
+8	3007	既に存在している画像名を指定した
+9	3008	画像サイズエラー(容量)
+10	3009	画像サイズエラー(大きさ)
+11	3010	画像未対応フォーマット
+12	3011	画像フォーマットエラー
+13	3012	利用可能容量オーバー
+
+
+14
+
+	3013	フォルダ数上限エラー
+15	3014	階層エラー
+※3階層目のフォルダにさらにフォルダ作ろうとした
+16	3015	同名フォルダ(folder_path)が存在
+17	システムエラー
+
+
+	500 (Internal Server Error)	6001	システムエラー
+18	6002	システムエラー
+19	6003	システムエラー
+20	6004	キャッシュエラー
+21	6009	システムエラー
+22	メンテナンス	503 (Service Unavailable)	1001	システムエラー

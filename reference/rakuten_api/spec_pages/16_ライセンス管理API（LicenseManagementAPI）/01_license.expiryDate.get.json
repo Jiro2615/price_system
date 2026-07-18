@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "ライセンス管理API（LicenseManagementAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/"
+  },
+  "feature_page": {
+    "name": "license.expiryDate.get",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/licenseexpirydateget/",
+    "description": "この機能を利用すると、指定した1件のライセンスキーの有効期限を取得することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/licenseexpirydateget/",
+  "main_text": "サービス一覧へ戻る / LicenseManagementAPI\n\nRMS WEB SERVICE : license.expiryDate.get\nOverview\nこの機能を利用すると、指定した1件のライセンスキーの有効期限を取得することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/1.0/license-management/license-key/expiry-date\tGET\nRequest\nRequest Header\nKey\tValue\nAuthorization\tESA Base64(serviceSecret:licenseKey)\nContent-Type\tapplication/json; charset=utf-8\nQuery Parameters\nNo\tParameter\tDescripton\tType\tRequired\tMultiple\tNote\n1\tlicenseKey\tライセンスキー\tstring\t〇\t1\t1件のみ指定可能\nResponse\nResponse Header\nKey\tValue\nContent-Type\tapplication/json;charset=utf-8\nResponse Parameter\nLevel 1: base\nNo\tElement\tDescripton\tType\tMandatory\tNote\n1\terrors\tエラー詳細\terror\tNo\t\n2\texpiryDate\t有効期限\tdata string\tNo\t\nLevel 2: MessageModel\nNo\tElement\tDescripton\tType\tMandatory\tNote\n1\tcode\tエラーコード\tstring\tNo\tMessage Code Reference の一覧はこちら\n2\tmessage\tエラーメッセージ\tstring\tNo\nSample\nリクエストが成功した場合\nRequest\nhttps://api.rms.rakuten.co.jp/es/1.0/license-management/license-key/expiry-date?licenseKey=My1QYevsRH5msnnn\nResponse (Status: 200 OK)\n{\n    \"expiryDate\": \"2016-01-01T23:59:59\"\n}\nリクエストが失敗した場合\nRequest\nhttps://api.rms.rakuten.co.jp/es/1.0/license-management/license-key/expiry-date?licenseKey=My1QYevsRH5msnnn\nResponse (Status: 400 Bad Request)\n{\n    \"errors\": [{\n        \"code\": \"DR0006\",\n        \"message\": \"Bad Request\"\n    }]\n}"
+}

@@ -1,0 +1,911 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock32313" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/categoryapi2/">CategoryAPI 2.0</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : CategoryAPI 2.0 Use Case</span></h1>
+</div>
+<span><fnt size="+1">
+    <ol>
+        <p><a href="#カテゴリ登録がない状態から、カテゴリを登録する" target="_self" rel="nofollow">1.カテゴリ登録がない状態から、カテゴリを登録する</a></p>
+        <p><a href="#カテゴリの階層を作る" target="_self" rel="nofollow">2.カテゴリの階層を作る</a></p>
+        <p><a href="#カテゴリの階層を増やす" target="_self" rel="nofollow">3.カテゴリの階層を増やす</a></p>
+        <p><a href="#カテゴリの紐づけを解除する" target="_self" rel="nofollow">4.カテゴリの紐づけを解除する</a></p>
+        <p><a href="#レベル2とレベル3を入れ替える" target="_self" rel="nofollow">5.レベル2とレベル3を入れ替える</a></p>
+        <p><a href="#上位レベルカテゴリを別のカテゴリに変更する" target="_self" rel="nofollow">6.上位レベルカテゴリを別のカテゴリに変更する</a></p>
+        <p><a href="#親カテゴリを変更する" target="_self" rel="nofollow">7.親カテゴリを変更する</a></p>
+    </ol>
+</fnt></span>
+
+
+<h2 id="カテゴリ登録がない状態から、カテゴリを登録する">カテゴリ登録がない状態から、カテゴリを登録する</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/11before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/11after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/12sequence_1.jpg" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.shop-categories.insert">category.shop-categories.insert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request POST 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories' \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+&nbsp; &nbsp; "categorySetId": "0",
+&nbsp; &nbsp; "title": "カテゴリ1",
+&nbsp; &nbsp; "categoryFeatures": {
+&nbsp; &nbsp; &nbsp; &nbsp; "display": false,
+&nbsp; &nbsp; &nbsp; &nbsp; "categoryPageViewMode": "LIST"
+&nbsp; &nbsp; },
+&nbsp; &nbsp; "description": {
+&nbsp; &nbsp; &nbsp; &nbsp; "pc": "PC用カテゴリ1説明文の上部",
+&nbsp; &nbsp; &nbsp; &nbsp; "sp": "スマートフォン用カテゴリ1説明文"
+&nbsp; &nbsp; },
+&nbsp; &nbsp; "additionalDescription": "PC用カテゴリ1説明文の下部",
+&nbsp; &nbsp; "images": [
+&nbsp; &nbsp; &nbsp; &nbsp; {
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "alt": "カテゴリ1画像名",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "location": "/category1.jpg",
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "type": "CABINET"
+&nbsp; &nbsp; &nbsp; &nbsp; }
+&nbsp; &nbsp; ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 201 Created)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 201 Created)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "categoryId": "1"
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>同じ方法で他の３つのカテゴリ（"categoryId": "2", "categoryId": "3", "categoryId": "4"）を作る</span><br>
+<h2 id="カテゴリの階層を作る">カテゴリの階層を作る</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/21before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/21after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/22sequence.png" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+&nbsp;&nbsp;"children": [
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"categoryId":&nbsp;"1",
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"children": [
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"categoryId":&nbsp;"3"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"categoryId":&nbsp;"4"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+&nbsp;&nbsp;&nbsp;&nbsp;},
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"categoryId":&nbsp;"2"
+&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="カテゴリの階層を増やす">カテゴリの階層を増やす</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/31before.jpg" width="550px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/31after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/32sequence.png" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.shop-categories.insert">category.shop-categories.insert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request POST 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories' \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "categorySetId": "0",
+    "title": "カテゴリ5",
+    "categoryFeatures": {
+        "display": false,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "PC用カテゴリ5説明文の上部",
+        "sp": "スマートフォン用カテゴリ5説明文"
+    },
+    "additionalDescription": "PC用カテゴリ5説明文の下部",
+    "images": [
+        {
+            "alt": "カテゴリ5画像名",
+            "location": "/category5.jpg",
+            "type": "CABINET"
+        }
+    ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 201 Created)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 201 Created)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "categoryId": "5"
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>同じ方法で他の2つのカテゴリ（"categoryId": "6", "categoryId": "7"）を作る</span><br>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="カテゴリの紐づけを解除する">カテゴリの紐づけを解除する</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/41before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/41after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/42sequence.png" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4"
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    },
+    {
+      "categoryId": "7"
+    }
+  ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="レベル2とレベル3を入れ替える">レベル2とレベル3を入れ替える</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/51before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/51after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/52sequence.jpg" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "5",
+          "children": [
+            {
+              "categoryId": "3"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="上位レベルカテゴリを別のカテゴリに変更する">上位レベルカテゴリを別のカテゴリに変更する</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/61before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/61after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/62sequence.jpg" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "6"
+            },
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="親カテゴリを変更する">親カテゴリを変更する</h2>
+<h3 id="モデル図">モデル図</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>モデル図</b></th>
+      <th class="confluenceTh"><b>変更後</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/71before.png" width="500px" hight=""></td>
+      <td class="confluenceTd give_space"><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/71after.png" width="500px" hight=""></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="シーケンス図">シーケンス図</h3>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/SKUflowchart/72sequence.png" width="800px" hight=""></span><br>
+<h3 id="リクエスト">リクエスト</h3>
+<h4 id="category.category-trees.upsert">category.category-trees.upsert</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 204 No Content)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 204 No Content)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default"></pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "店舗ページAPI（ShopPageAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/"
+  },
+  "feature_page": {
+    "name": "Type定義",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/typeformat/",
+    "description": "サービス一覧へ戻る RMS WEB SERVICE : ShopPageAPI ShopPageAPI はスマートフォン用店舗トップページ、コンテンツページの登録・更新・削除および情報取得をおこなうAPIです。 各機能に記載されている「Type」につきましては、「」を参照してください。 ShopPageAPIで作成したWidgetは、Layoutに紐づけない限りRMSの設定画面では確認できません。 新店舗トップページ編集機能で利用するWidgetの詳細イメージについてはこちらからPDFファイルをダウンロードしてください。 目次"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/typeformat/",
+  "main_text": "サービス一覧へ戻る / ShopPageAPI\n\nShopPageAPI : Type定義\nType(型) / Format(書式)\nShopPageAPIで取り扱うType(型) / Format(書式)は下記表の通りです。\n\nType(型)\tFormat(書式)\t説明\t値詳細\nString\t-\t文字列です。\t・サポート外の文字を含まないこと。\n・楽天市場以外のリンクを含まないこと。\n\n以下の範囲のユニコードを半角文字として扱います。\nU+0000 ~ U+0081、U+F8F0 ~ U+F8F3 、U+FF61 ~ U+FFA0\nString\tUUID\tUUID形式の文字列です。\tハイフンを含めずに32文字で以下の書式になります。\nXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\n(X = 0-9, a-f)\n\n例：\n92716cd2-a27c-5f7d-6ea6-08dfb46bcaab\nUUIDはrfc4122に定義されています。\nEnum\t-\t固定文字列（定数）です。\t各インターフェースのドキュメントに固定文字列（定数）が記載されています。\n\n例：\n定数：日本語名\nSHOP_TOP：ショップトップページ\nString\tlink_url\tリンク先のURLに使用可能な文字列です。\t・URL形式であること。\n・楽天市場以外のリンクを含まないこと。\n\n使用できる文字は以下の通りです。\n・0-9、a-z、A-Z\n・!、#、$、%、&、'、(、)、*、+、,、-、.、/、:、;、=、?、@、[、]、_、~\n　※ユニコードではU+0021, U+0023~ U+002F, U+003A ~ U+003B, U+003D,  U+003F ~ U+0040, U+005B, U+005D, U+005F, U+007E\nString\tdate_time\t日時文字列です。\tISO 8601（YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm）形式です。\n\n例\nUTC\n2021-09-18T16:00:00Z\nAsia/Tokyo\n2021-09-18T16:00:00+09:00\nInteger\t-\t整数です。\t-2の31乗〜2の31乗-1の値が使用可能です。\nBoolean\t-\t真偽値です。\ttrueは真、falseは偽を表します。\nList(Type)\t-\t順序付けされた値の集まりです。\tList(Type)は、Typeが並んだ値の集まりを表します。\n\n例 List(String)\n\"abc\", \"aab\", \"test\"のListはJsonだと以下のようになります。\n[\"abc\", \"aab\", \"test\"]\nObject\t-\t順序付けされない名前/値のペアのセットです。\tObject自体はJsonの仕様に従います。\nサポート外の文字\nサポート外の文字は、下記表の通りです。\n\n種別\tユニコード\n制御文字\n※水平タブ(U+0009)、改行(U+000A)、行頭復帰(U+000D)、空白(U+0020)を除く\tU+0000 ~ U+0020\n※U+0009, U+000A, U+000D, U+0020を除く\nDelete character\tU+007F\nReplacement character\tU+FFFD"
+}

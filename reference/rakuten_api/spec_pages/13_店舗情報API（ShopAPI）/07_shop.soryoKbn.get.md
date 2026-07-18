@@ -1,0 +1,122 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/soryokbn/
+サービス: 店舗情報API（ShopAPI）
+
+サービス一覧へ戻る / ShopAPI
+
+RMS WEB SERVICE : shop.soryoKbn.get
+Overview
+
+この機能を利用すると、送料区分の情報を取得することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+
+
+https://api.rms.rakuten.co.jp/es/1.0/shop/soryoKbn
+
+	GET
+Request
+HTTP Header
+No	Key	Value
+1	
+
+Authorization
+
+	ESA Base64(serviceSecret:licenseKey)
+2	Content-Type	application/xml; charset=UTF-8
+Query Parameters
+No	Parameter	Description	Type	Required	Note
+1	kbnId	送料区分	Integer	No	指定した kbnId の情報を取得します。指定しない場合はすべての送料区分の情報を取得します。
+2	id	送料区分管理番号	Integer	No	指定した id の情報を取得します。指定しない場合はすべての送料区分の情報を取得します。
+HTTP Body
+
+None
+
+Response
+HTTP Header
+No	Key	Value
+1	content-type	application/xml; charset=UTF-8
+2	x-request-id	UUID形式
+※API requestを特定する一意のIDです。問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+3	Timestamp	アクセス時のタイムスタンプ
+※問題発生時のお問い合わせの際にご連絡いただくと調査がスムーズになります。
+HTTP Body
+Level 1: shopBizApiResponse
+No	Element	Description	Type	Max byte	Not Null	Note
+1	resultCode	結果コード	String	4	Yes	
+2	resultMessageList	メッセージ一覧	resultMessageList	-	Yes	
+3	result	取得データ本体	soryoKbnBizModel	-	No	
+Level 2: resultMessageList
+No	Element	Description	Type	Max byte	Not Null	Note
+1	resultMessage	メッセージ	resultMessage	-	Yes	
+Level 3: resultMessage
+No	Element	Description	Type	Max byte	Not Null	Note
+1	code	コード	String	4	Yes	詳細は、ShopAPI Response Codes Reference を参照してください。
+2	message	メッセージ	String	-	Yes
+Level 2: soryoKbnBizModel
+No	Element	Description	Type	Max byte	Not Null	Note
+1	soryoKbnList	送料区分リスト	soryoKbnList	-	Yes	
+Level 3: soryoKbnList
+No	Element	Description	Type	Max byte	Not Null	Note
+1	soryoKbn	送料区分	soryoKbn	-	Yes	
+Level 4: soryoKbn
+No	Element	Description	Type	Max byte	Not Null	Note
+1	kbnId	送料区分	Integer	10	Yes	1: 送料区分1
+2: 送料区分2
+2	id	送料区分管理番号	Integer	10	Yes	
+3	name	区分の名称	String	382	Yes	
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>N000</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>N000</code>
+            <message>Succeeded.</message>
+        </resultMessage>
+    </resultMessageList>
+    <result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="shopbiz:soryoKbnBizModel">
+        <soryoKbnList>
+            <soryoKbn>
+                <kbnId>1</kbnId>
+                <id>1</id>
+                <name>60サイズ</name>
+            </soryoKbn>
+            <soryoKbn>
+                <kbnId>1</kbnId>
+                <id>2</id>
+                <name>80サイズ</name>
+            </soryoKbn>
+            <soryoKbn>
+                <kbnId>1</kbnId>
+                <id>3</id>
+                <name>100サイズ</name>
+            </soryoKbn>
+            <soryoKbn>
+                <kbnId>2</kbnId>
+                <id>1</id>
+                <name>2-1</name>
+            </soryoKbn>
+            <soryoKbn>
+                <kbnId>2</kbnId>
+                <id>2</id>
+                <name>2-2</name>
+            </soryoKbn>
+        </soryoKbnList>
+    </result>
+</shopbiz:shopBizApiResponse>
+
+response example (error case)
+<?xml version="1.0" encoding="UTF-8"?>
+<shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource">
+    <resultCode>E999</resultCode>
+    <resultMessageList>
+        <resultMessage>
+            <code>E999</code>
+            <message>Unknown Execution error.</message>
+        </resultMessage>
+    </resultMessageList>
+</shopbiz:shopBizApiResponse>

@@ -1,0 +1,67 @@
+サービス一覧へ戻る / PurchaseItemAPI
+
+RMS WEB SERVICE : PurchaseItemAPI Message Codes Reference
+
+
+
+1.共通
+
+2.searchOrderItem
+
+3.getOrderItem
+
+共通
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_ERROR_001	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	リクエストデータの形式が不正	400
+2	ERROR	ORDER_EXT_API_ERROR_002	URLに不備があります。修正の上、再リクエストしてください。	リクエストのURLが不正	404
+3	ERROR	ORDER_EXT_API_ERROR_003	リクエストメソッドはPOSTを指定してください。	リクエスト形式が不正	405
+4	ERROR	ORDER_EXT_API_ERROR_004	不明なエラーが発生しました。	不明なエラーが発生	400,404,405以外
+searchOrderItem
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではない	400
+8	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+9	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+10	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+11	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+12	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+13	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumberの書式が不正	400
+14	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_021	{0}に入力できない文字が含まれています。	機種依存文字チェックエラー	400
+15	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_023	{0}が重複しています。	重複チェックエラー	400
+16	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+17	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_032	{0}には{1}以下の値を指定して下さい。	リクエストパラメータで設定された値が想定値以上の場合	400
+18	WARNING	ORDER_EXT_API_SEARCH_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_100	指定されたステータスでは検索できません。	注文状態不正	400
+20	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_101	{0}日以上過去の期間は指定できません。	期間指定不正	400
+21	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_102	指定された期間では検索できません。	期間指定不正	400
+22	ERROR	ORDER_EXT_API_SEARCH_ORDER_ERROR_103	期間を{0}日以内に指定してください。	期間指定不正	400
+23	INFO	ORDER_EXT_API_SEARCH_ORDER_INFO_101	注文検索に成功しました。	注文情報取得に成功した	200
+24	INFO	ORDER_EXT_API_SEARCH_ORDER_INFO_102	注文検索に成功しました。(検索結果０件)	注文情報が０件だった	200
+getOrderItem
+No.	Level	Message ID	Message	Description	HTTP Status Code
+1	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_000	不明なエラーが発生しました。	システムエラーが発生	500,200
+2	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_001	リクエストヘッダ:content-type の項目を指定して下さい。	リクエストヘッダ:content-type の項目が未指定	400
+3	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_002	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が未指定	400
+4	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_003	リクエストヘッダ:content-type にはapplication/json; charset=utf-8 を指定して下さい。	リクエストヘッダ:content-type の値が無効	400
+5	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_004	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の項目が未指定	400
+6	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_005	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値を指定して下さい。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id に値が未指定	400
+7	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_006	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではありません。	リクエストヘッダ:X-Rakuten-Orderext-Client-Id の値は使用が許可されたものではない	400
+8	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_007	{0}には最低１つの注文番号を指定して下さい。	リストに注文番号が未指定	400
+9	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_008	リクエストヘッダ:WL-Proxy-Client-IP の値が不正です。	リクエストヘッダ:WL-Proxy-Client-IP の値が不正	400
+10	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_009	{0}の項目を指定して下さい。	{0}の項目が未指定	400
+11	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_010	{0}の値を指定して下さい。	{0}の値が未指定	400
+12	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_011	{0}の書式が不正です。	{0}の書式が不正	400
+13	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_013	リクエストデータの形式に不備があります。修正の上、再リクエストしてください。	JSON形式に不備がある、またはサイズ閾値以上の場合	400
+14	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_014	{0}には最大{1}件までの注文番号を指定して下さい。	リストに指定した注文番号が最大件数超えの場合	400
+15	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_016	{0}の先頭の店舗IDが不正です。	orderNumber や reserveNumber の書式が不正	400
+16	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_020	指定された{0}の値が不正です。	コード値、名称などが不正	400
+17	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_031	リクエストデータに入力できない文字が含まれています。	リクエストデータに入力不可文字が含まれている	400
+18	WARNING	ORDER_EXT_API_GET_ORDER_WARNING_001	ただいま楽天処理中です。時間を置いてからもう一度お試しください。	楽天処理中	200
+19	INFO	ORDER_EXT_API_GET_ORDER_INFO_101	受注情報取得に成功しました。(取得件数{0}件)	受注情報取得に成功した	200
+20	INFO	ORDER_EXT_API_GET_ORDER_INFO_102	受注情報が取得できませんでした。	検索結果0件の注文番号の場合	200
+21	ERROR	ORDER_EXT_API_GET_ORDER_ERROR_101	指定された注文番号の受注情報取得に失敗しました。	受注情報取得に失敗した	200

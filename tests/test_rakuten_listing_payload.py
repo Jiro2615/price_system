@@ -4,7 +4,10 @@ import json
 import unittest
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
+from scripts.listing import amazon_bridge
 from scripts.listing.listing_evaluator import evaluate_listing
 from scripts.listing.master_loader import load_master_data
 from scripts.listing.management_number import generate_management_number_bundle
@@ -192,11 +195,13 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         )
 
         self.assertEqual(item_payload["itemNumber"], "20250101010101_187_ab12")
-        self.assertEqual(item_payload["genreId"], self.valid_rakuten_genre_id)
+        self.assertEqual(item_payload["genreId"], str(self.valid_rakuten_genre_id))
         self.assertEqual(item_payload["features"]["inventoryDisplay"], "DISPLAY_ABSOLUTE_STOCK_COUNT")
-        self.assertEqual(item_payload["variants"]["20250101010101_187_ab12"]["articleNumber"], "1234567890123")
+        self.assertIsInstance(item_payload["variants"]["20250101010101_187_ab12"]["standardPrice"], str)
+        self.assertEqual(item_payload["payment"]["taxRate"], "0.1")
+        self.assertEqual(item_payload["variants"]["20250101010101_187_ab12"]["articleNumber"], {"exemptionReason": 5})
         self.assertEqual(inventory_payload["quantity"], 4)
-        self.assertEqual(inventory_payload["shipFromIds"], ["1"])
+        self.assertEqual(inventory_payload["shipFromIds"], [1])
 
     def test_management_number_bundle(self) -> None:
         bundle = generate_management_number_bundle("187", datetime(2026, 7, 8, 10, 11, 12))
@@ -255,6 +260,121 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertIn("Amazon check skipped by CLI option", warnings)
         self.assertIn("Keepa check skipped by CLI option", warnings)
 
+    def test_amazon_bridge_allows_missing_log_result_summary(self) -> None:
+        async def fake_check_amazon_one(
+            asin: str,
+            page_timeout_ms: int = 15000,
+            debug_html: bool = False,
+        ) -> dict[str, object]:
+            self.assertEqual(asin, "B000TEST01")
+            self.assertEqual(page_timeout_ms, 1234)
+            self.assertFalse(debug_html)
+            return {
+                "asin": asin,
+                "title": "Amazon正常テスト商品",
+                "amazon_price": 2000,
+                "available_qty": 9,
+                "gift_available": True,
+                "shipping_status": "next day shipping",
+                "business_ng": False,
+                "system_error": False,
+                "ng_reason": "",
+            }
+
+        fake_module = SimpleNamespace(check_amazon_one=fake_check_amazon_one)
+
+        with mock.patch.object(amazon_bridge, "_amazon_module", fake_module):
+            result = amazon_bridge.fetch_amazon_result_sync("B000TEST01", page_timeout_ms=1234)
+
+        self.assertEqual(result.requested_asin, "B000TEST01")
+        self.assertEqual(result.page_asin, "B000TEST01")
+        self.assertEqual(result.title, "Amazon正常テスト商品")
+        self.assertEqual(result.amazon_price, 2000)
+        self.assertEqual(result.available_qty, 9)
+        self.assertTrue(result.gift_available)
+        self.assertEqual(result.shipping_status, "next day shipping")
+        self.assertEqual(result.current_url, "")
+
+    def test_brand_prefers_brand_over_manufacturer(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "manufacturer": "\u5225\u30e1\u30fc\u30ab\u30fc"})
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        self.assertEqual(result.listing_status, "eligible")
+        brand_attr = next(item for item in result.attributes if item["name"] == "\u30d6\u30e9\u30f3\u30c9\u540d")
+        self.assertEqual(brand_attr["value"], "\u30c6\u30b9\u30c8\u30d6\u30e9\u30f3\u30c9")
+
+    def test_brand_falls_back_to_manufacturer(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "brand": "", "manufacturer": "\u30c6\u30b9\u30c8\u30e1\u30fc\u30ab\u30fc"})
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        self.assertEqual(result.listing_status, "eligible")
+        brand_attr = next(item for item in result.attributes if item["name"] == "\u30d6\u30e9\u30f3\u30c9\u540d")
+        self.assertEqual(brand_attr["value"], "\u30c6\u30b9\u30c8\u30e1\u30fc\u30ab\u30fc")
+
+    def test_model_falls_back_to_part_number(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "model": "", "part_number": "PART-1"})
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        self.assertEqual(result.listing_status, "eligible")
+        model_attr = next(item for item in result.attributes if item["name"] == "\u30e1\u30fc\u30ab\u30fc\u578b\u756a")
+        self.assertEqual(model_attr["value"], "PART-1")
+
+    def test_listing_evaluator_prefers_image_urls_over_images_csv(self) -> None:
+        keepa = KeepaProductData(
+            **{
+                **self.keepa.__dict__,
+                "images_csv": "legacy1,legacy2",
+                "image_urls": ["https://m.media-amazon.com/images/I/preferred.jpg"],
+                "image_source": "keepa_images",
+            }
+        )
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertEqual(result.image_candidates[0]["source"], "https://m.media-amazon.com/images/I/preferred.jpg")
+
+    def test_listing_evaluator_uses_images_csv_for_legacy_fixture(self) -> None:
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=self.keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertEqual(
+            [item["source"] for item in result.image_candidates],
+            [
+                "https://m.media-amazon.com/images/I/abc123.jpg",
+                "https://m.media-amazon.com/images/I/def456.jpg",
+            ],
+        )
+
     def test_offline_mode_generates_payload_from_fixture_json(self) -> None:
         def fail_store_loader(store_code: str) -> StoreSettings:
             raise AssertionError("offline mode must not query store settings from DB")
@@ -286,15 +406,13 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertEqual(result["listing_status"], "eligible")
         self.assertIn("\u51fa\u54c1\u53ef\u80fd", result["listing_reason"])
         self.assertEqual(result["item_payload"]["itemNumber"], result["management_number"])
-        self.assertEqual(result["item_payload"]["genreId"], self.valid_rakuten_genre_id)
-        self.assertEqual(
-            result["item_payload"]["variants"][result["management_number"]]["articleNumber"],
-            "1234567890123",
-        )
+        self.assertEqual(result["item_payload"]["genreId"], str(self.valid_rakuten_genre_id))
+        self.assertEqual(result["item_payload"]["payment"]["taxRate"], "0.1")
+        self.assertEqual(result["item_payload"]["variants"][result["management_number"]]["articleNumber"], {"exemptionReason": 5})
         self.assertEqual(result["inventory_payload"]["quantity"], 4)
         self.assertEqual(result["inventory_payload"]["operationLeadTime"]["normalDeliveryTimeId"], 1)
         self.assertEqual(result["inventory_payload"]["operationLeadTime"]["backOrderDeliveryTimeId"], 1)
-        self.assertEqual(result["inventory_payload"]["shipFromIds"], ["1"])
+        self.assertEqual(result["inventory_payload"]["shipFromIds"], [1])
         self.assertIn("\u30aa\u30d5\u30e9\u30a4\u30f3\u30e2\u30fc\u30c9: \u30ed\u30fc\u30ab\u30eb fixture JSON \u306e\u307f\u3092\u4f7f\u7528\u3057\u307e\u3059", result["warnings"])
         self.assertIn("missing master files: kinsiword_other.txt", result["warnings"])
 

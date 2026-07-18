@@ -1,0 +1,55 @@
+サービス一覧へ戻る / ShopPageAPI
+
+ShopPageAPI : Type定義
+Type(型) / Format(書式)
+ShopPageAPIで取り扱うType(型) / Format(書式)は下記表の通りです。
+
+Type(型)	Format(書式)	説明	値詳細
+String	-	文字列です。	・サポート外の文字を含まないこと。
+・楽天市場以外のリンクを含まないこと。
+
+以下の範囲のユニコードを半角文字として扱います。
+U+0000 ~ U+0081、U+F8F0 ~ U+F8F3 、U+FF61 ~ U+FFA0
+String	UUID	UUID形式の文字列です。	ハイフンを含めずに32文字で以下の書式になります。
+XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+(X = 0-9, a-f)
+
+例：
+92716cd2-a27c-5f7d-6ea6-08dfb46bcaab
+UUIDはrfc4122に定義されています。
+Enum	-	固定文字列（定数）です。	各インターフェースのドキュメントに固定文字列（定数）が記載されています。
+
+例：
+定数：日本語名
+SHOP_TOP：ショップトップページ
+String	link_url	リンク先のURLに使用可能な文字列です。	・URL形式であること。
+・楽天市場以外のリンクを含まないこと。
+
+使用できる文字は以下の通りです。
+・0-9、a-z、A-Z
+・!、#、$、%、&、'、(、)、*、+、,、-、.、/、:、;、=、?、@、[、]、_、~
+　※ユニコードではU+0021, U+0023~ U+002F, U+003A ~ U+003B, U+003D,  U+003F ~ U+0040, U+005B, U+005D, U+005F, U+007E
+String	date_time	日時文字列です。	ISO 8601（YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm）形式です。
+
+例
+UTC
+2021-09-18T16:00:00Z
+Asia/Tokyo
+2021-09-18T16:00:00+09:00
+Integer	-	整数です。	-2の31乗〜2の31乗-1の値が使用可能です。
+Boolean	-	真偽値です。	trueは真、falseは偽を表します。
+List(Type)	-	順序付けされた値の集まりです。	List(Type)は、Typeが並んだ値の集まりを表します。
+
+例 List(String)
+"abc", "aab", "test"のListはJsonだと以下のようになります。
+["abc", "aab", "test"]
+Object	-	順序付けされない名前/値のペアのセットです。	Object自体はJsonの仕様に従います。
+サポート外の文字
+サポート外の文字は、下記表の通りです。
+
+種別	ユニコード
+制御文字
+※水平タブ(U+0009)、改行(U+000A)、行頭復帰(U+000D)、空白(U+0020)を除く	U+0000 ~ U+0020
+※U+0009, U+000A, U+000D, U+0020を除く
+Delete character	U+007F
+Replacement character	U+FFFD

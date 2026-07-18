@@ -1,0 +1,73 @@
+サービス一覧へ戻る / CabinetAPI
+
+RMS WEB SERVICE : cabinet.folder.insert
+この機能を利用すると、フォルダを作成することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/cabinet/folder/insert	POST
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+None
+
+HTTP Body
+XML : request
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note　　　
+1	request.folderInsertRequest	フォルダ情報登録要求	XML : folderInsertRequest	-	○	1	
+XML : folderInsertRequest
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	folderInsertRequest.folder	フォルダ情報	XML : folder	-	○	1	
+XML : file
+No	Element	Description　　　　　　	Type　　　　　	Size(byte)　　　	Mandatory　　　	Multiplicity　　　	Note
+1	folder.folderName	フォルダ名	String	50	○	1	
+2	folder.directoryName	ディレクトリ名	String	20		0,1	任意で指定可能なファイルパス。未指定の場合は自動採番(8桁以上の値)。
+
+以下の英数字、記号が使用可能。
+・"a~z"
+・"0~9"
+・"-", "_"
+3	folder.upperFolderId	上位階層フォルダID	Integer	10		0,1	下位フォルダとして作成する場合はその上位階層フォルダIDを指定
+　
+0(基本フォルダ)は指定不可
+Request Sample
+<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <folderInsertRequest>
+        <folder>
+            <folderName>xxx</folderName>
+            <directoryName>xxx</directoryName>
+            <upperFolderId>19946</upperFolderId>
+        </folder>
+    </folderInsertRequest>
+</request>
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML : result
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	result.status	ステータス	XML : status	-	1	interfaceId=cabinet.folder.insert
+2	result.cabinetFolderInsertResult	フォルダ情報登録結果	XML : cabinetFolderInsertResult	-	1	
+XML : cabinetFolderInsertResult
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	cabinetFolderInsertResult.resultCode	結果コード	Integer	4	1	
+2	cabinetFolderInsertResult.FolderId	フォルダID	Integer	10	1	
+Response sample
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>cabinet.folder.insert</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>714a4983-555f-42d9-aeea-89dae89f2f45</requestId>
+        <requests/>
+    </status>
+    <cabinetFolderInsertResult>
+        <resultCode>0</resultCode>
+        <FolderId>0</FolderId>
+    </cabinetFolderInsertResult>
+ </result>

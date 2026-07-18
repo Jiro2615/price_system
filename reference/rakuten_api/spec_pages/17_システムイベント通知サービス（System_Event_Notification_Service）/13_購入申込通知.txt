@@ -1,0 +1,25 @@
+サービス一覧へ戻る / システムイベント通知サービス / システム情報通知
+
+RMS WEB SERVICE : 購入申込通知
+「システム情報通知」の購入申込通知サービスで提供される、格納データについて定義します。
+インターフェース項目は、「システム情報通知」の内容に準じます。
+
+実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。
+
+購入申込通知
+
+
+No	Element	Description	Sample	Note
+Element Name	Attribute Value	Element Name	Attribute Value
+1	value1	reserveNumber	データ1	申込番号	270742-20200525-287224-r	重複することのない番号をランダムに発行、桁数は変動する可能性があります。
+2	value2	reserveType	データ2	商品種別	1	1：定期購入
+2：頒布会
+3：予約
+3	value3	itemUrl	データ3	商品管理番号	yoyaku-item	
+4	value4	units	データ4	個数	1	お届け回1回分の個数です。
+5	value5	reserveDatetime	データ5	申込日時	2020-01-01 01:00:05	
+6	value6	commitDate	データ6	注文確定日	2020-01-01	直近回の注文確定日となります。
+7	value7	shippingDate	データ7	お届け予定日	2020-01-01	直近回のお届け予定日となります。
+8	value8	-	データ8			
+9	value9	-	データ9			
+10	value10	-	データ10

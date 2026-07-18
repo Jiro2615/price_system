@@ -1,0 +1,856 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock36028" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/">RakutenPayOrderAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : updateOrderShipping</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、楽天ペイ注文の「発送情報の追加・更新」を行うことができます。こちらは同期処理となります。</span><br>
+<h2 id="Endpoint">Endpoint</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderShipping/</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="Request Method">Request Method</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">POST</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Request Header">Request Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Authorization</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Content-Type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">application/json; charset=utf-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Request Parameter">Request Parameter</h3>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">注文番号</td>
+      <td class="confluenceTd give_space">orderNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">382</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">341680-22222222-1241583267</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">送付先モデルリスト</td>
+      <td class="confluenceTd give_space">BasketidModelList</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List &lt;BasketidModel&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: BasketidModel">Level 2: BasketidModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">送付先ID</td>
+      <td class="confluenceTd give_space">basketId</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">Number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">10</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">2254</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">発送モデルリスト</td>
+      <td class="confluenceTd give_space">ShippingModelList</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List &lt;ShippingModel&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">登録可能な発送モデルの上限は20件まで</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: ShippingModel">Level 2: ShippingModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">発送明細ID</td>
+      <td class="confluenceTd give_space">shippingDetailId</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">Number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">12</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・未指定時は発送情報の追加
+・指定時は発送情報の更新、または削除</td>
+      <td class="confluenceTd give_space">8564</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">配送会社</td>
+      <td class="confluenceTd give_space">deliveryCompany</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">382</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下のいずれか
+
+1000: その他
+1001: ヤマト運輸
+1002: 佐川急便
+1003: 日本郵便
+1004: 西濃運輸
+1005: セイノースーパーエクスプレス
+1006: 福山通運
+1007: 名鉄運輸
+1008: トナミ運輸
+1009: 第一貨物
+1010: 新潟運輸
+1011: 中越運送
+1012: 岡山県貨物運送
+1013: 久留米運送
+1014: 山陽自動車運送
+1015: NXトランスポート
+1016: エコ配
+1017: EMS
+1018: DHL
+1019: FedEx
+1020: UPS
+1021: 日本通運
+1022: TNT
+1023: OCS
+1024: USPS
+1025: SFエクスプレス
+1026: Aramex
+1027: SGHグローバル・ジャパン
+1028: Rakuten EXPRESS
+1029: 日本郵便 楽天倉庫出荷
+1030: ヤマト運輸 クロネコゆうパケット
+1031: 名鉄NX運輸
+※パラメータなしの場合は値を変更しない
+※パラメータありの場合は値が必須</td>
+      <td class="confluenceTd give_space">1001</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">お荷物伝票番号</td>
+      <td class="confluenceTd give_space">shippingNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">381</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下の入力チェックが適用されます。
+・機種依存文字などの不正文字以外
+・全角、半角にかかわらず120文字以下
+※パラメータなしの場合は値を変更しない
+※パラメータあり、かつ、値が未指定の場合は設定されている値の削除</td>
+      <td class="confluenceTd give_space">111222333444</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">発送日</td>
+      <td class="confluenceTd give_space">shippingDate</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">Date</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">10</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">YYYY-MM-DD
+※パラメータなしの場合は値を変更しない
+※パラメータあり、かつ、値が未指定の場合は設定されている値の削除</td>
+      <td class="confluenceTd give_space">2017-01-02</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">発送情報削除フラグ</td>
+      <td class="confluenceTd give_space">shippingDeleteFlag</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">Number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">0</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下のいずれか
+
+0: 発送情報を削除しない
+1: 発送情報を削除する </td>
+      <td class="confluenceTd give_space">0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Response">Response</h2>
+<h3 id="HTTP Status">HTTP Status</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>Status</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">200</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">OK</td>
+      <td class="confluenceTd give_space">リクエストが成功した。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">リクエストが不正である。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">404</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd give_space">Request-URI に一致するものを見つけられなかった。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">405</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Method Not Allowed</td>
+      <td class="confluenceTd give_space">許可されていないメソッドを使用しようとした。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">サーバ内部にエラーが発生した。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">503</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Service Unavailable</td>
+      <td class="confluenceTd give_space">サービスが一時的に過負荷やメンテナンスで使用不可能である。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Response Header">Response Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Content-Type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">application/json;charset=utf-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Response Parameter">Response Parameter</h3>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">メッセージモデルリスト</td>
+      <td class="confluenceTd give_space">MessageModelList</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List &lt;MessageModel&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: MessageModel">Level 2: MessageModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">メッセージ種別</td>
+      <td class="confluenceTd give_space">messageType</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">16</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"> 以下のいずれか
+
+・INFO
+・ERROR
+・WARNING</td>
+      <td class="confluenceTd give_space">INFO</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">メッセージコード</td>
+      <td class="confluenceTd give_space">messageCode</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">128</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="2">メッセージコードの一覧は<a href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/rakutenpaymsgcodereference">こちら</a></td>
+      <td class="confluenceTd give_space">MESSAGE_CODE_SAMPLE</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">メッセージ</td>
+      <td class="confluenceTd give_space">message</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1024</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">メッセージサンプル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ番号</td>
+      <td class="confluenceTd give_space">dataNumber</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">Number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">10</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定データ番号。上から１～</td>
+      <td class="confluenceTd give_space">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">発送明細ID</td>
+      <td class="confluenceTd give_space">shippingDetailId</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">Number</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">12</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・ID指定時は、指定のID
+・ID未指定時は、新規登録された発送明細ID</td>
+      <td class="confluenceTd give_space">45678</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Sample">Sample</h2>
+<h3 id="配送情報の設定に成功した場合">配送情報の設定に成功した場合</h3>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderShipping/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "orderNumber": "123456-20180101-00001801",
+        "BasketidModelList": [
+        {
+            "basketId": 10746402,
+            "ShippingModelList" : [
+                {
+                    "shippingDetailId": 15419,
+                    "deliveryCompany": "1001",
+                    "shippingNumber": "SN111111",
+                    "shippingDate": "2018-01-25"
+                },
+                {
+                    "deliveryCompany": "1001"
+                },
+                {
+                    "deliveryCompany": "1002",
+                    "shippingDate": "2018-1-30"
+                },
+                {
+                    "deliveryCompany": "1002",
+                    "shippingNumber": "SN222222"
+                }
+            ]
+        },
+        {
+            "basketId": 10746403,
+            "ShippingModelList" : [
+                {
+                    "shippingDetailId": null,
+                    "deliveryCompany": "1001",
+                    "shippingNumber": "SN333333",
+                    "shippingDate": "2018-02-01"
+                }
+            ]
+        }
+    ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "MessageModelList": [
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_102",
+            "message": "発送情報の更新設定が完了しました。",
+            "dataNumber": 1,
+            "shippingDetailId": 15419
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+            "message": "発送情報の追加設定が完了しました。",
+            "dataNumber": 2,
+            "shippingDetailId": 15420
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+            "message": "発送情報の追加設定が完了しました。",
+            "dataNumber": 3,
+            "shippingDetailId": 15421
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+            "message": "発送情報の追加設定が完了しました。",
+            "dataNumber": 4,
+            "shippingDetailId": 15422
+        },
+        {
+            "messageType": "INFO",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_INFO_101",
+            "message": "発送情報の追加設定が完了しました。",
+            "dataNumber": 5,
+            "shippingDetailId": 15423
+        }
+    ]
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="パラメータの指定に誤りがあった場合">パラメータの指定に誤りがあった場合</h3>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl -X POST \
+  https://api.rms.rakuten.co.jp/es/2.0/order/updateOrderShipping/ \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "orderNumber": "123456-20180101-00001801",
+        "BasketidModelList": [
+        {
+            "basketId": 10746402,
+            "ShippingModelList" : [
+                {
+                    "shippingDetailId": 15419,
+                    "deliveryCompany": "1001",
+                    "shippingNumber": "SN111111",
+                    "shippingDate": "2018/01/25"
+                },
+                {
+                    "deliveryCompany": "佐川急便"
+                },
+                {
+                    "deliveryCompany": "1002",
+                    "shippingDate": "2018-1-30"
+                },
+                {
+                    "deliveryCompany": "1002",
+                    "shippingNumber": "SN222222"
+                }
+            ]
+        },
+        {
+            "basketId": 10746403,
+            "ShippingModelList" : [
+                {
+                    "shippingDetailId": null,
+                    "deliveryCompany": "1001",
+                    "shippingNumber": "SN333333",
+                    "shippingDate": "2018-02-01"
+                }
+            ]
+        }
+    ]
+}'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "MessageModelList": [
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_011",
+            "message": "shippingDateの書式が不正です。",
+            "dataNumber": 1,
+            "shippingDetailId": 15419
+        },
+        {
+            "messageType": "ERROR",
+            "messageCode": "ORDER_EXT_API_UPDATE_ORDERSHIPPING_ERROR_011",
+            "message": "deliveryCompanyの書式が不正です。",
+            "dataNumber": 2,
+            "shippingDetailId": null
+        }
+    ]
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

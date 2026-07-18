@@ -1,0 +1,329 @@
+{
+  "meta": {
+    "source": "legacy_system_actual_run",
+    "description": "legacy baseline comparison representative sample ASINs",
+    "version": 1
+  },
+  "samples": [
+    {
+      "asin": "B0H2548SYH",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "B0GVRTGD1S",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4065274311",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4334100872",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4479321314",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4575529281",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "B0GJ2LMF5R",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4046601728",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "B0GWNTZX4Z",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4896329805",
+      "group": "legacy_listed_success",
+      "legacy_status": "listed_success",
+      "legacy_reason_type": null,
+      "legacy_reason": null,
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": true,
+      "selection_reason": "旧システムで出品完了した成功実績サンプル"
+    },
+    {
+      "asin": "4041158109",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(帝)",
+      "legacy_forbidden_word": "帝",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 帝 の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4434379712",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(CS)",
+      "legacy_forbidden_word": "CS",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 CS の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "B0H2973LW2",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(SM)",
+      "legacy_forbidden_word": "SM",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 SM の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4838758111",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(Title)",
+      "legacy_forbidden_word": "Title",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 Title の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4815621624",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(クリス)",
+      "legacy_forbidden_word": "クリス",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 クリス の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4838758162",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(インナー)",
+      "legacy_forbidden_word": "インナー",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 インナー の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "B0GVDGG8QN",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(グルメ)",
+      "legacy_forbidden_word": "グルメ",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 グルメ の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4295412163",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(グローバル)",
+      "legacy_forbidden_word": "グローバル",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 グローバル の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "4106039478",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(ユニーク)",
+      "legacy_forbidden_word": "ユニーク",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 ユニーク の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "B0GZ253L3G",
+      "group": "likely_false_positive",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(レシピ)",
+      "legacy_forbidden_word": "レシピ",
+      "legacy_listing_completed": false,
+      "selection_reason": "旧禁止語 レシピ の誤検知候補を代表抽出"
+    },
+    {
+      "asin": "B0H2HFHJ9H",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(医療)",
+      "legacy_forbidden_word": "医療",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 医療 の代表サンプル"
+    },
+    {
+      "asin": "B0GS5R3LZS",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(医療機器)",
+      "legacy_forbidden_word": "医療機器",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 医療機器 の代表サンプル"
+    },
+    {
+      "asin": "486643127X",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(治療)",
+      "legacy_forbidden_word": "治療",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 治療 の代表サンプル"
+    },
+    {
+      "asin": "4893097474",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(性的)",
+      "legacy_forbidden_word": "性的",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 性的 の代表サンプル"
+    },
+    {
+      "asin": "B0GWQ7MJ11",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(武器)",
+      "legacy_forbidden_word": "武器",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 武器 の代表サンプル"
+    },
+    {
+      "asin": "4868010573",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(銃)",
+      "legacy_forbidden_word": "銃",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 銃 の代表サンプル"
+    },
+    {
+      "asin": "B0GWNTX66X",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(刀)",
+      "legacy_forbidden_word": "刀",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 刀 の代表サンプル"
+    },
+    {
+      "asin": "4594100597",
+      "group": "regulatory_or_safety",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "prohibited_word",
+      "legacy_reason": "禁止キーワード(剣)",
+      "legacy_forbidden_word": "剣",
+      "legacy_listing_completed": false,
+      "selection_reason": "安全・規制系禁止語 剣 の代表サンプル"
+    },
+    {
+      "asin": "4824017041",
+      "group": "rakuten_api_error_ie0270",
+      "legacy_status": "api_rejected",
+      "legacy_reason_type": "rakuten_api_error",
+      "legacy_reason": "{\"errors\":[{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.pc\"}},{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.sp\"}}]}",
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": false,
+      "selection_reason": "旧システムでIE0270になった楽天API reject サンプル"
+    },
+    {
+      "asin": "4824017033",
+      "group": "rakuten_api_error_ie0270",
+      "legacy_status": "api_rejected",
+      "legacy_reason_type": "rakuten_api_error",
+      "legacy_reason": "{\"errors\":[{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.pc\"}},{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.sp\"}}]}",
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": false,
+      "selection_reason": "旧システムでIE0270になった楽天API reject サンプル"
+    },
+    {
+      "asin": "4325273387",
+      "group": "rakuten_api_error_ie0270",
+      "legacy_status": "api_rejected",
+      "legacy_reason_type": "rakuten_api_error",
+      "legacy_reason": "{\"errors\":[{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.pc\"}},{\"code\":\"IE0270\",\"message\":\"Machine dependent characters cannot be registered.\",\"metadata\":{\"propertyPath\":\"productDescription.sp\"}}]}",
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": false,
+      "selection_reason": "旧システムでIE0270になった楽天API reject サンプル"
+    },
+    {
+      "asin": "B0GSSFF212",
+      "group": "fba_out_of_stock",
+      "legacy_status": "business_ng",
+      "legacy_reason_type": "fba_out_of_stock",
+      "legacy_reason": "FBA在庫切れ",
+      "legacy_forbidden_word": null,
+      "legacy_listing_completed": false,
+      "selection_reason": "旧システムでFBA在庫切れになった代表サンプル"
+    }
+  ]
+}

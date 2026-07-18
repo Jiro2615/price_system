@@ -1,0 +1,86 @@
+サービス一覧へ戻る / CategoryAPI 2.0
+
+CategoryAPI 2.0 Response Codes Reference
+HTTPステータスコード定義
+コード	ステータス	内容
+200	OK	リクエストが成功しました。
+201	Created	リクエストが成功しました。
+204	No Content	リクエストが成功しました。
+400	Bad Request	リクエストが不正です。
+401	Unauthorized	インターフェースの呼び出し権限がありません。
+404	Not Found	リクエストパスが見つかりません。
+405	Method Not Allowed	指定されたメソッドはサポートされていません。
+409	Conflict	データ重複のため登録できませんでした。
+415	Unsupported Media Type	指定されたメディアタイプはサポートされていません。
+500	Internal Server Error	サーバ内部にエラーが発生しました。
+503	Service Unavailable	サービスが一時的に過負荷やメンテナンスで使用不可能です。
+エラーコード定義
+汎用エラー
+No.	エラーコード	エラーメッセージ	原因	対応方法	HTTPステータスコード
+1	GE0007	Requested path doesn't exist	リクエストパスが存在していない場合	リクエストパスをご確認の上、再度お試しください	400
+2	GE0017	Write methods isn't allowed in readsOnly-mode.	読取り専用モードで更新処理した場合	読み取り専用モードの場合は更新処理できない。	400
+3	IE0001	${fieldName} is mandatory.	必須項目を設定しなかった場合	必須項目を設定の上、再度お試しください。	400
+4	IE0002	${fieldName} has an invalid value : ${invalidValue}.	項目のバリデーションエラーが発生した場合	項目に正しい値を設定の上、再度お試しください。	400
+5	IE0003	${fieldName} must be between ${min} and ${max}.	項目の値が範囲内ではない場合	項目の値を範囲内に設定の上、再度お試しください。	400
+6	IE0004	Max length of ${fieldName} must be within ${value} bytes.	項目の最大長さを超えた場合	項目の長さを範囲内に設定の上、再度お試しください。	400
+7	IE0007	Invalid choice selected for ${fieldName}.	enum型で定義している値以外の値を指定した場合	項目の値を選択肢のいずれかに設定の上、再度お試しください。	400
+8	IE0101	Category doesn't belong to this Category Set. CategoryId: ${invalidValue}.	カテゴリツリーを更新する時、該当カテゴリセットに存在していないカテゴリを指定した場合	カテゴリツリーをご確認の上、再度お試しください。	400
+9	IE0102	Duplicate CategoryId in CategoryTree. CategoryId: ${invalidValue}.	カテゴリツリーを更新する時、同一のカテゴリを複数指定した場合	カテゴリを一意に設定の上、再度お試しください。	400
+10	IE0103	Duplicate CategorySetId in CategorySetList.CategorySetId: ${invalidValue}.	カテゴリセットリストを更新する時、同一のカテゴリセットを複数指定した場合	カテゴリセットを一意に設定の上、再度お試しください。	400
+11	IE0104	Duplicate categoryId in categoryIds: ${invalidValue}.	1つの商品に同一のカテゴリを複数指定した場合	カテゴリを一意に設定の上、再度お試しください。	400
+12	IE0105	CategorySet does not exist. CategorySetKey: ${invalidValue}.	カテゴリセットリストを更新する時、存在していないカテゴリセットを指定した場合	カテゴリセットリストをご確認の上、再度お試しください。	400
+13	IE0106	CategoryId does not exist. CategoryId: ${invalidValue}.	存在していないカテゴリを指定した場合	カテゴリIDをご確認の上、再度お試しください。	400
+14	IE0107	CategorySet data does not exist.	カテゴリを作成する時、存在していないカテゴリセットを指定した場合	カテゴリセットリストをご確認の上、再度お試しください。	400
+15	IE0111	Cannot update category data, due to specified category exists in category tree. Please update category tree first.	カテゴリツリーに存在しているカテゴリのカテゴリセットを変更する場合	カテゴリツリーを先にご更新の上、再度お試しください。	400
+16	IE0113	More than ${max} categories can not be set in the one node.	指定した下位カテゴリが30個を超えた場合	下位カテゴリは30個までしか指定できません。	400
+17	IE0114	More than ${value} categories cannot be set in the category tree.	1つのカテゴリツリーに指定したカテゴリが1000個を超えた場合	1つのカテゴリツリーに1000個カテゴリまでしか指定できません。	400
+18	IE0115	More than 6 level, ${invalidCategoryTitle} cannot have child category.	指定したカテゴリツリーの階層が6を超えた場合	カテゴリツリーの階層は６までしか指定できません。	400
+19	IE0116	${fieldName} must be empty.	カテゴリツリーのルートノードにあるカテゴリIDが空ではない場合	ルートノードのカテゴリIDをご削除の上、再度お試しください。	400
+20	IE0117	More than ${max} categoryIds can not be set in the item mapping.	1つの商品に紐付いてるカテゴリが5個を超えた場合	1つの商品に5個カテゴリまでしか紐つけません	400
+21	IE0118	mainPluralCategoryId does not exist in categoryIds. mainPluralCategoryId: ${invalidValue}.	商品ページとして表示するカテゴリが商品と紐付いてるカテゴリリストに存在していない場合	商品ページとして表示するカテゴリを商品と紐付いてるカテゴリリストからご指定の上、再度お試しください。	400
+22	IE0122	The format of url was invalid.	無効なUrlを指定した場合	URLをご確認の上、再度お試しください。	400
+23	IE0123	Not allowed image extension is set in ${fieldName}, should set "gif/jpg/jpeg/png".	禁止拡張子を指定した場合	拡張子をご確認の上、再度お試しください。	400
+24	IE0124	Can not create or update the category. Category id : ${invalidValue}.	「その他」カテゴリを指定した場合	「その他」カテゴリは登録/更新できません。	400
+25	IE0125	$ {invalidValue} is invalid because it is not defined in $ {fieldName} in shop settings.	店舗情報に存在しないレイアウト情報を指定した場合	レイアウトをご確認の上、再度お試しください。	400
+26	IE0126	Title (category name) cannot be duplicated with category that belongs to same parent category. Title: ${invalidValue}	同じ階層に同じ名前のカテゴリを指定した場合	カテゴリの名前をご確認の上、再度お試しください。	400
+27	IE0127	Plural category cannot be linked to more than ${value} items.	「1ページ複数商品形式」のカテゴリに紐付いてる商品が30個を超えた場合	「1ページ複数商品形式」のカテゴリは30商品までしか紐つけません	400
+28	IE0128	Cannot set non-Plural categoryId to mainPluralCategoryId.	商品ページとして表示するカテゴリを1ページ複数商品形式ではないカテゴリに指定した場合	商品ページとして表示するカテゴリを1ページ複数商品形式のカテゴリにご指定の上、再度お試しください。	400
+29	IE0132	Since category ${categoryId} is plural category, cannot register child category.	1ページ複数商品形式のカテゴリに下位カテゴリを指定した場合	1ページ複数商品形式のカテゴリに下位カテゴリを登録することはできません。	400
+30	IE0146	Cannot set ${invalidHtmlTag} in ${fieldName}.	許可されないHTMLタグを指定した場合	HTMLタグをご確認の上、再度お試しください。	400
+31	IE0147	Cannot set attribute ${invalidHtmlAttribute} to ${invalidHtmlTag} in ${fieldName}.	許可されないHTMLタグ属性を指定した場合	HTMLタグ属性をご確認の上、再度お試しください。	400
+32	IE0148	Cannot set attribute ${invalidHtmlAttribute} in ${fieldName}.	許可されないHTMLタグ属性を指定した場合	HTMLタグ属性をご確認の上、再度お試しください。	400
+33	IE0151	Failed to get the shop info.	楽天側で店舗情報の取得に失敗した場合	時間を空けて再度お試しください。	400
+34	IE0154	${fieldName} has an invalid value : ${invalidValue}. The status cannot be changed to visible because the status of the higher-level category is hidden.	カテゴリの状態に「表示」を指定したが、上位カテゴリの状態が「非表示」の場合	このカテゴリの上位カテゴリで非表示が指定されていますので、状態に「表示」を指定することはできません。	400
+35	IE0155	Cannot set plural category when the child category exists.	下位カテゴリがあるカテゴリを「1ページ複数商品形式」に指定した場合	下位カテゴリがある場合は、登録一覧形式に「1ページ複数商品形式」を指定できません。	400
+36	IE0163	HTML not allowed in ${fieldName}.	HTML禁止項目に、HTMLタグを指定した場合	HTMLタグ入力禁止です。	400
+37	IE0167	Cannot update category tree for others category set.	「その他」カテゴリセットのカテゴリツリーを更新する場合	「その他」カテゴリセットのカテゴリツリーは更新できません	400
+38	IE0168	Cannot move others category.	「その他」カテゴリを移動する場合	「その他」カテゴリは移動できません	400
+39	IE0169	Cannot update or delete others category.	「その他」カテゴリを更新/削除する場合	「その他」カテゴリは更新/削除できません	400
+40	IE0170	Cannot set category to item mapping with others category together.	「その他」カテゴリと他の表示先カテゴリを一緒に設定する場合	「その他」カテゴリと他の表示先カテゴリを一緒に設定することはできません。	400
+41	IE0171	Cannot delete item mapping with others category.	「その他」カテゴリのItem mappingを削除する	「その他」カテゴリのItem mappingは削除できません	400
+42	IE0173	${invalidValue} lists have been set for ${fieldName}. The maximum number of settings is {constraintValue} list.	指定したイメージが２つ以上である場合	イメージは1つしか指定できません	400
+43	IE0175	Cannot map category to others category set.	「その他」カテゴリセットにカテゴリを登録した場合	「その他」カテゴリセットにカテゴリを登録できません	400
+44	IE0176	Machine dependent characters cannot be registered.	機種依存文字を指定した場合	機種依存文字をご削除の上、再度お試しください	400
+45	IE0177	${fieldName} may only contain alphanumeric characters, hyphen, underscore, period, colon, and forward slashes.	英数字, "-", "_", "-", ".", "\"以外の文字を指定した場合	ご利用いただけない文字をご削除の上、再度お試しください	400
+46	IE0178	Cannot register "¥", "\" to ${fieldName}.	"¥", "\"を指定した場合	"¥", "\"をご削除の上、再度お試しください	400
+47	IE0179	Cannot set full width space in {HTML tag} tag.	HTMLタグに全角スペースを指定した場合	全角スペースをご削除の上、再度お試しください	400
+48	IE0180	Cannot set "=""" in {HTML tag} tag.	HTMLタグに"="""を指定した場合	"="""をご削除の上、再度お試しください	400
+49	IE0181	When Plural category exists in categoryIds, mainPluralCategoryId is mandatory.	1ページ複数商品形式のカテゴリが指定されて、商品ページとして表示するカテゴリを指定していない場合	商品ページとして表示するカテゴリをご指定の上、再度お試しください	400
+50	IE0182	Category does not exist in categoryTree CategoryId: ${invalidValue}.	カテゴリツリーに存在していないカテゴリを商品と紐づけようとした場合	カテゴリツリーに存在していないカテゴリは商品と紐づけません	400
+51	IE0183	The path specified in the request does not exist in the category tree.	指定したカテゴリパスがカテゴリツリーに存在していない場合	カテゴリパスをご確認の上、再度お試しください	400
+52	IE0184	Category is not existed in item mapping CategoryId: {invalidValue}.	指定したカテゴリがItem mappingに存在していない場合	指定したカテゴリをご確認の上、再度お試しください	400
+53	IE0185	The url of ${fieldName} is not allowed.	許可されていないURLを指定した場合	指定したURLをご確認の上、再度お試しください	400
+54	IE0186	"${invalidHtmlTag}" should be set with end tag.	終了タグを指定していない場合	終了タグをご指定の上、再度お試しください	400
+55	IE0187	"${invalidHtmlTag}" should be set with start tag.	開始タグを指定していない場合	開始タグをご指定の上、再度お試しください	400
+56	IE0250	Duplicate categoryKey in categoryKeyList: [CategoryKey(shopId=${shopId}, categoryId=${categoryId}].	重複したカテゴリキーを指定した場合	重複したカテゴリキーをご削除の上、再度お試しください	400
+57	GE0011	Request body is missing or is empty without any attributes.	リクエストボディが存在していないか空である場合	リクエストボディを追加した上、再度お試しください。	400
+58	-	-	インターフェースの呼び出し権限がない場合	HTTPリクエストヘッダをご確認の上、再度お試しください。	401
+59	GE0014	Not found for inputs; identifier=${identifier}	リクエストするリソースが存在しない場合	リクエストをご確認の上、再度お試しください	404
+60	-	-	リクエストのメソッドが許可されていない場合	メソッドをご確認の上、再度お試しください	405
+61	CE0001	Your request could not be processed due to a conflict with another process. Please try again after a short while.	リクエストが現在のサーバーの状態と競合した場合	時間を空けて再度お試しください	409
+62	GE0012	Media Type ${mediaType} is not supported	メディアタイプが"application/json"ではない場合	メディアタイプをご確認の上、再度お試しください	415
+63	GE0019	Failed to get the shop status.	楽天側で店舗のステータス確認に失敗した場合	時間を空けて再度お試しください	500
+64	X0000	-	システムエラー	-	500
+65	-	-	サービスが一時的に過負荷やメンテナンスで使用不可能な場合	-	503
+66	IE1105	This endpoint is disabled for the shop not migrated to SKU.	SKU移行前に登録、更新または削除しようとした場合	SKU移行前の場合CategoryAPI(カテゴリAPI)をご利用ください。	400
+※200番以外のHTTP Status Codeについては、HTTPの規格で規定されているものに従います。

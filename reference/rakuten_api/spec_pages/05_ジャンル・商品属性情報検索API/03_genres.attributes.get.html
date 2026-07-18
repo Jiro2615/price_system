@@ -1,0 +1,1959 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock34857" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/">NavigationAPI 2.0</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : genres.attributes.get</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、指定したジャンルIDに紐づく商品属性情報を取得することができます。</span><br>
+<span>ジャンル情報のみを取得したい場合には、<a href="/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/genresget/">genres.get</a> をご利用ください。</span><br>
+<br>
+<span>※商品の登録／更新時にジャンル・商品属性・推奨値の紐づきの整合性チェックを行っています。</span><br>
+<span>　推奨値の取得を行う場合は <a href="/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/genresattributesdictionaryvaluesget/">genres.attributes.dictionaryValues.get </a> をご利用ください。</span><br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP&nbsp;Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/2.0/navigation/genres/{genreId}/attributes/{attributeId}</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GET</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Authorization</td>
+      <td class="confluenceTd give_space">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Path Parameter">Path Parameter</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreId</td>
+      <td class="confluenceTd give_space">ジャンルID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">6桁のジャンルID。
+0を指定すると、第一階層のジャンルを返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeId</td>
+      <td class="confluenceTd give_space">商品属性ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">特定の商品属性情報を取得したい場合に指定してください。
+※Level 3: attribute &gt; id としてレスポンスされます。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Query Parameter">Query Parameter</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showAncestors</td>
+      <td class="confluenceTd give_space">祖先ジャンルフラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：取得する
+・false：取得しない（デフォルト）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showSiblings</td>
+      <td class="confluenceTd give_space">兄弟ジャンルフラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：取得する
+・false：取得しない（デフォルト）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showChildren</td>
+      <td class="confluenceTd give_space">子ジャンルフラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：取得する
+・false：取得しない（デフォルト）</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<span>None</span><br>
+<h2 id="Response">Response</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">application/json;  charset=utf-8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<span><b>成功した場合</b></span><br>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">version</td>
+      <td class="confluenceTd give_space">バージョン情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">version</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ジャンル及び、商品属性定義のバージョン情報</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genre</td>
+      <td class="confluenceTd give_space">ジャンル情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">genre</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ジャンル情報</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: version">Level 2: version</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">id</td>
+      <td class="confluenceTd give_space">バージョンID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">バージョンを区別するためのID</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">fixedAt</td>
+      <td class="confluenceTd give_space">更新日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ジャンル及び、商品属性情報の更新最終日時。
+フォーマットはISO 8601、タイムゾーンは日本標準時(JST)。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: genre">Level 2: genre</h4>
+<span>genreId: 0以外の場合</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreId</td>
+      <td class="confluenceTd give_space">ジャンルID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">6</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreIdPath</td>
+      <td class="confluenceTd give_space">ジャンルIDパス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;integer&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">30</td>
+      <td class="confluenceTd give_space">1..5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">トップジャンルからのジャンルIDの配列を返却します。
+第一階層から順にレスポンス。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">nameJa</td>
+      <td class="confluenceTd give_space">ジャンル名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">nameJaPath</td>
+      <td class="confluenceTd give_space">ジャンルパス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;string&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">トップジャンルからのジャンル名の配列を返却します。
+第一階層から順にレスポンス。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">level</td>
+      <td class="confluenceTd give_space">階層</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ジャンル階層(1~5)を返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">lowest</td>
+      <td class="confluenceTd give_space">最下層フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：最下層ジャンル
+・false：最下層以外のジャンル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">properties</td>
+      <td class="confluenceTd give_space">ジャンルプロパティ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">properties</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">設定値を返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ancestors</td>
+      <td class="confluenceTd give_space">祖先ジャンル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">List&lt;baseGenre&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showAncestorsにtrueをセットした場合に、祖先ジャンルのジャンル情報を返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">siblings</td>
+      <td class="confluenceTd give_space">兄弟ジャンル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">List&lt;baseGenre&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showSiblingsにtrueをセットした場合に、兄弟ジャンルのジャンル情報を返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">children</td>
+      <td class="confluenceTd give_space">子ジャンル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">List&lt;baseGenre&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">showChildrenにtrueをセットした場合に、子ジャンルのジャンル情報を返却します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributes</td>
+      <td class="confluenceTd give_space">商品属性</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">attributes</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreIdに紐づく商品属性を返却します。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>genreId: 0 の場合</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">children</td>
+      <td class="confluenceTd give_space">子ジャンル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;baseGenre&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">子ジャンル情報を返却します
+※showChildren=false の設定は無効となります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: baseGenre">Level 3: baseGenre</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreId</td>
+      <td class="confluenceTd give_space">ジャンルID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">6</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">genreIdPath</td>
+      <td class="confluenceTd give_space">ジャンルIDパス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;integer&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">30</td>
+      <td class="confluenceTd give_space">1..5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">トップジャンルからのジャンルIDの配列。
+第一階層から順にレスポンス。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">nameJa</td>
+      <td class="confluenceTd give_space">ジャンル名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">nameJaPath</td>
+      <td class="confluenceTd give_space">ジャンルパス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;string&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">トップジャンルからのジャンル名の配列。
+第一階層から順にレスポンス。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">level</td>
+      <td class="confluenceTd give_space">階層</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ジャンル階層(1~5)。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">lowest</td>
+      <td class="confluenceTd give_space">最下層フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：最下層ジャンル
+・false：最下層以外のジャンル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">properties</td>
+      <td class="confluenceTd give_space">ジャンルプロパティ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">properties</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">設定値。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3~4: properties">Level 3~4: properties</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">itemRegisterFlg</td>
+      <td class="confluenceTd give_space">商品登録可能フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・true：登録可能
+・false：登録不可</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: attributes">Level 3: attributes</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">id</td>
+      <td class="confluenceTd give_space">商品属性ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeIdと同一です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">nameJa</td>
+      <td class="confluenceTd give_space">商品属性名称</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">※ジャンルとの紐づきにより変更される可能性もございます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">dataType</td>
+      <td class="confluenceTd give_space">データ型</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データ型に応じた以下文字列のいずれかを返却します。
+・STRING：文字列型
+・NUMBER：数値型
+・DATE：日付型</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">minLength</td>
+      <td class="confluenceTd give_space">最小長</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列型の最小文字数。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">maxLength</td>
+      <td class="confluenceTd give_space">最大長</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列型の最大文字数。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">minValue</td>
+      <td class="confluenceTd give_space">最小値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">float</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">数値型の最小値。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">maxValue</td>
+      <td class="confluenceTd give_space">最大値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">float</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">数値型の最大値。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">dateFormat</td>
+      <td class="confluenceTd give_space">日付フォーマット</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">日付型のフォーマット。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">unit</td>
+      <td class="confluenceTd give_space">単位</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">楽天が定義している第一候補の単位。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">subUnits</td>
+      <td class="confluenceTd give_space">サブ単位</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">List&lt;string&gt;</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">楽天が定義しているその他の単位の候補。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">properties</td>
+      <td class="confluenceTd give_space">商品属性プロパティ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">properties</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">設定値を返却します。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: properties">Level 4: properties</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsMandatoryFlg</td>
+      <td class="confluenceTd give_space">必須項目フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeが必須項目か否か。
+・true：必須(必須 or いずれか必須）
+・false：任意 (ナビゲーション用任意 or 商品ページ用任意）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsMandatoryType</td>
+      <td class="confluenceTd give_space">必須(任意)種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeの必須/任意の種別。
+・MANDATORY：必須
+・MANDATORY_SELECTABLE：いずれか必須
+・OPTIONAL_NAVIGATION ：ナビゲーション用任意
+・OPTIONAL_ITEM_PAGE : 商品ページ用任意</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsMultiValueLimit</td>
+      <td class="confluenceTd give_space">attribute上限数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">integer</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeの上限数。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsInputMethod</td>
+      <td class="confluenceTd give_space">attribute入力方式</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">・DESCRIPTIVE：記述式
+・SELECTIVE：選択式</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsSkuUnifyFlg</td>
+      <td class="confluenceTd give_space">商品ページ内同一値登録対象フラグ	</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeに入力する値がSKU間で一致する必要があるかどうか。
+・true：一致する必要がある
+・false：一致する必要はない</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">rmsRecommend</td>
+      <td class="confluenceTd give_space">推奨値の有無</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attributeに対する推奨値の有無。
+・true：推奨値がある
+・false：推奨値がない</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span><b>失敗した場合</b></span><br>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">errors</td>
+      <td class="confluenceTd give_space">エラー</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">error</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">エラー情報</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: error">Level 2: error</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">code</td>
+      <td class="confluenceTd give_space">エラーコード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="2">メッセージコードの一覧は<a href="/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/codesreference/">こちら</a>。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">message</td>
+      <td class="confluenceTd give_space">エラーメッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">string</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">-</td>
+      <td class="confluenceTd give_space">1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Sample">Sample</h2>
+<h3 id="成功した場合">成功した場合</h3>
+<h4 id="ジャンルに紐づく全ての商品属性を取得した場合">ジャンルに紐づく全ての商品属性を取得した場合</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/navigation/genres/304571/attributes' \
+--header 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "version": {
+    "id": 32,
+        "fixedAt": "2024-02-01T22:00:37+09:00"
+},
+    "genre": {
+    "genreId": 304571,
+        "genreIdPath": [
+        100227,
+        100236,
+        304571
+    ],
+        "nameJa": "アジ",
+        "nameJaPath": [
+        "食品",
+        "魚介類・水産加工品",
+        "アジ"
+    ],
+        "level": 3,
+        "lowest": true,
+        "properties": {
+        "itemRegisterFlg": true
+    },
+    "ancestors": null,
+        "siblings": null,
+        "children": null,
+        "attributes": [
+        {
+            "id": 3,
+            "nameJa": "シリーズ名",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 1,
+            "nameJa": "ブランド名",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY",
+                "rmsMultiValueLimit": 3,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 298,
+            "nameJa": "原産国／製造国",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 250,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 335,
+            "nameJa": "総個数",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 1,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY_SELECTABLE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4838,
+            "nameJa": "総重量",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 0,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": "g",
+            "subUnits": [
+                "kg"
+            ],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY_SELECTABLE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4836,
+            "nameJa": "総容量",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 0,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": "ml",
+            "subUnits": [
+                "L"
+            ],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY_SELECTABLE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 2359,
+            "nameJa": "アジの種類",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2360,
+            "nameJa": "アジの地域ブランド",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 968,
+            "nameJa": "オーガニック認証機関・基準",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 5,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2361,
+            "nameJa": "産地（都道府県）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 250,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 969,
+            "nameJa": "自然派志向",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2362,
+            "nameJa": "食品の梱包方法",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 50,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "SELECTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2363,
+            "nameJa": "食品の状態",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 5,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2364,
+            "nameJa": "鮮魚・海藻の用途",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 5,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4839,
+            "nameJa": "単品重量",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 0,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": "g",
+            "subUnits": [
+                "kg"
+            ],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4837,
+            "nameJa": "単品容量",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 0,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": "ml",
+            "subUnits": [
+                "L"
+            ],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 970,
+            "nameJa": "不使用添加物",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 500,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4867,
+            "nameJa": "旬の時期",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 50,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 10,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4844,
+            "nameJa": "単品（個装）個数",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 1,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4830,
+            "nameJa": "販売形態（並行輸入品）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 50,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "SELECTIVE",
+                "rmsSkuUnifyFlg": true,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4831,
+            "nameJa": "販売形態（訳あり）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 50,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_NAVIGATION",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "SELECTIVE",
+                "rmsSkuUnifyFlg": true,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 2,
+            "nameJa": "ブランド名（カナ）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 3,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4845,
+            "nameJa": "消費期限",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 500,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4846,
+            "nameJa": "賞味期限",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 500,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        {
+            "id": 4847,
+            "nameJa": "製造者",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4866,
+            "nameJa": "販売者",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 3006,
+            "nameJa": "保存方法",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 50,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4402,
+            "nameJa": "名称",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4849,
+            "nameJa": "輸入者",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 4,
+            "nameJa": "シリーズ名（カナ）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        }
+    ]
+}
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="ジャンルに紐づく特定の商品属性を取得した場合">ジャンルに紐づく特定の商品属性を取得した場合</h4>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/navigation/genres/304571/attributes/4838' \
+--header 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse in JSON format (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "version": {
+    "id": 32,
+        "fixedAt": "2024-02-01T22:00:37+09:00"
+},
+    "genre": {
+    "genreId": 304571,
+        "genreIdPath": [
+        100227,
+        100236,
+        304571
+    ],
+        "nameJa": "アジ",
+        "nameJaPath": [
+        "食品",
+        "魚介類・水産加工品",
+        "アジ"
+    ],
+        "level": 3,
+        "lowest": true,
+        "properties": {
+        "itemRegisterFlg": true
+    },
+    "ancestors": null,
+        "siblings": null,
+        "children": null,
+        "attributes": [
+        {
+            "id": 4838,
+            "nameJa": "総重量",
+            "dataType": "NUMBER",
+            "minLength": null,
+            "maxLength": null,
+            "minValue": 0,
+            "maxValue": 999999999,
+            "dateFormat": null,
+            "unit": "g",
+            "subUnits": [
+                "kg"
+            ],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY_SELECTABLE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        }
+    ]
+}
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Response: 301 (genreId={6桁のジャンルID}で成功し、かつ統合元ジャンルの指定だった場合)">Response: 301 (genreId={6桁のジャンルID}で成功し、かつ統合元ジャンルの指定だった場合)</h4>
+<span>レスポンスフォーマットは、Response：200の時と同様です。</span><br>
+<span>指定したジャンルIDが別のジャンルIDに統合されていた場合は、統合先のジャンル情報を返却します。</span><br>
+<h5 id="ジャンル統合のイメージ">ジャンル統合のイメージ</h5>
+<span><img src="/merchant-portal/contents/rms/common/img/SKU/margedGenre.jpg" width="800" height=""></span><br>
+<h5 id="ジャンル変更での統合実施後に、統合元ジャンルへリクエスト">ジャンル変更での統合実施後に、統合元ジャンルへリクエスト</h5>
+<div id="sampleRequest (curl コマンドを使った例)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request (curl コマンドを使った例)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">curl --location --request GET 'https://api.rms.rakuten.co.jp/es/2.0/navigation/genres/566023/attributes' \
+--header 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h5 id="統合先ジャンルの情報を返す">統合先ジャンルの情報を返す</h5>
+<div id="sampleResponse in JSON format (Status: 301 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 301 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "version": {
+    "id": 32,
+        "fixedAt": "2024-02-01T22:00:37+09:00"
+},
+    "genre": {
+    "genreId": 303656,
+        "genreIdPath": [
+        100371,
+        555086,
+        303656
+    ],
+        "nameJa": "Tシャツ・カットソー",
+        "nameJaPath": [
+        "レディースファッション",
+        "トップス",
+        "Tシャツ・カットソー"
+    ],
+        "level": 3,
+        "lowest": true,
+        "properties": {
+        "itemRegisterFlg": true
+    },
+    "ancestors": null,
+        "siblings": null,
+        "children": null,
+        "attributes": [
+        {
+            "id": 36,
+            "nameJa": "カラー",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY",
+                "rmsMultiValueLimit": 5,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        },
+        {
+            "id": 1,
+            "nameJa": "ブランド名",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": true,
+                "rmsMandatoryType": "MANDATORY",
+                "rmsMultiValueLimit": 3,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": true
+            }
+        },
+        //...
+        {
+            "id": 4,
+            "nameJa": "シリーズ名（カナ）",
+            "dataType": "STRING",
+            "minLength": null,
+            "maxLength": 100,
+            "minValue": null,
+            "maxValue": null,
+            "dateFormat": null,
+            "unit": null,
+            "subUnits": [],
+            "properties": {
+                "rmsMandatoryFlg": false,
+                "rmsMandatoryType": "OPTIONAL_ITEM_PAGE",
+                "rmsMultiValueLimit": 1,
+                "rmsInputMethod": "DESCRIPTIVE",
+                "rmsSkuUnifyFlg": false,
+                "rmsRecommend": false
+            }
+        }
+    ]
+}
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="失敗した場合">失敗した場合</h3>
+<h4 id="attributeIdが不正な場合">attributeIdが不正な場合</h4>
+<div id="sampleResponse in JSON format (Status: 400 NG)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 400 NG)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+  "errors": [
+    {
+      "code": "invalidAttributeId",
+      "message": "The attributeId parameter is invalid."
+    }
+  ]
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="商品属性情報が存在しない場合">商品属性情報が存在しない場合</h4>
+<div id="sampleResponse in JSON format (Status: 404 NG)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response in JSON format (Status: 404 NG)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+  "errors": [
+    {
+      "code": "notAttributeFound",
+      "message": "Not attribute found."
+    }
+  ]
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

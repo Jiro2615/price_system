@@ -1,0 +1,352 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/categoryapi2/usecase/
+サービス: カテゴリAPI 2.0（CategoryAPI 2.0）
+
+サービス一覧へ戻る / CategoryAPI 2.0
+
+RMS WEB SERVICE : CategoryAPI 2.0 Use Case
+
+1.カテゴリ登録がない状態から、カテゴリを登録する
+
+2.カテゴリの階層を作る
+
+3.カテゴリの階層を増やす
+
+4.カテゴリの紐づけを解除する
+
+5.レベル2とレベル3を入れ替える
+
+6.上位レベルカテゴリを別のカテゴリに変更する
+
+7.親カテゴリを変更する
+
+カテゴリ登録がない状態から、カテゴリを登録する
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.shop-categories.insert
+Request (curl コマンドを使った例)
+curl --location --request POST 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories' \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "categorySetId": "0",
+    "title": "カテゴリ1",
+    "categoryFeatures": {
+        "display": false,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "PC用カテゴリ1説明文の上部",
+        "sp": "スマートフォン用カテゴリ1説明文"
+    },
+    "additionalDescription": "PC用カテゴリ1説明文の下部",
+    "images": [
+        {
+            "alt": "カテゴリ1画像名",
+            "location": "/category1.jpg",
+            "type": "CABINET"
+        }
+    ]
+}'
+Response in JSON format (Status: 201 Created)
+{
+    "categoryId": "1"
+}
+
+同じ方法で他の３つのカテゴリ（"categoryId": "2", "categoryId": "3", "categoryId": "4"）を作る
+
+カテゴリの階層を作る
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3"
+        },
+        {
+          "categoryId": "4"
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)
+カテゴリの階層を増やす
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.shop-categories.insert
+Request (curl コマンドを使った例)
+curl --location --request POST 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-categories' \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "categorySetId": "0",
+    "title": "カテゴリ5",
+    "categoryFeatures": {
+        "display": false,
+        "categoryPageViewMode": "LIST"
+    },
+    "description": {
+        "pc": "PC用カテゴリ5説明文の上部",
+        "sp": "スマートフォン用カテゴリ5説明文"
+    },
+    "additionalDescription": "PC用カテゴリ5説明文の下部",
+    "images": [
+        {
+            "alt": "カテゴリ5画像名",
+            "location": "/category5.jpg",
+            "type": "CABINET"
+        }
+    ]
+}'
+Response in JSON format (Status: 201 Created)
+{
+    "categoryId": "5"
+}
+
+同じ方法で他の2つのカテゴリ（"categoryId": "6", "categoryId": "7"）を作る
+
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)
+カテゴリの紐づけを解除する
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4"
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    },
+    {
+      "categoryId": "7"
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)
+レベル2とレベル3を入れ替える
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "5",
+          "children": [
+            {
+              "categoryId": "3"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)
+上位レベルカテゴリを別のカテゴリに変更する
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            }
+          ]
+        },
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "6"
+            },
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2"
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)
+親カテゴリを変更する
+モデル図
+モデル図	変更後
+	
+シーケンス図
+
+
+リクエスト
+category.category-trees.upsert
+Request (curl コマンドを使った例)
+curl --location --request PUT 'https://api.rms.rakuten.co.jp/es/2.0/categories/shop-category-trees/category-set-ids/0’ \
+--header 'Authorization: ESA c2FtcGxlU2VydmljZVNlY3JldDpzYW1wbGVMaWNlbnNlS2V5' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "children": [
+    {
+      "categoryId": "1",
+      "children": [
+        {
+          "categoryId": "4",
+          "children": [
+            {
+              "categoryId": "7"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": "2",
+      "children": [
+        {
+          "categoryId": "3",
+          "children": [
+            {
+              "categoryId": "5"
+            },
+            {
+              "categoryId": "6"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}'
+Response in JSON format (Status: 204 No Content)

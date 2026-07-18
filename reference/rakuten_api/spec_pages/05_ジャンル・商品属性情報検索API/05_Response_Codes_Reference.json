@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "ジャンル・商品属性情報検索API",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/"
+  },
+  "feature_page": {
+    "name": "Response Codes Reference",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/codesreference/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/navigationapi2/codesreference/",
+  "main_text": "サービス一覧へ戻る / NavigationAPI 2.0\n\nNavigationAPI Response Error Codes Reference\nHTTP Status Code\nCode\tStatus\tDescription\n200\tOK\tリクエストが成功しました。\n301\tOK\tリクエストが成功しました。\n※指定したジャンルIDが別のジャンルIDに統合されていた場合など\n400\tBad Request\tリクエストが不正です。\n401\tUnauthorized\tインターフェースの呼び出し権限がありません。\n403\tForbidden\tリクエストが禁止されています。\n404\tNot Found\tリクエストパスが存在しません。\n405\tMethod Not Allowed\t指定されたメソッドはサポートされていません。\n415\tUnsupported Media Type\t指定されたメディアタイプはサポートされていません。\n429\tToo Many Requests\tリクエスト制限数を超えました。\n500\tInternal Server Error\tサーバ内部にエラーが発生しました。\n503\tService Unavailable\tサービスが一時的に過負荷やメンテナンスで使用不可能です。\n504\tBad Gateway\t応答時間（60000ms）がタイムアウトしました。\nError code list\nGeneric errors\n\tエラーコード\tエラーメッセージ\t発生原因\t対応方法\tHTTP ステータスコード\n1\tinvalidGenreId\tThe genreId parameter is invalid.\tgenreIdが不正\tgenreIdを見直したうえで、有効なgenreIdを指定してください\t400\n2\tinvalidShowGenreAncestors\tThe showGenreAncestors parameter is invalid.\tshowGenreAncestorsパラメータが不正\ttrue もしくは false を指定してください\t400\n3\tinvalidShowGenreSiblings\tThe showGenreSiblings parameter is invalid.\tshowGenreSiblingsパラメータが不正\ttrue もしくは false を指定してください\t400\n4\tinvalidShowGenreChildren\tThe showGenreChildren parameter is invalid.\tshowGenreChildrenパラメータが不正\ttrue もしくは false を指定してください\t400\n5\tinvalidAttributeId\tThe attributeId parameter is invalid.\tattributeIdの値が不正(1より小さいまたは、4294967295より大きい）\tattributeIdを見直したうえで、有効なattributeIdを指定してください\t400\n6\tinvalidPage\tThe page parameter is invalid.\tpage parameterが不正(1より小さいまたは、10000より大きい）\t有効な値を指定してください\t400\n7\tinvalidLimit\tThe limit parameter is invalid.\tlimit parameterが不正(1より小さいまたは、10000より大きい）\t有効な値を指定してください\t400\n8\tinvalidPageAndLimit\tBoth page and limit parameters are required.\tpage もしくはlimitどちらかが足りない\tpageとlimitをどちらも有効な値で指定してください\t400\n9\trequiredAttributeId\tThe attributed parameter is required.\tpage・limitを利用する際にattributeIdが指定されていない\tpagination機能を利用する際は、attributeIdを指定してください\t400\n10\tnotGenreFound\tNot genre found.\tジャンルが存在しない\tgenreIdを見直したうえで、有効なgenreIdを指定してください\t404\n11\tnotAttributeFound\tNot attribute found.\t商品属性情報が存在しない\tgenreIdとattributeIdを見直したうえで、有効なgenreIdとattributeIdを指定してください\t404\n12\tnotDictionaryValueFound\tNot dictionaryValue found.\t推奨値が存在しない\tgenreIdとattributeIdを見直したうえで、有効なgenreIdとattributeIdを指定してください\t404"
+}

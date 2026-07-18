@@ -1,0 +1,228 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><span><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a title="CabinetAPI" href="/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"><span>CabinetAPI</span></a><br></span></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : CabinetAPI Codes Reference</span></h1><h2 id="Result Codes Reference">Result Codes Reference</h2>
+<div id="HTMLBlock5612" class="HTMLBlock">
+<br><div class="table-wrap"><table style="line-height: 1.4285;" class="confluenceTable"><tbody><tr><th colspan="1" class="confluenceTh">No</th><th colspan="1" class="confluenceTh">Case</th><th class="confluenceTh">Http Status Code</th><th class="confluenceTh">XML &lt;resultCode&gt; value</th><th class="confluenceTh"><span style="color: rgb(0,0,0);">Description</span></th></tr><tr><td colspan="1" class="confluenceTd">1</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">正常終了</td><td class="confluenceTd">200 (OK)</td><td class="highlight-red confluenceTd" data-highlight-colour="red">0</td><td class="confluenceTd">通常ケース</td></tr><tr><td colspan="1" class="confluenceTd">2</td><td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="15">パラメータエラー</td><td rowspan="15" class="confluenceTd">400 (Bad Request)<br><br></td><td class="highlight-red confluenceTd" data-highlight-colour="red">3001</td><td class="confluenceTd">パラメータエラー</td></tr><tr><td class="confluenceTd">3</td><td class="highlight-red confluenceTd" data-highlight-colour="red">3002</td><td class="confluenceTd">存在しない店舗を指定した</td></tr><tr><td class="confluenceTd">4</td><td class="highlight-red confluenceTd" data-highlight-colour="red">3003</td><td class="confluenceTd"><span style="color: rgb(0,0,0);">存在しない店舗を指定した</span></td></tr><tr><td colspan="1" class="confluenceTd">5</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">3004</td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">存在しない画像ファイルを指定した</span></td></tr><tr><td colspan="1" class="confluenceTd">6</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3005</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">存在しないフォルダを指定した</span></td></tr><tr><td colspan="1" class="confluenceTd">7</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3006</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">ファイル数上限エラー</span></td></tr><tr><td colspan="1" class="confluenceTd">8</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3007</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">既に存在している画像名を指定した</span></td></tr><tr><td colspan="1" class="confluenceTd">9</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">3008</td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">画像サイズエラー(容量)</span></td></tr><tr><td colspan="1" class="confluenceTd">10</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3009</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">画像サイズエラー(大きさ)</span></td></tr><tr><td colspan="1" class="confluenceTd">11</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3010</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">画像未対応フォーマット</span></td></tr><tr><td colspan="1" class="confluenceTd">12</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3011</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">画像フォーマットエラー</span></td></tr><tr><td colspan="1" class="confluenceTd">13</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">3012</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">利用可能容量オーバー</span></td></tr><tr><td colspan="1" class="confluenceTd"><p>14</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">3013</td><td colspan="1" class="confluenceTd">フォルダ数上限エラー</td></tr><tr><td colspan="1" class="confluenceTd">15</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">3014</td><td colspan="1" class="confluenceTd">階層エラー<br>※3階層目のフォルダにさらにフォルダ作ろうとした</td></tr><tr><td colspan="1" class="confluenceTd">16</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">3015</td><td colspan="1" class="confluenceTd">同名フォルダ(folder_path)が存在</td></tr><tr><td class="confluenceTd"><span style="color: rgb(0,0,0);">17</span></td><td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="5">システムエラー<br><br><br></td><td rowspan="5" class="confluenceTd">500 (Internal Server Error)</td><td class="highlight-red confluenceTd" data-highlight-colour="red">6001</td><td class="confluenceTd">システムエラー</td></tr><tr><td class="confluenceTd"><span style="color: rgb(0,0,0);">18</span></td><td class="highlight-red confluenceTd" data-highlight-colour="red"><span>6002</span></td><td class="confluenceTd"><span style="color: rgb(0,0,0);">システムエラー</span></td></tr><tr><td class="confluenceTd">19</td><td class="highlight-red confluenceTd" data-highlight-colour="red">6003</td><td class="confluenceTd"><span style="color: rgb(0,0,0);">システムエラー</span></td></tr><tr><td colspan="1" class="confluenceTd">20</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">6004</td><td colspan="1" class="confluenceTd">キャッシュエラー</td></tr><tr><td colspan="1" class="confluenceTd">21</td><td class="highlight-red confluenceTd" data-highlight-colour="red"><span style="color: rgb(0,0,0);">6009</span></td><td class="confluenceTd"><span style="color: rgb(0,0,0);">システムエラー</span></td></tr><tr><td class="confluenceTd">22</td><td class="highlight-red confluenceTd" data-highlight-colour="red"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">メンテナンス</span></span></td><td class="confluenceTd"><span style="color: rgb(0,0,0);">503 (Service Unavailable)</span></td><td class="highlight-red confluenceTd" data-highlight-colour="red">1001</td><td class="confluenceTd">システムエラー</td></tr></tbody></table></div><br></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

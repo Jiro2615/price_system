@@ -1,0 +1,342 @@
+サービス一覧へ戻る / ItemBundleAPI
+
+RMS WEB SERVICE : ItemBundle.update
+Overview
+
+この機能を利用すると、組み合わせ販売を更新することができます。
+
+Endpoint
+Endpoint
+https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/<bundleManageNumber>
+Request
+Request Method
+Method
+PUT
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Parameter
+Level 1: base
+No.	Logical Name	Parameter Name	Required	Type	Max Char	Default	Description	Sample
+1	親商品管理番号	parentItemManageNumber	yes	String	32	-	組み合わせの親商品。
+組み合わせられた子商品は親商品のページにて関連商品として表示されます。	item-001
+2	表示設定	bundleState	yes	String	-	-	商品ページ上の組み合わせ表示設定。
+1つの親商品に対して、最大2つの組み合わせを表示させる（ACTIVE）ことが可能です。非表示（INACTIVE）の組み合わせの制限はありません。
+
+設定可能な値は以下のいずれか
+
+・ACTIVE
+・INACTIVE	ACTIVE
+3	組み合わせ商品リスト	bundleItems	yes	List<bundleItem>	-	-	組み合わせられた商品のリスト。
+親商品も該当リストに入ります。
+1つの親商品に対して、子商品は必ず1つ登録する必要があり、最大3つまで登録できます。	
+4	組み合わせ管理名称	bundleName	yes	String	32	-	組み合わせの管理名称	スマートフォンの組み合わせ
+5	組み合わせ販売説明文	bundleDescription	no	String	50	-	組み合わせ販売の説明文	スマートフォン本体とスマホカバーの組み合わせです。
+Level 2: bundleItem
+No	Logical Name	Parameter Name	Required	Type	Max Char	Default	Description	Sample
+1	商品管理番号	itemManageNumber	yes	String	32	-	組み合わせ商品の商品管理番号	item-002
+2	選択必須フラグ	mandatory	no	Boolean	-	false	組み合わせられた商品が選択必須かどうかのフラグ。
+親商品は必ず「true」に設定する必要があります。
+子商品については影響を及ぼさないため、設定は任意です。
+
+設定可能な値は以下のいずれか
+
+・true
+・false	false
+3	商品の並び順	sequence	no	Integer	-	0	親商品商品ページ上での子商品の表示順序	1
+Response
+HTTP Status
+Code	Status	Description
+200	OK	リクエストが成功した。
+405	Method Not Allowed	許可されていないメソッドを使用しようとした。
+例：POSTメソッドを利用すべきフォームでGETメソッドを使う
+406	Not Acceptable	Accept関連のヘッダに受理できない内容が含まれている場合に返される。
+例：'Accept-type'はXML、リスポンスはJSON。
+422	Unprocessable Entity error	リクエストエンティティが読み込み/解析できないか、パラメータまたはヘッダが間違っている/見つからない。
+エラーコードの詳細はこちら。
+500	Internal Server Error	サーバ内部にエラーが発生した。
+エラーコードの詳細はこちら。
+503	Service Unavailable	サービスが一時的に過負荷やメンテナンスで使用不可能である。
+エラーコードの詳細はこちら。
+Response Header
+Key	Value
+Content-Type	application/json;charset=utf-8
+Response Parameter
+
+
+
+
+Success
+
+Level 1: base
+No	Logical Name	Parameter Name	Required	Type	Max Char	Description	Sample
+1	組み合わせ管理番号	bundleManageNumber	yes	String	64	組み合わせ販売の管理番号。
+組み合わせを新規登録する際に指定され、店舗内においてユニークな番号です。	my-shop-bundle-001
+2	組み合わせ管理名称	bundleName	yes	String	32	組み合わせの管理名称	スマートフォンの組み合わせ
+3	組み合わせ販売説明文	bundleDescription	no	String	50	組み合わせ販売の説明文	スマートフォン本体とスマホカバーの組み合わせです。
+4	親商品管理番号	parentItemManageNumber	yes	String	32	組み合わせの親商品。
+組み合わせられた子商品は親商品のページにて関連商品として表示されます。	item-001
+5	表示設定	bundleState	yes	String	-	商品ページ上の組み合わせ表示設定。
+
+有効な値は以下のいずれか
+
+・ACTIVE
+・INACTIVE	ACTIVE
+6	組み合わせ商品リスト	bundleItems	yes	List<String>	-	組み合わせられた商品のリスト。
+親商品も該当リストに入ります。	
+7	作成日	createdDate	yes	Date	-	組み合わせの作成日時	2017-11-22T06:30:00.000141Z
+8	更新日	updatedDate	yes	Date	-	組み合わせの最終更新日時	2017-11-30T06:30:00.000141Z
+Level 2: bundleItem
+No	Logical Name	Parameter Name	Required	Type	Max Char	Description	Sample
+1	商品管理番号	itemManageNumber	yes	String	32	組み合わせ商品の商品管理番号	item-002
+2	選択必須フラグ	mandatory	yes	Boolean	-	組み合わせられた商品が選択必須かどうかのフラグ。
+
+有効な値は以下のいずれか
+
+・true
+・false	true
+3	商品削除フラグ	isDeletedItem	yes	Boolean	-	組み合わせ商品がデータベース上削除されたかどうかのフラグ。
+商品がデータベース上から削除され、存在しない場合、「true」が返却されます。
+
+有効な値は以下のいずれか
+
+・true
+・false	false
+4	商品の並び順	sequence	yes	Integer	-	親商品商品ページ上での子商品の表示順序	1
+
+
+
+
+Error
+
+Level 1: base
+No	Logical Name	Parameter Name	Required	Type	Max Char	Description
+1	エラー	errors	yes	List<Error>	-	組み合わせを更新する際に発生したエラーのリスト
+Level 2: error
+No	Logical Name	Parameter Name	Required	Type	Max Char	Description	Sample
+1	メッセージ	message	yes	String	-	エラーの説明	item-0yyは販売期間指定商品です。販売期間指定商品は組み合わせに登録できません。
+2	コード	code	yes	String	-	エラーコード。
+詳細はこちら。	B1051
+Sample
+更新処理が成功した場合
+Request (curl コマンドを使った例)
+curl -X PUT \
+  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-01 \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": "スマートフォン本体とスマホカバーの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+    {
+        "itemManageNumber": "item-001",
+        "mandatory": true
+    },
+    {
+        "itemManageNumber": "item-002"
+    }
+    ],
+}''
+Response in JSON format (Status: 200 OK)
+{
+    "bundleManageNumber": "my-shop-bundle-01",
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": "スマートフォン本体とスマホカバーの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory" : true,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        },
+        {
+            "itemManageNumber": "item-002",
+            "mandatory" : false,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        }
+    ],
+    "createdDate": "2017-11-22T06:30:00.000141Z",
+    "updatedDate": "2017-11-30T06:30:00.000141Z"
+}
+値をnullに更新する場合（例：組み合わせ販売説明文をnullに更新）
+Request (curl コマンドを使った例)
+curl -X PUT \
+  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-01 \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": null,
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory": true
+        },
+        {
+            "itemManageNumber": "item-002"
+        }
+    ]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "bundleManageNumber": "my-shop-bundle-01",
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": null,
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory" : true,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        },
+        {
+            "itemManageNumber": "item-002",
+            "mandatory" : false,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        }
+    ],
+    "createdDate": "2017-11-22T06:30:00.000141Z",
+    "updatedDate": "2017-11-30T06:30:00.000141Z"
+}
+新しい子商品を追加する場合（例：item-003）
+Request (curl コマンドを使った例)
+curl -X PUT \
+  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-01 \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": "スマートフォン本体とスマホカバー・スクリーンガードの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory": true
+        },
+        {
+            "itemManageNumber": "item-002"
+            "sequence": 1
+        },
+        {
+            "itemManageNumber": "item-003"
+            "sequence": 2
+        }
+    ]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "bundleManageNumber": "my-shop-bundle-01",
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": "スマートフォン本体とスマホカバー・スクリーンガードの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory" : true,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        },
+        {
+            "itemManageNumber": "item-002",
+            "mandatory" : false,
+            "isDeletedItem": "false",
+            "sequence" : 1
+        },
+        {
+            "itemManageNumber": "item-003",
+            "mandatory" : false,
+            "isDeletedItem": "false",
+            "sequence" : 2
+        }
+    ],
+    "createdDate": "2017-11-22T06:30:00.000141Z",
+    "updatedDate": "2017-11-30T06:30:00.000141Z"
+}
+子商品を削除する場合（例：item-002）
+Request (curl コマンドを使った例)
+curl -X PUT \
+  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-01 \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001", 
+    "bundleDescription": "スマートフォン本体とスマホカバーの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory": true
+        },
+        {
+            "itemManageNumber": "item-003"
+            "sequence": 2
+        }
+    ]
+}'
+Response in JSON format (Status: 200 OK)
+{
+    "bundleManageNumber": "my-shop-bundle-01",
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-001",
+    "bundleDescription": "スマートフォン本体とスマホカバーの組み合わせです。",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+        {
+            "itemManageNumber": "item-001",
+            "mandatory" : true,
+            "isDeletedItem": "false",
+            "sequence" : 0
+        },
+        {
+            "itemManageNumber": "item-003",
+            "mandatory" : false,
+            "isDeletedItem": "false",
+            "sequence" : 2
+        }
+    ],
+    "createdDate": "2017-11-22T06:30:00.000141Z",
+    "updatedDate": "2017-11-30T06:30:00.000141Z"
+}
+パラメータ指定に誤りがある場合
+Request (curl コマンドを使った例)
+curl -X PUT \
+  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-01 \
+  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{
+    "bundleName": "スマートフォンの組み合わせ",
+    "parentItemManageNumber": "item-0xx",
+    "bundleState": "ACTIVE",
+    "bundleItems": [
+    {
+        "itemManageNumber": "item-0xx",
+        "mandatory": true
+    },
+    {
+        "itemManageNumber": "item-0yy"
+    }
+  ]
+}'
+Response in JSON format (Status: 422 Unprocessable Entity)
+{
+  "errors": [
+    {
+      "code": "B1051",
+      "message": "item-0yyは販売期間指定商品です。販売期間指定商品は組み合わせに登録できません。"
+    }
+  ]
+}

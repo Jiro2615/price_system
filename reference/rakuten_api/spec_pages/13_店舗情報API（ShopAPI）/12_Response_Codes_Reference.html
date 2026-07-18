@@ -1,0 +1,726 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37964" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/shopapi/">ShopAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : ShopAPI Response Code Reference</span></h1>
+</div>
+<div class="give_space"><br><a href="#Code List"><font size="2">    1. Code List</font></a>
+<a href="#validationErrorCode List"><font size="2">    2. validationErrorCode List</font></a>
+<a href="#invalidValue List"><font size="2">    3. invalidValue List</font></a>
+</div>
+<span><font color="red">※SKUプロジェクトにてチェック内容が変更となるエラーについては背景色を緑に変更しています。</font></span><br>
+<h2 id="Code List">Code List</h2>
+<span>ShopAPIのレスポンスは、以下のような形式でCode(結果コード)を含みます。</span><br>
+<div id="sampleShopAPIのレスポンスは、以下のような形式でCode(結果コード)を含みます。" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+    &lt;resultCode&gt;N000&lt;/resultCode&gt;
+    &lt;resultMessageList&gt;
+        &lt;resultMessage&gt;
+            &lt;code&gt;N000&lt;/code&gt;
+            &lt;message&gt;Succeeded.&lt;/message&gt;
+        &lt;/resultMessage&gt;
+    &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>処理結果に応じた、Code(結果コード)、HTTP Status、メッセージの関係は以下の表の通りです。</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No.</b></th>
+      <th class="confluenceTh"><b>Category</b></th>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>HTTP Status Code</b></th>
+      <th class="confluenceTh"><b>Message</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">正常終了</td>
+      <td class="confluenceTd give_space">N000</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">200</td>
+      <td class="confluenceTd give_space">Succeeded.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">正常に処理が行われました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="2">サーバー起因
+（サービス停止・メンテナンス中など）</td>
+      <td class="confluenceTd give_space">S900</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">Under maintenance.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">メンテナンス中でサービスを提供できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="confluenceTd give_space">S901</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">The Service is currently in read-only mode.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">読み取り専用モードで運用中のため、更新機能は利用できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="9">クライアント要因
+（クライアントからの入力不備など）</td>
+      <td class="confluenceTd give_space">C001</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Request parameter is invalid.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">パラメータのフォーマットバリデーションエラー。
+Responce の fieldId にパラメータ名が入ります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="confluenceTd give_space">C003</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Requested resource is not found.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された Resource が存在しない場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="confluenceTd give_space">C005</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Requested MediaType is not supported.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Accept や ContentType にAPIが対応していない MediaType を指定された場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="confluenceTd give_space">C006</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Update data is invalid.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新データの UniqueKey に問題がある場合などのコードです。
+
+※UniqueKey とは更新したいデータを特定する一意のキーです。例：layoutCommonId 等</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="confluenceTd give_space">C007</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Request Model is invalid.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新データ Model が不正な場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="confluenceTd give_space">C008</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">404</td>
+      <td class="confluenceTd give_space">Requested data is not found.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された Resource のデータが存在しない場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="confluenceTd give_space">C012</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Number of table elements exceeds limit.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">レコード数が許可されている最大数を超えている場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="confluenceTd give_space">C013</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Validation Error.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新データに不正な値が含まれてる場合のエラーです。
+この場合、バリデーションエラーの種類に応じた検証エラーコードが、レスポンスデータに含まれます。
+詳細については、<a href="/merchant-portal/view/ja/common/1-1_service_index/shopapi/response-codes-reference/#validationErrorCode%20List">validationErrorCode List</a> をご覧ください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="confluenceTd give_space">C998</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">400</td>
+      <td class="confluenceTd give_space">Multiple errors occurred.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">複数のエラーが発生し、かつすべてのエラーがクライアント要因(コードC~)の場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red" rowspan="4">実行エラー
+（参照したいデータがない場合や更新しようとするレコードがない場合など）</td>
+      <td class="confluenceTd give_space">E101</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">Failed to insert data.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データの登録に失敗した場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="confluenceTd give_space">E102</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">Failed to update data.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">データの更新に失敗した場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="confluenceTd give_space">E998</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">Multiple errors occurred.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">複数のエラーが発生した場合のコードです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="confluenceTd give_space">E999</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">500</td>
+      <td class="confluenceTd give_space">Unknown Execution error.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">サーバ内でエラーが起こった場合のコードです。
+クライアント側で対応不能な場合このコードが返されます。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="validationErrorCode List">validationErrorCode List</h2>
+<span>送信した更新データが正当ではないデータを含む場合、ShopAPIは以下のような形式で validationErrorCode (バリデーションエラーコード)を含んだレスポンスを返します。</span><br>
+<div id="sample送信した更新データが正当ではないデータを含む場合、ShopAPIは以下のような形式で validationErrorCode (バリデーションエラーコード)を含んだレスポンスを返します。" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+    &lt;resultCode&gt;C013&lt;/resultCode&gt;
+    &lt;resultMessageList&gt;
+        &lt;resultMessage&gt;
+            &lt;code&gt;C013&lt;/code&gt;
+            &lt;resourceId&gt;naviButton&lt;/resourceId&gt;
+            &lt;fieldId&gt;buttonColsPosition&lt;/fieldId&gt;
+            &lt;validationErrorCode&gt;VE1002&lt;/validationErrorCode&gt;
+            &lt;minValue&gt;1&lt;/minValue&gt;
+            &lt;maxValue&gt;3&lt;/maxValue&gt;
+            &lt;message&gt;VE1002: buttonColsPosition must be between 1 and 3&lt;/message&gt;
+        &lt;/resultMessage&gt;
+      &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>validationErrorCode (バリデーションエラーコード)とその原因は、以下の表の通りです。</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>Error Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VSE1000</td>
+      <td class="confluenceTd give_space">System Logic Validation Error</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">クライアントから受け取った要求が、APIの仕様と一致しません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1000</td>
+      <td class="confluenceTd give_space">Variable Not Set</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">必須項目がありません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1001</td>
+      <td class="confluenceTd give_space">Variable Is Set</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新項目に有効でない値が入力されています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1002</td>
+      <td class="confluenceTd give_space">Number Out Of Range</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">数値項目が、仕様で定められた範囲を超えています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1003</td>
+      <td class="confluenceTd give_space">Byte Size Exceeded</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">セットされた項目が、仕様で定められた最大バイト長を超えています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1004</td>
+      <td class="confluenceTd give_space">Illegal Characters</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">不正な文字を含んでいます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1005</td>
+      <td class="confluenceTd give_space">Unapproved Links</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドが、システムが認めていない外部リンクを含んでいます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1006</td>
+      <td class="confluenceTd give_space">Is Empty String</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列項目が空白です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1007</td>
+      <td class="confluenceTd give_space">Length Exceeded</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">文字列項目が仕様で定められた最大長を超えています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1008</td>
+      <td class="confluenceTd give_space">Unapproved Html</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドが、システムが認めていないHTMLを含んでいます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1009</td>
+      <td class="confluenceTd give_space">Unapproved Image Url</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドが、システムが認めていない画像リンクを含んでいます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1010</td>
+      <td class="confluenceTd give_space">Missing Dependent Input</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新しようとしている項目が依存している項目が未設定です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1011</td>
+      <td class="confluenceTd give_space">External Resource Not Found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">要求された外部リソースが見つかりません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1012</td>
+      <td class="confluenceTd give_space">Resource Is In Use</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">変更しようとしているフィールドが現在使用されています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1013</td>
+      <td class="confluenceTd give_space">Number Sequence Wrong Ordering</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">順序データが誤っています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1014</td>
+      <td class="confluenceTd give_space">R-Cabinet Image Not Found</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">画像が R-Cabinet に存在しません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1015</td>
+      <td class="confluenceTd give_space">R-Cabinet Image Size Exceeded</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">画像データがR-Cabinetの最大許容サイズを超えています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1016</td>
+      <td class="confluenceTd give_space">Invalid Time Format</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">時間の形式に誤りがあります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1017</td>
+      <td class="confluenceTd give_space">Invalid Time</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">時間データに誤りがあります
+(例: 開始時間を終了時間より後に設定しようとした)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1018</td>
+      <td class="confluenceTd give_space">Value Not Unique</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">このフィールドの値は、一意である必要があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">21</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1026</td>
+      <td class="confluenceTd give_space">ItemId not found from itemX API</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">商品管理番号に対する該当商品がありません。</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">22</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">VE1028</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">Featured product is not for sale</td>
+      <td class="highlight-green confluenceTd give_space" data-highlight-colour="green">倉庫指定商品は目玉商品として登録することができません。
+
+SKU移行後は上記に加え、すべてのSKUが倉庫指定の商品も登録できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">23</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1030</td>
+      <td class="confluenceTd give_space">Featured product is not displayed for mobile</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">スマートフォン非表示商品は目玉商品として登録することができません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">24</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1031</td>
+      <td class="confluenceTd give_space">Item with password or featured product is hidden for searching</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">闇市パスワードかサーチ非表示設定されている時目玉商品として登録することができません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">25</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1035</td>
+      <td class="confluenceTd give_space">No published layout</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">公開レイアウトのデータが１つも存在しません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">26</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1036</td>
+      <td class="confluenceTd give_space">Value can be set only to specific value</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">更新する項目は特定の値のみ指定可能です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">27</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE1037</td>
+      <td class="confluenceTd give_space">Already saved same data</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">同一のデータが既に存在します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">28</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE9998</td>
+      <td class="confluenceTd give_space">Feature Is Not Supported</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">現バージョンは、この操作はサポートしていません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">29</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">VE9999</td>
+      <td class="confluenceTd give_space">Unknown Validation Error</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">その他のバリデーションエラー。楽天にご連絡ください。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="invalidValue List">invalidValue List</h2>
+<span>ShopAPIのレスポンスは、以下のような形式で invalidValue を含みます。</span><br>
+<div id="sampleShopAPIのレスポンスは、以下のような形式で invalidValue を含みます。" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+    &lt;resultCode&gt;C998&lt;/resultCode&gt;
+    &lt;resultMessageList&gt;
+        &lt;resultMessage&gt;
+            &lt;code&gt;C013&lt;/code&gt;
+            &lt;resourceId&gt;spTopPage&lt;/resourceId&gt;
+            &lt;fieldId&gt;topPageNote&lt;/fieldId&gt;
+            &lt;validationErrorCode&gt;VE1008&lt;/validationErrorCode&gt;
+            &lt;invalidValue&gt;UNCLOSED_OPEN.&amp;lt;font&amp;gt;&lt;/invalidValue&gt;
+            &lt;message&gt;VE1008: topPageNote must not contain unpaired HTML tag&lt;/message&gt;
+        &lt;/resultMessage&gt;       
+    &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<div id="sample" class="HTMLBlock table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;shopbiz:shopBizApiResponse xmlns:shopbiz="http://rakuten.co.jp/rms/mall/shop/biz/api/model/resource"&gt;
+    &lt;resultCode&gt;C998&lt;/resultCode&gt;
+    &lt;resultMessageList&gt;
+        &lt;resultMessage&gt;
+            &lt;code&gt;C013&lt;/code&gt;
+            &lt;resourceId&gt;spTopPage&lt;/resourceId&gt;
+            &lt;fieldId&gt;topPageNote&lt;/fieldId&gt;
+            &lt;validationErrorCode&gt;VE1008&lt;/validationErrorCode&gt;
+            &lt;invalidValue&gt;TAG.&amp;lt;font&amp;gt;.&amp;lt;dev&amp;gt;&lt;/invalidValue&gt;
+            &lt;message&gt;VE1008: topPageNote may have unsafe html content&lt;/message&gt;
+        &lt;/resultMessage&gt;       
+    &lt;/resultMessageList&gt;
+&lt;/shopbiz:shopBizApiResponse&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>invalidValue とその原因は、以下の表の通りです。</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>invalidValue</b></th>
+      <th class="confluenceTh"><b>Error Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">TAG</td>
+      <td class="confluenceTd give_space">Unapproved tag or attribute</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドにシステムが認めていないタグを含んでいます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">UNCLOSED_OPEN</td>
+      <td class="confluenceTd give_space">Invalid start tag</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドの開始タグに誤りがあります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">UNEXPECTED_CLOSE</td>
+      <td class="confluenceTd give_space">Invalid end tag</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドの終了タグに誤りがあります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">HTML_COMMENT</td>
+      <td class="confluenceTd give_space">Invalid HTML comment</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">フィールドのHTMLコメントに誤りがあります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<br>
+<br></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

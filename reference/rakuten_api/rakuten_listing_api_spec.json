@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "status": "partially_confirmed",
+    "confirmed_at": "2026-07-11",
+    "confirmed_by": "local_docs_and_saved_results",
+    "source_note": "RMS / Rakuten WEB API docs and saved local pilot-prep results only. No live API send performed."
+  },
+  "item_api": {
+    "confirmed": true,
+    "endpoint": "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{manageNumber}",
+    "method": "PUT",
+    "auth_type": "ESA Base64(serviceSecret:licenseKey)",
+    "content_type": "application/json",
+    "path_parameters": [
+      "manageNumber"
+    ],
+    "upsert_semantics": "items.upsert updates the full item payload"
+  },
+  "inventory_api": {
+    "confirmed": true,
+    "endpoint": "https://api.rms.rakuten.co.jp/es/2.1/inventories/manage-numbers/{manageNumber}/variants/{variantId}",
+    "method": "PUT",
+    "auth_type": "ESA Base64(serviceSecret:licenseKey)",
+    "content_type": "application/json",
+    "path_parameters": [
+      "manageNumber",
+      "variantId"
+    ],
+    "body": {
+      "mode": "ABSOLUTE",
+      "quantity": "number",
+      "shipFromIds": "optional List<int>",
+      "operationLeadTime": "optional"
+    },
+    "notes": [
+      "Use ABSOLUTE for new listing inventory registration.",
+      "Inventory can be created without an existing item, so item upsert must succeed first."
+    ]
+  },
+  "image_api": {
+    "transport_confirmed": true,
+    "destination_confirmed": true,
+    "endpoint": "https://api.rms.rakuten.co.jp/es/1.0/cabinet/file/insert",
+    "method": "POST",
+    "auth_type": "ESA Base64(serviceSecret:licenseKey)",
+    "content_type": "multipart/form-data",
+    "response_type": "text/xml",
+    "success_result_code": 0,
+    "response_file_id_field": "cabinetFileInsertResult.FileId",
+    "item_location_build_method": "folderPath + '/' + filePath",
+    "required_runtime_config": [
+      "cabinet_folder_id",
+      "cabinet_folder_path",
+      "shop_url"
+    ],
+    "cabinet_destination": {
+      "shop_url": "ecprime500",
+      "folder_id": 13584708,
+      "folder_name": "listing_test",
+      "folder_path": "r_2025042547/listing_test",
+      "folder_node": 2
+    },
+    "constraints": {
+      "max_file_size_bytes": 2097152,
+      "max_pixels": "3840x3840",
+      "accepted_formats": [
+        "JPEG",
+        "GIF",
+        "ANIMATED_GIF",
+        "PNG",
+        "TIFF",
+        "BMP"
+      ],
+      "auto_convert_to_jpeg": [
+        "PNG",
+        "TIFF",
+        "BMP"
+      ]
+    }
+  },
+  "genre_attributes": {
+    "213661": {
+      "代表カラー": {
+        "confirmed": true,
+        "attribute_id": 8,
+        "input_type": "SELECTIVE",
+        "data_type": "STRING",
+        "max_length": 50,
+        "mandatory": true,
+        "choice_id_required": false,
+        "value_text_allowed": true,
+        "allowed_values": [
+          "-",
+          "ブラック",
+          "グレー",
+          "ホワイト",
+          "ブラウン",
+          "ベージュ",
+          "カーキグリーン",
+          "ピンク",
+          "ワインレッド",
+          "レッド",
+          "オレンジ",
+          "イエロー",
+          "グリーン",
+          "ブルー",
+          "ネイビー",
+          "パープル",
+          "ゴールド",
+          "シルバー",
+          "透明",
+          "マルチカラー"
+        ],
+        "notes": "B0CN39X1FC extracted color 'クリアブルーラメ' is not a dictionary value; send normalized API value 'ブルー' and keep the original text in diagnostics."
+      }
+    }
+  },
+  "delete_or_hide": {
+    "confirmed": true,
+    "method": "DELETE",
+    "endpoint": "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{manageNumber}",
+    "auth_type": "ESA Base64(serviceSecret:licenseKey)",
+    "body": null,
+    "recommended_pilot_cleanup": "items.delete",
+    "notes": [
+      "Recommended pilot cleanup is items.delete.",
+      "Search visibility can lag after deletion."
+    ]
+  }
+}

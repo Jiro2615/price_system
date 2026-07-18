@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "商品API 2.0（ItemAPI 2.0）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/"
+  },
+  "feature_page": {
+    "name": "items.delete",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/itemsdelete/",
+    "description": "商品管理番号を指定し、商品情報を削除することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/itemsdelete/",
+  "main_text": "サービス一覧へ戻る / ItemAPI 2.0\n\nRMS WEB SERVICE : items.delete\nOverview\nこの機能を利用すると、商品管理番号を指定し、商品情報を削除することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{manageNumber}\tDELETE\nRequest\nHTTP Header\nNo\tKey\tValue\n1\tAuthorization\tESA Base64(serviceSecret:licenseKey)\nPath Parameter\nNo\tParameter Name\tLogical Name\tRequired\tType\tMultiplicity\tDescription\n1\tmanageNumber\t商品管理番号\tyes\tstring\t1\t1件のみ指定可能。\nHTTP Body\nNone\n\nResponse\nHTTP Header\nNo\tKey\tValue\n1\tContent-Type\tapplication/json\nHTTP Body\n成功した場合\nNone\n\n失敗した場合\n\nNo\tParameter Name\tLogical Name\tNot Null\tType\tMultiplicity\tDescription\nL1\tL2\n1\terrors\t\tエラー\tyes\tList<error>\t1..n\tエラーのリスト。\n2\t\tcode\tコード\tyes\tstring\t1\tメッセージコードの一覧はこちら。\n3\t\tmessage\tメッセージ\tyes\tstring\t1\nSample\n成功した場合\nRequest (curl コマンドを使った例)\ncurl --location --request DELETE 'https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/10093069' \\\n--header 'Authorization: ESA xxx'\nResponse in JSON format (Status: 204 No Content)\n失敗した場合\nRequest (curl コマンドを使った例)\ncurl --location --request DELETE 'https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/10093069' \\\n--header 'Authorization: ESA xxx'\nResponse in JSON format (Status: 404 Not Found)\n{\n    \"errors\": [\n        {\n            \"code\": \"GE0014\",\n            \"message\": \"No item found for inputs; manageNumber=10093069\"\n        }\n    ]\n}"
+}

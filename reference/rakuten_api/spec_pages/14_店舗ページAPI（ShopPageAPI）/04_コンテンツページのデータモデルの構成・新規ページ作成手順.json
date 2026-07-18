@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "店舗ページAPI（ShopPageAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/"
+  },
+  "feature_page": {
+    "name": "コンテンツページのデータモデルの構成・新規ページ作成手順",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/contents-datamodel/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/contents-datamodel/",
+  "main_text": "サービス一覧へ戻る / ShopPageAPI\n\nShopPageAPI : コンテンツページのデータモデルの構成・新規ページ作成手順\nコンテンツページのデータモデル構成、新規ページ作成手順はこちらのページでご確認ください。\n\nデータモデル構成\n\n\nDomain概要\nデータモデルは上図の通り、2つのDomainで構成されています。\n\nDomain名\tDomain概要\nPage Layout Domain\tコンテンツページのレイアウトの取得・更新・削除を行うためのドメインです。\nModule Domain\tヘッダーエリア、パーツ編集可能エリア、フッターエリアのモジュールから成るドメインです。\n編集可能エリアと編集不可エリアがあります。\nモジュール概要\n各モジュールの概要は以下の通りです。\n\nエリア\t編集可否\t概要\nヘッダーエリア\t×\t記事サムネイル画像、記事タイトルなどを表示します。\nパーツ編集可能エリア\t○\t各パーツの内容を設定して、このエリアを自由に構成できます。\nフッターエリア\t×\tショップお気に入り登録、記事のシェア、ショップメニューなどを表示します。\nページ作成\n新規ページ作成手順\nNo.\t手順\t手順詳細\n1\tパーツを作成する（POST）\n　→WidgetIdが生成される\tShopPage.widgets.insert をご確認ください。\n2\tレイアウトを作成する（POST）\n　→手順1 で生成された各Idを指定する\tShopPage.layouts.common.insert をご確認ください。\nLayoutについて\nコンテンツページは最大1000ページまで登録可能です。\n店舗トップページとは異なり、draft、publicのようなステータスはありません。ページアクセス表示設定によってユーザのアクセス可否が制御されます。"
+}

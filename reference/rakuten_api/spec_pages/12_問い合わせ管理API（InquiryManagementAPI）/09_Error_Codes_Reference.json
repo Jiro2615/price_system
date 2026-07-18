@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "問い合わせ管理API（InquiryManagementAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/"
+  },
+  "feature_page": {
+    "name": "Error Codes Reference",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/messagecodereference/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/messagecodereference/",
+  "main_text": "サービス一覧へ戻る / InquiryManagementAPI\n\nRMS WEB SERVICE : InquiryManagementAPI Error Codes Reference\n\n\n1. 共通エラーレスポンス\n\n\nNo.\tCode\tMessage\tTargets\tDescription\n1\tIE000\tinternal server error\t\t以下以外のエラー\n2\tIE001\tbad parameter\t<name of bad parameter>\tパラメータが不正\n3\tIE002\trequest method is not supported\t\trequest method is not supported\n4\tIE003\tauthentication error\t\t認証エラー（認証キーから取得したshopIdと、操作しようとするデータのshopIdが一致しない）\n\n\n2. Samples\n\n\nIE000\n{\n\"error\":\n    {\n        \"code\":\"IE000\",\n        \"message\":\"internal server error\"\n    }\n}\n\nIE001\n{\n\"error\":\n    {\n        \"code\":\"IE001\",\n        \"message\":\"bad parameter\",\n        \"targets\":{\n            \"shopId\":\"must match \\\"[^0-9]*\\\"\"\n        }\n    }\n}"
+}

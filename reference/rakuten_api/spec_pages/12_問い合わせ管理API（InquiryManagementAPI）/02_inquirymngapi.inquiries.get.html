@@ -1,0 +1,1057 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock38054" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/">InquiryManagementAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : inquirymngapi.inquiries.get</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、指定された条件の問い合わせリストを取得することができます。</span><br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP&nbsp;Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/1.0/inquirymng-api/inquiries</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GET</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="Request Header">Request Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Authorization</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Content-Type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">application/json; charset=utf-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Request Parameter">Request Parameter</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Required</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">limit</td>
+      <td class="confluenceTd give_space">取得件数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">int</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">10</td>
+      <td class="confluenceTd give_space" rowspan="2">・limit
+　・値の範囲：1 ～ 100
+・page
+　・値の範囲：1 ～ 10000
+・取得できる最大件数は、下記の式に当てはめて10000以下です。
+　 limit × ( page - 1) + limit &lt;= 10000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">page</td>
+      <td class="confluenceTd give_space">リスト取得ページ位置</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">int</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">fromDate</td>
+      <td class="confluenceTd give_space">期間指定開始日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">date</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space" rowspan="2">yyyy-MM-ddTHH:mm:ss
+
+※ "fromDate" と"toDate"で指定される日付の期間は31日以内とします。
+※ 日時はJSTで指定してください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">toDate</td>
+      <td class="confluenceTd give_space">期間指定終了日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd give_space">date</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">noMerchantReply</td>
+      <td class="confluenceTd give_space">店舗未返信フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">no</td>
+      <td class="confluenceTd give_space">boolean</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">このパラメータを指定して値をtrueとすると、店舗様からの返信が未返信の問い合わせを返します。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Response">Response</h2>
+<h3 id="Response Header">Response Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Content-Type</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">application/json;charset=UTF-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Response Status">HTTP Response Status</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>Status</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">200</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">OK</td>
+      <td class="confluenceTd give_space">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">400</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd give_space">パラメータに不備があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">404</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd give_space">指定された条件に一致するデータがありません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">500</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd give_space">APIに障害が起こっているか、レスポンスが遅くなっている可能性があります。しばらく経ってから再度アクセスしてください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">503</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Temporary Unavailable</td>
+      <td class="confluenceTd give_space">一時的にAPIがサービス提供できない状態になっています。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Response Error message">HTTP Response Error message</h3>
+<span><a href="/merchant-portal/view/ja/common/1-1_service_index/inquirymanagementapi/messagecodereference">InquiryManagementAPI Error Codes Reference</a> を参照してください。</span><br>
+<h3 id="Response Body">Response Body</h3>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">totalCount</td>
+      <td class="confluenceTd give_space">トータル件数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">totalPageCount</td>
+      <td class="confluenceTd give_space">ページ数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">page</td>
+      <td class="confluenceTd give_space">リスト取得ページ位置</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">list</td>
+      <td class="confluenceTd give_space">取得リスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">list&lt;inquiry&gt;</td>
+      <td class="confluenceTd give_space">取得された問い合わせは「問い合わせ日時」の降順でソートされます。
+詳細は Level 2: inquiry を参照してください。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: inquiry">Level 2: inquiry</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">inquiryNumber</td>
+      <td class="confluenceTd give_space">問い合わせ番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">重複することのない番号（ランダムに発行、桁数は変動する可能性があります）と英文字の組合せ。
+
+・半角英数字と-（ハイフン）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">shopId</td>
+      <td class="confluenceTd give_space">店舗ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">userName</td>
+      <td class="confluenceTd give_space">ユーザ氏名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">userMaskEmail</td>
+      <td class="confluenceTd give_space">ユーザーマスクメールアドレス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">message</td>
+      <td class="confluenceTd give_space">メッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">regDate</td>
+      <td class="confluenceTd give_space">問い合わせ日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">date</td>
+      <td class="confluenceTd give_space">yyyy-MM-dd'T'HH:mm:ss+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">itemUrl</td>
+      <td class="confluenceTd give_space">商品URL</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">itemName</td>
+      <td class="confluenceTd give_space">商品名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">itemNumber</td>
+      <td class="confluenceTd give_space">商品番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">isCompleted</td>
+      <td class="confluenceTd give_space">処理完了フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">boolean</td>
+      <td class="confluenceTd give_space">問い合わせが「完了」状態となったか否かを表します。
+
+・true：完了
+・false：未完了</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">completedDate</td>
+      <td class="confluenceTd give_space">処理完了日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">date</td>
+      <td class="confluenceTd give_space">問い合わせが「完了」状態となった日時。
+
+yyyy-MM-dd'T'HH:mm:ss+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">orderNumber</td>
+      <td class="confluenceTd give_space">受注番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">readByMerchant</td>
+      <td class="confluenceTd give_space">店舗既読フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">boolean</td>
+      <td class="confluenceTd give_space">問い合わせを店舗が読んだか否かを表します。
+
+・true：既読
+・false：未読</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attachments</td>
+      <td class="confluenceTd give_space">添付ファイル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">list&lt;attachments&gt;</td>
+      <td class="confluenceTd give_space">Level 3: attachments を参照ください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">replies</td>
+      <td class="confluenceTd give_space">返信</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">list&lt;replies&gt;</td>
+      <td class="confluenceTd give_space">Level 3: replies を参照ください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">category</td>
+      <td class="confluenceTd give_space">問い合わせカテゴリ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">問い合わせタイプ（type）に応じて、以下のいずれかの値を返します。
+
+・店舗問い合わせ
+　・商品詳細
+　・再入荷・在庫
+　・返品・交換・キャンセル
+　・配送
+　・店舗サービス
+　※2024年9月17日以前に作成されたもの等、一部の問合せについては、空の値を返します。
+
+・商品問い合わせ
+　・商品詳細
+　・再入荷・在庫
+　・返品・交換・キャンセル
+　・配送
+　・店舗サービス
+　　※2021年8月4日以前に作成されたもの等、一部の問合せについては、空の値を返します。
+
+・受注問い合わせ
+　・送料・商品配送
+　・返品交換・キャンセル
+　・決済方法・購入金額
+　・商品詳細
+　・注文情報の追加連絡
+　・ソーシャルギフト受取
+　・その他
+
+・店舗からの問い合わせ
+　・発送の確認・連絡
+　・注文内容の確認</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">type</td>
+      <td class="confluenceTd give_space">問い合わせタイプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">以下のいずれかの値
+
+・店舗問い合わせ
+・商品問い合わせ
+・受注問い合わせ
+・店舗からの問い合わせ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">isMessageDeleted</td>
+      <td class="confluenceTd give_space">メッセージ削除</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">boolean</td>
+      <td class="confluenceTd give_space">メッセージが楽天によって削除されたか否かを表します。
+
+・true：削除された
+・false：削除されていない
+
+※メッセージが削除された場合、「message」と「attachments」は空になります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">lastUpdateDate</td>
+      <td class="confluenceTd give_space">最終更新日</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">date</td>
+      <td class="confluenceTd give_space">yyyy-MM-dd'T'HH:mm:ss+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">socialGiftUserType</td>
+      <td class="confluenceTd give_space">ソーシャルギフトユーザタイプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">ソーシャルギフト注文関連の問い合わせにおけるユーザの種別を表します。※ソーシャルギフト注文ではない場合はnullになります。
+
+・注文者
+・受取人
+・null</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: attachments">Level 3: attachments</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">label</td>
+      <td class="confluenceTd give_space">ファイル名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">path</td>
+      <td class="confluenceTd give_space">添付ファイルのパス</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">/yyyy/MM/dd/{shopId}/xxxxxxxxxxxxxxxxxxxxx</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: replies">Level 3: replies</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">id</td>
+      <td class="confluenceTd give_space">返信ID</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">同一問い合せに対する返信に付与される連番のID</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">message</td>
+      <td class="confluenceTd give_space">メッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">regDate</td>
+      <td class="confluenceTd give_space">返信日時</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">date</td>
+      <td class="confluenceTd give_space">yyyy-MM-dd'T'HH:mm:ss+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">replyFrom</td>
+      <td class="confluenceTd give_space">返信者</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">string</td>
+      <td class="confluenceTd give_space">店舗・ユーザのどちらからの返信かを表します。
+
+・merchant：店舗からの返信
+・user：ユーザからの返信</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">isRead</td>
+      <td class="confluenceTd give_space">既読フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">boolean</td>
+      <td class="confluenceTd give_space">店舗・ユーザが返信を読んだか否かを表します。
+
+・true：既読
+・false：未読</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">isMessageDeleted</td>
+      <td class="confluenceTd give_space">メッセージ削除</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">boolean</td>
+      <td class="confluenceTd give_space">メッセージが楽天によって削除されたか否かを表します。
+
+・true：削除された
+・false：削除されていない
+
+※メッセージが削除された場合、「message」と「attachments」は空になります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">attachments</td>
+      <td class="confluenceTd give_space">添付ファイル</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">list&lt;attachments&gt;</td>
+      <td class="confluenceTd give_space">Level 3: attachments を参照してください。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Sample">Sample</h2>
+<h3 id="リクエストが成功した場合">リクエストが成功した場合</h3>
+<h4 id="問い合わせが取得できた場合">問い合わせが取得できた場合</h4>
+<div id="sampleRequest" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">https://api.rms.rakuten.co.jp/es/1.0/inquirymng-api/inquiries?fromDate=2020-05-01T00:00:00&amp;toDate=2020-05-30T23:59:59</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "totalCount": 2,
+    "totalPageCount": 1,
+    "page": 1,
+    "list": [
+        {
+            "inquiryNumber": "999999-20200519-1t",
+            "shopId": 999999,
+            "userName": "楽天太郎",
+            "userMaskEmail": "9ca9e8e4ef09fe8d9a239a6af95b9bc6s9@pc.fw.rakuten.ne.jp",
+            "message": "こんにちは。他の種類の製品はありますか？また群馬県までは何日で届きますか？",
+            "regDate": "2020-05-19T15:25:48+09:00",
+            "itemUrl": "/_sampleshop/105/",
+            "itemName": "おかかふりかけ全3種",
+            "itemNumber": "105",
+            "isCompleted": false,
+            "completedDate": null,
+            "category": "",
+            "type": "商品問い合わせ",
+            "orderNumber": null,
+            "readByMerchant": true,
+            "attachments": [],
+            "replies": [
+                {
+                    "id": 0,
+                    "message": "お問い合わせありがとうございます。ご案内いたします。",
+                    "regDate": "2020-05-19T15:25:58+09:00",
+                    "replyFrom": "merchant",
+                    "isRead": false,
+                    "attachments": [],
+                    "isMessageDeleted": false
+                },
+                {
+                    "id": 1,
+                    "message": "画像をお送りします。",
+                    "regDate": "2020-05-19T15:26:59+09:00",
+                    "replyFrom": "merchant",
+                    "isRead": false,
+                    "attachments": [
+                        {
+                            "label": "images.jpg",
+                            "path": "2020/05/19/999999/123456_55080b8b9c864ae694f37771d1f37388"
+                        }
+                    ],
+                    "isMessageDeleted": false
+                }
+            ],
+            "lastUpdateDate": "2020-05-19T15:26:59+09:00",
+            "isMessageDeleted": false,
+            "socialGiftUserType": null
+        },
+        {
+            "inquiryNumber": "999999-20200519-2t",
+            "shopId": 999999,
+            "userName": "楽天花子",
+            "message": "こんにちは。お店の営業時間を教えて下さい。",
+            "regDate": "2020-05-19T15:26:59+09:00",
+            "itemUrl": "/_sampleshop/",
+            "itemName": "店舗トップページ",
+            "itemNumber": null,
+            "isCompleted": false,
+            "completedDate": null,
+            "category": "",
+            "type": "店舗問い合わせ",
+            "orderNumber": null,
+            "readByMerchant": false,
+            "attachments": [],
+            "replies": [],
+            "lastUpdateDate": "2020-05-19T15:26:59+09:00",
+            "isMessageDeleted": false,
+            "socialGiftUserType": null
+        }
+     ]
+ }</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="条件に一致する問い合わせがない場合">条件に一致する問い合わせがない場合</h4>
+<div id="sampleRequest" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Request</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">https://api.rms.rakuten.co.jp/es/1.0/inquirymng-api/inquiries?toDate=2019-10-31T23:59:59&amp;fromDate=2019-10-01T00:00:00</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div id="sampleResponse (Status: 200 OK)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 200 OK)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "totalCount": 0,
+    "totalPageCount": 0,
+    "page": 1,
+    "list": []
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="リクエストが失敗した場合のResponse Sample">リクエストが失敗した場合のResponse Sample</h3>
+<h4 id="フォーマットに誤りがある場合">フォーマットに誤りがある場合</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "toDate": "must match \"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$\""
+        }
+    }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="fromDate と toDate の時系列が逆だった場合">fromDate と toDate の時系列が逆だった場合</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "fromDate": "date time range is invalid.",
+            "toDate": "date time range is invalid."
+        }
+    }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="fromDate と toDateの間が31日以上の場合">fromDate と toDateの間が31日以上の場合</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "fromDate": "date time range should be within 31 days.",
+            "toDate": "date time range should be within 31 days."
+        }
+    }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="page に 10001 以上を指定した場合">page に 10001 以上を指定した場合</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "error": {
+        "code": "IE001", &nbsp;&nbsp; &nbsp; &nbsp;  
+　　　　"message": "400 Bad Request"
+    }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="limit に 101 以上を指定した場合">limit に 101 以上を指定した場合</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "limit": "should be less than equal 100"
+        }
+    }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="limit × ( page - 1 ) + limit &gt; 10000 を指定した場合（取得件数が 10001 以上の場合）">limit × ( page - 1 ) + limit &gt; 10000 を指定した場合（取得件数が 10001 以上の場合）</h4>
+<div id="sampleResponse (Status: 400 Bad Request)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>Response (Status: 400 Bad Request)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">{
+&nbsp; &nbsp; "error": {
+&nbsp; &nbsp; &nbsp; &nbsp; "code": "IE000",
+&nbsp; &nbsp; &nbsp; &nbsp; "message": "400 Bad Request"
+&nbsp; &nbsp; }
+}</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

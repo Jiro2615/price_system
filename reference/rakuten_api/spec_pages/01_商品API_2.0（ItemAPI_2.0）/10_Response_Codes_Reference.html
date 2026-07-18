@@ -1,0 +1,1653 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37632" class="HTMLBlock">
+<style>.give_space{white-space: pre;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/">ItemAPI 2.0</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : ItemAPI 2.0 Response Codes Reference</span></h1>
+</div>
+<span><font color="red">※定期購入リニューアルにて追加・修正となる項目は背景色を緑に変更しています。</font></span><br>
+<h2 id="HTTP ステータスコード定義">HTTP ステータスコード定義</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>コード</b></th>
+      <th class="confluenceTh"><b>ステータス</b></th>
+      <th class="confluenceTh"><b>内容</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">200</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">OK</td>
+      <td class="confluenceTd">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">201</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Created</td>
+      <td class="confluenceTd">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">204</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">No Content</td>
+      <td class="confluenceTd">リクエストが成功しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">400</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd">リクエストが不正です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">401</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Unauthorized</td>
+      <td class="confluenceTd">インターフェースの呼び出し権限がありません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">404</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd">リクエストパスが見つかりません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">409</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Conflict</td>
+      <td class="confluenceTd">データ重複のため登録できませんでした。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">414</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">URI Too Long</td>
+      <td class="confluenceTd">URIが長すぎます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">415</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Unsupported Media Type</td>
+      <td class="confluenceTd">指定されたメディアタイプはサポートされていません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">500</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd">サーバ内部にエラーが発生しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">503</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Service Unavailable</td>
+      <td class="confluenceTd">サービスが一時的に過負荷やメンテナンスで使用不可能です。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="エラーコード定義">エラーコード定義</h2>
+<h3 id="汎用エラー">汎用エラー</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>エラーコード</b></th>
+      <th class="confluenceTh"><b>エラーメッセージ</b></th>
+      <th class="confluenceTh"><b>原因</b></th>
+      <th class="confluenceTh"><b>対応方法</b></th>
+      <th class="confluenceTh"><b>HTTPステータスコード</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0007</td>
+      <td class="confluenceTd">Requested path doesn't exist</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">リクエストパスが存在していない場合</td>
+      <td class="confluenceTd">リクエストパスをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0017</td>
+      <td class="confluenceTd">Write methods isn't allowed in readsOnly-mode.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">読取り専用モードで更新処理をした場合</td>
+      <td class="confluenceTd">読み取り専用モードの場合は更新処理できない。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0001</td>
+      <td class="confluenceTd">${fieldName} is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">必須項目を設定していない場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">必須項目を設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd" rowspan="3">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">IE0002</td>
+      <td class="confluenceTd">${fieldName} has an invalid value. </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">項目のバリデーションエラーが発生した場合や、リクエストボディに不正な項目が設定されていた場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd" rowspan="3">項目名や型など確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">${fieldName} has an invalid value : ${invalidValue}.</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Unrecognized field ${fieldName}.</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0003</td>
+      <td class="confluenceTd">${fieldName} must be between ${min} and ${max}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">項目の値が範囲内ではない場合<br><br>${fieldName}: 項目名<br>${min}: 最小値<br>${max}: 最大値</td>
+      <td class="confluenceTd">項目の値を範囲内に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0004</td>
+      <td class="confluenceTd">Max length of ${fieldName} must be within ${value} bytes.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">項目の最大長さを超えた場合<br><br>${fieldName}: 項目名<br>${value}: 最大値</td>
+      <td class="confluenceTd">項目の長さを範囲内に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0007</td>
+      <td class="confluenceTd">Invalid choice selected for ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">enum型で定義している値以外の値を指定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">項目の値を選択肢のいずれかに設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0101</td>
+      <td class="confluenceTd">Only one of shipping.shopAreaSoryoPatternId, shipping.postageSegment.local, shipping.postageSegment.overseas and shipping.fee can be registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">個別送料と送料区分を同時に指定した場合</td>
+      <td class="confluenceTd">個別送料か送料区分のいずれかを設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0104</td>
+      <td class="confluenceTd">When pointCampaign is set, ${fieldName} cannot be less than JPY 100.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">販売価格が100未満の商品に商品別ポイント変倍を指定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">販売価格を100以上に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0108</td>
+      <td class="confluenceTd">Point Campaign End time is earlier than Start time.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の終了日時に開始日時より前の時間を指定した場合</td>
+      <td class="confluenceTd">ポイント変倍の終了日時を開始日時より後に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0109</td>
+      <td class="confluenceTd">${fieldName} may be one of ${value} or NULL</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">消費税率に不正な値を指定した場合<br><br>${fieldName}: 項目名<br>${value}: 選択肢リスト</td>
+      <td class="confluenceTd">消費税率に選択肢リストの一つかNULLを設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0110</td>
+      <td class="confluenceTd">There are multiple occurrences of the same variant selectorValue content : ${invalidValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">selectorValuesに重複した値を指定した場合<br><br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">selectorValuesの値を一意に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0111</td>
+      <td class="confluenceTd">Duplicate definition found. There are multiple occurrences of the same ${fieldName} content : ${invalidValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">項目選択肢項目名や項目選択肢名に重複した値を指定した場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">項目選択肢項目名や項目選択肢名を一意に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0113</td>
+      <td class="confluenceTd">There are multiple occurrences of the same variantId content : ${invalidValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variantIdに重複した値を指定した場合<br><br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">variantIdを一意に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0114</td>
+      <td class="confluenceTd">Missing or unexpected element in ${fieldName}. Expected selectors : ${empty expectedSelectors ? 'none' : expectedSelectors}, given set : ${empty actualSelectors ? 'none' : actualSelectors}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">selectorValuesに要素が存在してない、または誤っている場合<br><br>${fieldName}: 項目名<br>${expectedSelectors}: 想定される値リスト<br>${actualSelectors}: 入力された値リスト</td>
+      <td class="confluenceTd">selectorValuesの値をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0116</td>
+      <td class="confluenceTd">Maximum number of tag list is ${configValue}, request number of tags.exceeded.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">タグIDの個数が最大値を超えた場合<br><br>${configValue}: 最大値</td>
+      <td class="confluenceTd">タグIDを最大個数以下に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0118</td>
+      <td class="confluenceTd">Fraction digits of ${fieldName} does not match the currency ${value}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">通貨を円に指定した上、項目に小数を指定した場合<br><br>${fieldName}: 項目名<br>${value}: 通貨(円)</td>
+      <td class="confluenceTd">値を小数点なしで設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">18</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0119</td>
+      <td class="confluenceTd">{fieldName} exceeds the maximum number of entries allowed.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">最大リストサイズを超えた場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">項目のリストを最大値より少なく設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd" rowspan="2">19</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="2">IE0121</td>
+      <td class="confluenceTd">pointCampaign.applicablePeriod.start should be later than the present time.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の期間の開始日時が現在の時刻より前だった場合</td>
+      <td class="confluenceTd">ポイント変倍の期間の開始日時を現在の時刻より2時間以降に変更の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="2">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">pointCampaign.applicablePeriod.end should be later.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の期間の終了日時が現在の時刻から2時間59分以降ではない場合。</td>
+      <td class="confluenceTd">ポイント変倍の期間の終了日時を現在の時刻より2時間59分以降に変更の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">20</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0122</td>
+      <td class="confluenceTd">The period set from ${start} to pointCampaign.applicablePeriod.end can not be longer than ${value} days.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の期間が最大日数を超えた場合<br><br>${start}: ポイント変倍適用期間開始日時または現在の時刻<br><br>${value}: 最大日数</td>
+      <td class="confluenceTd">終了日を最初から登録する場合、ポイント変倍の開始日と終了日の間を最大日数以内に変更の上、再度お試しください。<br><br>終了日時を設定しないポイント変倍情報を適用期間開始後に変更する場合、終了日時を最大日数以内に変更の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">21</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0123</td>
+      <td class="confluenceTd">The period set between pointCampaign.applicablePeriod.start and pointCampaign.applicablePeriod.end can not be shorter than ${value} hours.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の期間が最小時間を下回った場合<br><br>${value}: 最小時間</td>
+      <td class="confluenceTd">ポイント変倍の開始日時と終了日時を最小時間以上に変更の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">22</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0124</td>
+      <td class="confluenceTd">When pointCampaign.applicablePeriod is registered, pointCampaign.rate is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍期間指定したが、ポイント変倍率を指定しなかった場合</td>
+      <td class="confluenceTd">ポイント変倍率を設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">23</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0128</td>
+      <td class="confluenceTd">${fieldName} is not required if genreId does not belong to medicine.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ジャンルIDに医薬品以外を指定したが、医薬品説明文や医薬品注意事項を指定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">薬品説明文や医薬品注意事項をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">24</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0129</td>
+      <td class="confluenceTd">${fieldName} has invalid value "${invalidValue}".</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">存在しないSKU商品名を商品バリエーション項目に指定した場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">商品バリエーション項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">25</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0130</td>
+      <td class="confluenceTd">${invalidValue} lists have been set for ${fieldName}. The maximum number of settings is ${value} lists.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーション項目のサイズが最大値を超えた場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${value}: 最大値</td>
+      <td class="confluenceTd">商品バリエーション項目のサイズを最大値以下に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">26</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0131</td>
+      <td class="confluenceTd">${invalidValue} lists have been set for ${fieldName}. The maximum number of settings is ${value} lists.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーション項目の選択肢のサイズが最大値を超えた場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${value}: 最大値</td>
+      <td class="confluenceTd">商品バリエーション項目の選択肢のサイズを最大値以下に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">27</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0132</td>
+      <td class="confluenceTd">${fieldName} is required if genreId belongs to specific medicine genre.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品注意事項の記載が必要なジャンルIDを指定しているが、医薬品注意事項を指定しなかった場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">医薬品注意事項を設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">28</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0133</td>
+      <td class="confluenceTd">${fieldName} is invalid value : ${invalidValue}. The ${fieldName} of settings is ${value} value.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">個別価格に"firstPrice", "lastPrice"以外を指定した場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${value}: 選択可能な値</td>
+      <td class="confluenceTd">個別価格を"firstPrice", "lastPrice"のいずれかを設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">29</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0135</td>
+      <td class="confluenceTd">There are duplicate value for variantSelectors.key.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーションのキーに重複する値が存在した場合</td>
+      <td class="confluenceTd">商品バリエーションのキーの値を一意に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">30</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0136</td>
+      <td class="confluenceTd">When customizationOptions.inputType is "SINGLE_SELECTION" or "MULTIPLE_SELECTION", customizationOptions.selections is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">選択肢タイプにSINGLE_SELECTIONかMULTIPLE_SELECTIONを指定したが、Select/Checkbox用選択肢を指定しなかった場合</td>
+      <td class="confluenceTd">Select/Checkbox用選択肢を設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">31</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0137</td>
+      <td class="confluenceTd">When customizationOptions.inputType is "FREE_TEXT, customizationOptions.selections cannot be set.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">選択肢タイプにFREE_TEXTを指定したが、Select/Checkbox用選択肢を指定した場合</td>
+      <td class="confluenceTd">Select/Checkbox用選択肢を削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">32</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0142</td>
+      <td class="confluenceTd">TagIds in tag list are duplicated.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">タグIDが重複している場合</td>
+      <td class="confluenceTd">タグIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">33</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0143</td>
+      <td class="confluenceTd">SKU specified tags can be registered, only when this is SKU inventory item (variantSelectors is set).</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">SKU商品ではないのにSKUタグIDを指定した場合</td>
+      <td class="confluenceTd">SKUタグIDを削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">34</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0144</td>
+      <td class="confluenceTd">${invalidValue} is invalid ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">無効なタグIDを指定した場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">タグIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">35</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0145</td>
+      <td class="confluenceTd">${fieldName} cannot be registered within same tag group.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">同じタググループのSKUタグIDを指定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">SKUタグIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">36</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0146</td>
+      <td class="confluenceTd">Failed to get the genre info.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">不正なジャンルIDを指定した場合</td>
+      <td class="confluenceTd">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">37</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0147</td>
+      <td class="confluenceTd">genreId cannot be updated, since SKU specified tags are being registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">登録したSKUタグが所属してないタググループのジャンルIDを指定していた場合</td>
+      <td class="confluenceTd">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">38</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0011</td>
+      <td class="confluenceTd">Request body is missing or is empty without any attributes.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">リクエストボディが存在していないか空である場合<br></td>
+      <td class="confluenceTd">リクエストボディを設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">39</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0151</td>
+      <td class="confluenceTd">When ${fieldName} is ${fieldValue}, ${invalidField} cannot be set ${invalidValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">表示価格種別にSHOP_SETTING及びOPEN_PRICEを指定したが、表示価格文言も指定した場合<br><br>${fieldName}: 項目名<br>${fieldName}: ${fieldName}の値<br>${invalidField}: 不正な値が入っている項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">表示価格文言を削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">40</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0153</td>
+      <td class="confluenceTd">Cannot set ${fieldName} when shipping.postageIncluded is true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料無料フラグにtrueを指定したが、個別送料、地域別個別送料管理番号、送料区分のいずれかを設定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">個別送料、地域別個別送料管理番号、送料区分を削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">41</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0154</td>
+      <td class="confluenceTd">Cannot update pointCampaign during ${applicablePeriod.start} ~ ${applicablePeriod.end}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍適用期間内にポイント変倍の更新をしようとした場合<br><br>${applicablePeriod.start}: ポイント変倍適用期間開始時刻<br>${applicablePeriod.end}: ポイント変倍適用期間終了時刻</td>
+      <td class="confluenceTd">ポイント変倍適用期間中にポイント変倍の更新はできません。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">42</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0156</td>
+      <td class="confluenceTd">Number of variants.selectorValues should be equal to number of variantSelector.values</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variants.{variantId}.selectorValuesとvariantSelector.valuesの数が合わない場合</td>
+      <td class="confluenceTd">variants.{variantId}.selectorValuesとvariantSelector.valuesをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">43</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0157</td>
+      <td class="confluenceTd">${fieldName} cannot be set ${invalidValue} when unlimitedInventoryFlag was ${value}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">unlimitedInventoryFlagの設定の影響で指定できない項目が設定されていた場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${value}: unlimitedInventoryFlagの設定値</td>
+      <td class="confluenceTd">それぞれのパターンをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">44</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0158</td>
+      <td class="confluenceTd">When variantSelector is null, ${fieldName} cannot be set ${invalidValue}</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーション項目がNullで、かつ以下の項目が指定されていた場合<br>variants.{variantId}.selectorValues<br>variants.{variantId}.images<br>variants.{variantId}.tags<br>variants.{variantId}.horizontalNumber<br>variants.{variantId}.verticalNumber<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">それぞれの項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">45</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0159</td>
+      <td class="confluenceTd">${fieldName} cannot be set ${invalidValue}, when item type is ${value}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品種別の設定の影響で指定できない項目が設定されていた場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${value}: 商品種別</td>
+      <td class="confluenceTd">それぞれの条件をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">46</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0160</td>
+      <td class="confluenceTd">Cannot convert item type ${value} to ${invalidValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品のフィールド設定の影響で商品種別を変更できないが、変更しようとした場合<br><br>${value}: 元々の商品種別<br>${invalidValue}: 不正な商品種別</td>
+      <td class="confluenceTd">それぞれの条件をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">47</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0162</td>
+      <td class="confluenceTd">When features.inventoryDisplay is "DISPLAY_LOW_STOCK", features.lowStockThreshold is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫数表示にDISPLAY_LOW_STOCKを指定したが、残り在庫数表示閾値を指定しなかった場合</td>
+      <td class="confluenceTd">残り在庫数表示閾値を指定して再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">48</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0163</td>
+      <td class="confluenceTd">When features.lowStockThreshold is set, features.inventoryDisplay should be "DISPLAY_LOW_STOCK".</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">残り在庫数表示閾値を指定したが、在庫数表示にDISPLAY_LOW_STOCKを指定しなかった場合</td>
+      <td class="confluenceTd">在庫数表示を"DISPLAY_LOW_STOCK"に指定して再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">49</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0164</td>
+      <td class="confluenceTd">When variants.${variantId}.backOrderFlag is true, variants.${variantId}.backOrderDeliveryDateId must be registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variants.${variantId}.backOrderFlagにtrueを指定したが、variants.${variantId}.backOrderDeliveryDateIdが指定されていない場合</td>
+      <td class="confluenceTd">variants.${variantId}.backOrderDeliveryDateIdを指定して再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">50</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0165</td>
+      <td class="confluenceTd">Variants.${sku}.backOrderFlag can not be set ${value} when item.unlimitedInventoryFlag was ${unlimitedInventoryFlag} and variants.${sku}.backOrderDeliveryDateId was ${backOrderDeliveryDateId}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">unlimitedInventoryFlagとvariants.${sku}.backOrderDeliveryDateIdの設定の影響で指定できない値がvariants.${sku}.backOrderFlagに設定されている場合<br><br>${sku}: SKU管理番号<br>${value}: 不正な値<br>${unlimitedInventoryFlag}: unlimitedInventoryFlagの設定値<br>${backOrderDeliveryDateId}: variants.${sku}.backOrderDeliveryDateIdの設定値</td>
+      <td class="confluenceTd">それぞれの条件をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">51</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0166</td>
+      <td class="confluenceTd">When ${fieldName} is ${value}, features.restockNotification can not be set true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">${fieldName}の設定の影響で指定できない値(true)がfeatures.restockNotificationに設定されている場合<br><br>${fieldName}: 項目名<br>${value}: ${fieldName}の値</td>
+      <td class="confluenceTd">それぞれの条件をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">52</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0173</td>
+      <td class="confluenceTd">PointCampaign should start later than {value} hours from current TimeStamp.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍の開始日時に今より2時間以内を指定した場合<br><br>{value}: 開始可能時間</td>
+      <td class="confluenceTd">ポイント変倍の開始日時に２時間より先の時間を指定し、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">53</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0177</td>
+      <td class="confluenceTd">${fieldName} cannot include new line.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">改行コードが入力できない項目に改行コードを入力した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">改行コードをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">54</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0178</td>
+      <td class="confluenceTd">The url of ${fieldName} is not allowed.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">URLが入力できない項目にURLを入力した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">URLをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">55</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0179</td>
+      <td class="confluenceTd">One of the subscription.shippingDateFlag or subscription.shippingIntervalFlag must be true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">定期購入商品設定を指定したが、shippingWeekFlag、shippingIntervalFlagのいずれかをtrueに指定しなかった場合</td>
+      <td class="confluenceTd">shippingDateFlag、shippingIntervalFlagのいずれかをtrueに設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">56</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0180</td>
+      <td class="confluenceTd">The release date should between current day and ${configValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">予約商品発売日を当日から365日までに指定しなかった場合<br><br>${configValue}: 予約商品発売日設定可能な最大日数</td>
+      <td class="confluenceTd">予約商品発売日を365日以内に指定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">57</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0181</td>
+      <td class="confluenceTd">The merchant can not use unlimited inventory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫設定なしをtrueに指定した場合</td>
+      <td class="confluenceTd">店舗情報で在庫設定なしをnullやfalseに指定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">58</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0182</td>
+      <td class="confluenceTd">The exemption reason only allows integer of ${config}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">カタログIDなしの理由が誤っている場合<br><br>${config}: 選択可能な値(1,2,3,4,5,6)</td>
+      <td class="confluenceTd">カタログIDなしの理由をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">59</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0184</td>
+      <td class="confluenceTd">SizeChartId is not allowed. allow integer as below: ${configValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">サイズ表リンクが誤っている場合<br><br>${configValue}: 選択可能な値(10101,10201,10301,10401,10501)</td>
+      <td class="confluenceTd">サイズ表リンクをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">60</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0185</td>
+      <td class="confluenceTd">The merchant can not register adult item.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">年齢認証許可できない店舗が年齢認証をtrueに指定した場合</td>
+      <td class="confluenceTd">年齢認証についてご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">61</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0190</td>
+      <td class="confluenceTd">${invalidValue} is invalid because it is not defined in ${fieldName} of shop setting.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">店舗情報に${fieldName}の項目が設定されていないため、{invalidValue}の値が不正となった場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="confluenceTd">それぞれのパターンを店舗情報でご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">62</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0191</td>
+      <td class="confluenceTd">shipping.singleItemShipping can be set 1~6, when shipping.postageIncluded is true, or shipping.fee &amp;&amp; shipping.shopAreaSoryoPatternId are not null.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料無料フラグがtrue、あるいは、個別送料と地域別個別送料管理番号が指定されているが、単品配送設定に値が指定されている場合</td>
+      <td class="confluenceTd">単品配送設定をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">63</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0193</td>
+      <td class="confluenceTd">Can not set referencePrice.value, if item.referencePrice.displayType is OPEN_PRICE.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">表示価格種別にOPEN_PRICEを指定したが、表示価格を設定した場合</td>
+      <td class="confluenceTd">表示価格を削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">64</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0194</td>
+      <td class="confluenceTd">${fieldName} is invalid value: ${invalidValue}. This field only allows integer of ${configValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">単品配送設定が0～6ではない場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値<br>${configValue}: 設定可能な値</td>
+      <td class="confluenceTd">単品配送設定をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">65</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0197</td>
+      <td class="confluenceTd">Cannot register item, because number of&nbsp; items in this shop has been maximum ${constraintValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">店舗の最大商品数を超えた場合<br><br>${constraintValue}: 最大商品数</td>
+      <td class="confluenceTd">新しい商品は登録できません。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">66</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0199</td>
+      <td class="confluenceTd">genreId cannot be medicine genre, because this shop does not apply medicine permission.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品販売を許可されていない店舗が、ジャンルIDに医薬品ジャンルを指定した場合</td>
+      <td class="confluenceTd">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">67</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0200</td>
+      <td class="confluenceTd">Failed to get the shop info.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天側で店舗のステータス確認に失敗した場合</td>
+      <td class="confluenceTd">時間を空けて再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">68</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0203</td>
+      <td class="confluenceTd">Cannot register pre-order item, because this shop plan does not support.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">予約商品を販売できない出店プランの店舗が、予約商品発売日を指定した場合</td>
+      <td class="confluenceTd">予約商品発売日をご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">69</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0204</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">When the itemType is NORMAL with features.displaySubscriptionCartButton = true, or PRE_ORDER or BUYING_CLUB, ${fieldName} : ${invalidValue} is not allowed a medicine genreId.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">通常商品（定期購入設定あり）・頒布会商品・予約商品に対し、第三類医薬品以外の医薬品をジャンルIDに指定した場合<br><br>${fieldName}: 項目名<br>${invalidValue}: 不正な値</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">70</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0207</td>
+      <td class="confluenceTd">The end date should be after start date.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">販売終了日時が販売開始日時より早かった場合</td>
+      <td class="confluenceTd">販売終了日時を販売開始日時より後に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">71</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0209</td>
+      <td class="confluenceTd">Cannot set ${fieldName}, when ${fieldName} object is set.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">定期購入商品に、予約商品発売日を指定した場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">予約商品発売日をご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">72</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0211</td>
+      <td class="confluenceTd">Cannot set same value in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variantSelectors.valuesが重複している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">variantSelectors.valuesを一意に設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">73</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0212</td>
+      <td class="confluenceTd">Only integer number can be set in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ジャンルIDが数字ではない場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">74</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0215</td>
+      <td class="confluenceTd">Cannot set ${invalidaHtmlTag} in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">禁止しているHTMLタグを指定している場合<br><br>${invalidHtmlTag}: HTMLタグ<br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">75</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0216</td>
+      <td class="confluenceTd">Cannot set attribute ${invalidaHtmlAttribute} to ${invalidaHtmlTag} in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">HTMLタグに禁止している属性を指定している場合<br><br>${invalidHtmlAttribute}: 禁止しているHtml属性<br>${invalidHtmlTag}: HTMLタグ<br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">76</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0217</td>
+      <td class="confluenceTd">Cannot set attribute ${invalidaHtmlAttribute} in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">禁止しているHTML属性を指定している場合<br><br>${fieldName}: 項目名<br>${invalidHtmlAttribute}: 禁止しているHtml属性</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">77</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0218</td>
+      <td class="confluenceTd">HTML not allowed in ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">HTMLタグが指定されている場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">78</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0219</td>
+      <td class="confluenceTd">When purchasablePeriod is set, ${fieldName} cannot be null.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">販売期間指定を指定しているが、販売開始日時と販売終了日時のいずれも指定していない場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">販売開始日時か販売終了日時を設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">79</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0220</td>
+      <td class="confluenceTd">manageNumber is only allowed alphanumeric, "-" and "_".&nbsp;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品管理番号に英数字または"-", "_"以外を指定している場合</td>
+      <td class="confluenceTd">商品管理番号をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">80</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0223</td>
+      <td class="confluenceTd">${fieldName} may only contain alphanumeric characters, hyphen, underscore, period, colon, and forward slashes.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">英数字または"-", "_", ":", "/", "."以外を指定している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">81</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0224</td>
+      <td class="confluenceTd">Invalid file extension. Only gif, jpg, jpeg, and png are allowed.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">拡張子に"jpg", "jpeg", "gif", "png"以外を指定している場合</td>
+      <td class="confluenceTd">該当項目をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">82</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0226</td>
+      <td class="confluenceTd">${fieldName} has an invalid video URL format.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">無効な動画URLを指定している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">動画URLをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">83</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0227</td>
+      <td class="confluenceTd">Cannot set features.inventoryDisplay to "DISPLAY_LOW_STOCK", when variantSelectors is null.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫設定なしがfalse、かつ、商品バリエーション項目がnullで、在庫数表示にDISPLAY_LOW_STOCKが指定されている場合</td>
+      <td class="confluenceTd">在庫数表示をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">84</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0228</td>
+      <td class="confluenceTd">Invalid articleNumber is set.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">カタログID（製品情報のJANコード）が不正な場合</td>
+      <td class="confluenceTd">カタログIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">85</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0229</td>
+      <td class="confluenceTd">Either articleNumber.value or articleNumber.exemptionReason should be mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">カタログIDとカタログIDなしの理由のいずれも指定しなかった場合</td>
+      <td class="confluenceTd">カタログIDとカタログIDなしの理由をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">86</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0230</td>
+      <td class="confluenceTd">Cannot update ${fieldName}, since it's fixed.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天側でデータ補正したため、カタログIDまたはジャンルIDの更新ができません。<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">楽天側に解除するようご連絡ください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">87</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0235</td>
+      <td class="confluenceTd">Cannot convert to subscription item, because this item is applied in SuperDeal.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天スーパーDEALの対象商品を定期購入商品に更新しようとした場合</td>
+      <td class="confluenceTd">定期購入商品設定をご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">88</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0244</td>
+      <td class="confluenceTd">Cannot set variantSelectors.values as null, when variantSelector.key is set.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーション項目のキーを指定しているが、商品バリエーション項目の選択肢を指定していない場合</td>
+      <td class="confluenceTd">variantSelectors.valuesをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">89</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0252</td>
+      <td class="confluenceTd">Unsupported protocol is set in&nbsp;${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品画像URLに不正なスキーマが設定されている場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">商品画像URLをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">90</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0257</td>
+      <td class="confluenceTd">Cannot register more than ${value} &lt;${tagName}&gt; tags to ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">&lt;img&gt;タグが20個を超えた場合<br><br>${value}: 最大個数<br>${tagName}:  HTMLタグ<br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">&lt;img&gt;タグをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">91</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0259</td>
+      <td class="confluenceTd">PointCampaign.applicablePeriod.start can not be set later than 60 days from now</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍開始日時に当日から60日以内を指定しなかった場合</td>
+      <td class="confluenceTd">ポイント変倍開始日時をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">92</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0265</td>
+      <td class="confluenceTd">${fieldName} is mandatory when item type was ${value}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品種別に${value}が設定されているが、${fieldName}が指定されなかった場合<br><br>${value}: 商品種別<br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">${fieldName}をご指定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">93</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0267</td>
+      <td class="confluenceTd">${fieldName} is invalid, the value is allowed alphanumeric, "-" and "_".</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">闇市パスワードに英数字または"-", "_"以外を指定している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">闇市パスワードをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">94</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0269</td>
+      <td class="confluenceTd">When variantSelectors is null, only can&nbsp;set max 1 variants.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品バリエーションを指定してないが、SKUを2つ以上指定した場合</td>
+      <td class="confluenceTd">SKUをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">95</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0270</td>
+      <td class="confluenceTd">Machine dependent characters cannot be registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">機種依存文字を指定している場合</td>
+      <td class="confluenceTd">機種依存文字をご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">96</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0271</td>
+      <td class="confluenceTd">"${invalidHtmlTag}" should be set with start tag.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">開始タグを指定してない場合<br><br>${invalidHtmlTag}: HTMLタグ</td>
+      <td class="confluenceTd">開始タグを指定して再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">97</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0272</td>
+      <td class="confluenceTd">"${invalidHtmlTag}" should be set with end tag.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">終了タグを指定してない場合<br><br>${invalidHtmlTag}: HTMLタグ</td>
+      <td class="confluenceTd">終了タグを指定して再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">98</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0273</td>
+      <td class="confluenceTd">Cannot set comment tag for ${fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品説明文にコメントタグを指定している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">コメントタグをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">99</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0274</td>
+      <td class="confluenceTd">The genreId is merged genre and already expired, cannot register it to an item.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">指定したジャンルIDが不正な場合</td>
+      <td class="confluenceTd">ジャンルIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">100</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0275</td>
+      <td class="confluenceTd">[${invalidHtmlAttribute}] attributes are mandatory for "${invalidHtmlTag}" HTML tag.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品注意事項に指定したHTMLタグにtype属性とname属性が指定されていなかった場合<br><br>${invalidHtmlAttribute}: 必要な属性<br>${invalidHtmlTag}: HTMLタグ</td>
+      <td class="confluenceTd">HTML属性をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">101</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0276</td>
+      <td class="confluenceTd">Cannot set full width space in {HTML tag} tag.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">HTMLタグに全角スペースが含まれている場合<br><br>${HTML tag}: HTMLタグ</td>
+      <td class="confluenceTd">全角スペースをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">102</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0278</td>
+      <td class="confluenceTd">Invalid character is set in {fieldName}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">選択肢にコロンを指定している場合<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">コロンをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">103</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0281</td>
+      <td class="confluenceTd">If "referencePriceVerified" is not true, "referencePriceVerifiedDetail" should be null, or not present.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">表示価格のチェック結果フラグがtrueではない場合に、表示価格のチェックの詳細情報を指定した場合</td>
+      <td class="confluenceTd">表示価格をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">104</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0290</td>
+      <td class="confluenceTd">benefits.pointRate should be same value with optimization.maxPointRate.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント変倍率とポイント上限倍率の値が不一致の場合</td>
+      <td class="confluenceTd">ポイント変倍率とポイント上限倍率をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">105</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0291</td>
+      <td class="confluenceTd">optimization.maxPointRate must be between&nbsp;${minValue}&nbsp;and&nbsp;${maxValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント上限倍率が範囲外の場合<br><br>${minValue}: 最小値<br>${maxValue}: 最大値</td>
+      <td class="confluenceTd">ポイント上限倍率をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">106</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0292</td>
+      <td class="confluenceTd">This shop cannot set&nbsp;optimization.maxPointRate, since the shop&nbsp;has not applied for point optimization entry.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">運用型ポイント変倍に申し込んでいないが、運用型ポイント変倍の項目を指定した場合</td>
+      <td class="confluenceTd">運用型ポイント変倍に申し込んでいない場合、運用型ポイント変倍の項目は利用できません。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">107</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0293</td>
+      <td class="confluenceTd">Cannot set&nbsp;optimization.maxPointRate for ${value} item.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">運用型ポイント変倍の項目を、利用できない商品種別に指定した場合<br><br>${value}: 商品種別</td>
+      <td class="confluenceTd">予約商品・定期購入商品には運用型ポイント変倍の項目は利用できません。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">108</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0294</td>
+      <td class="confluenceTd">Cannot set item to be ${value} item, when&nbsp;optimization.maxPointRate has been registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント上限倍率が指定されている商品を、予約商品あるいは定期購入商品に更新しようとした場合<br><br>${value}: 商品種別</td>
+      <td class="confluenceTd">ポイント上限倍率が指定されている商品は予約商品や定期購入商品に更新できません。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">109</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0400</td>
+      <td class="confluenceTd">The size of ${fieldName} must be between ${minValue} and ${maxValue}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">セット商品内訳情報と内訳商品SKUのサイズが範囲内ではない場合<br><br>${fieldName}: 項目名<br>${minValue}: 最小値<br>${maxValue}: 最大値</td>
+      <td class="confluenceTd">セット商品内訳情報と内訳商品SKUのサイズをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">110</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0411</td>
+      <td class="confluenceTd">Cannot set variants.articleNumberForSet, when variants.articleNumber.value is registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">カタログIDとセット商品用カタログIDを指定した場合</td>
+      <td class="confluenceTd">セット商品用カタログIDをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">111</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0412</td>
+      <td class="confluenceTd">Cannot set variants.articleNumberForSet, when variants.articleNumber.exemptionReason is not registered as 1 (Set Item).</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">SKUカタログIDなしの理由が「1: セット商品 (Set item)」以外の場合に、セット商品用カタログIDを指定した場合</td>
+      <td class="confluenceTd">セット商品用カタログIDをご削除の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">112</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0414</td>
+      <td class="confluenceTd">Cannot set duplicate value in&nbsp;articleNumberForSet list.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">重複のセット商品用カタログIDを指定した場合</td>
+      <td class="confluenceTd">セット商品用カタログIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">113</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0418</td>
+      <td class="confluenceTd">Invalid attribute or genreId is set.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variants.{variantId}.attributes[n]に指定したattributeに関するエラー</td>
+      <td class="confluenceTd">下記3. details中のエラーコード定義をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">114</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0422</td>
+      <td class="confluenceTd">When unlimitedInventoryFlag is true, features.restockNotification cannot be set true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫設定しない場合に、再入荷お知らせボタン表示をtrueに指定した場合</td>
+      <td class="confluenceTd">再入荷お知らせボタン表示をfalseかnullに設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">115</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0423</td>
+      <td class="confluenceTd">When accessControl.accessPassword is ${value}, features.restockNotification cannot be set true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">闇市商品に対し、再入荷お知らせボタン表示をtrueに指定した場合<br><br>${value}: 闇市パスワード</td>
+      <td class="confluenceTd">再入荷お知らせボタン表示をfalseかnullに設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">116</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0424</td>
+      <td class="confluenceTd">When variants.${variantId}.backOrderFlag is true, features.restockNotification cannot be set true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫切れ時の注文を受け付ける場合に、再入荷お知らせボタン表示をtrueに指定した場合</td>
+      <td class="confluenceTd">再入荷お知らせボタン表示をfalseかnullに設定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">117</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1001</td>
+      <td class="confluenceTd">Could not find the corresponding attributes data of the genreId: {genreId}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">genreIdにvariants.{variantId}.attributes[n]に該当しない値を指定した場合<br><br>${genreId}: 不正なgenreId</td>
+      <td class="confluenceTd">genreIdとvariants.{variantId}.attributes[n]の組み合わせをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">118</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1002</td>
+      <td class="confluenceTd">Could not find the attribute data of the name.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">variants.{variantId}.attributes[n].nameに存在しないattributeを指定した場合</td>
+      <td class="confluenceTd">variants.{variantId}.attributes[n].nameをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">119</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1003</td>
+      <td class="confluenceTd">Only one of offset and cursorMark can be registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">offsetとcursorMarkの両方を指定した場合</td>
+      <td class="confluenceTd">offsetとcursorMarkのいずれか片方を指定の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">120</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1004</td>
+      <td class="confluenceTd">When&nbsp;cursorMark is set, {fieldName} cannot be registered.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">cursorMarkを指定した場合に、ソートキー・ソート順を指定した場合。<br><br>${fieldName}: 項目名</td>
+      <td class="confluenceTd">ソートキー・ソート順を指定せず、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">121</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1005</td>
+      <td class="confluenceTd">Invalid request parameter.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">items.searchにて不正なquery parameterを指定した場合。</td>
+      <td class="confluenceTd">指定したquery parameterをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">122</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0014</td>
+      <td class="confluenceTd">Not found for inputs; manageNumber=${manageNumber}</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品が存在しない場合<br><br>${invalidValue}: 不正な商品管理番号</td>
+      <td class="confluenceTd">商品管理番号をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">404</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">123</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">CE0001</td>
+      <td class="confluenceTd">Your request could not be processed due to a conflict with another process. Please try again after a short while.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">リクエストが現在のサーバーの状態と競合した場合</td>
+      <td class="confluenceTd">時間を空けて再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">409</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">124</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">URI length exceeds the configured limit of&nbsp;${value}&nbsp;characters</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">URLの長さが${value}文字以上の場合</td>
+      <td class="confluenceTd">URLの長さを短くして、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">414</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">125</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0012</td>
+      <td class="confluenceTd">Media Type ${mediaType}&nbsp;is not supported</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メディアタイプが"application/json"ではない場合</td>
+      <td class="confluenceTd">メディアタイプをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">415</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">126</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0019</td>
+      <td class="confluenceTd">Failed to get the shop status.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天側で店舗のステータス確認に失敗した場合</td>
+      <td class="confluenceTd">時間を空けて再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">500</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">127</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">X0000</td>
+      <td class="confluenceTd">システムエラー</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">500</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">128</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">サービスが一時的に過負荷やメンテナンスで使用不可能</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">503</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">129</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0425</td>
+      <td class="confluenceTd">${fieldName} cannot be blank or space only.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">必須項目に空白のみ入力された場合</td>
+      <td class="confluenceTd">空白のみを避けるよう有効な文字を入力した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">130</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0426</td>
+      <td class="confluenceTd">When inputType is ${inputType}, the max size of ${fieldName} is ${max}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品オプションに入力可能の上限数を超えた場合<br>・タイプが「セレクトボックス」の場合、100<br>・タイプが「チェックボックス」の場合、40<br><br>${inputType}: 商品オプションのタイプ<br>${fieldName}: 商品オプションの項目名<br>${max}: 入力可能の上限数</td>
+      <td class="confluenceTd">入力した商品オプションの数を確認した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">131</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0427</td>
+      <td class="confluenceTd">Cannot set itemType ${itemType} when inventory data has operationLeadTime information.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">operationLeadTimeを指定して商品種別を通常商品以外で指定した場合</td>
+      <td class="confluenceTd">例：2 is invalid because it is not defined in shipFromIds of shop setting.<br><br>項目の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">132</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0428</td>
+      <td class="confluenceTd">${fieldName} cannot be set, when the shop is non-permitted medicine shop.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品不許可店舗に医薬品の注意事項や説明文が登録された場合</td>
+      <td class="confluenceTd">医薬品注意事項や説明文を削除した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">133</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">GE0020</td>
+      <td class="confluenceTd">The size of item is too large. Please reduce the data.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品データが制限を超えている場合</td>
+      <td class="confluenceTd">テキストの文字数を削減したりした上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">134</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1105</td>
+      <td class="confluenceTd">This endpoint is disabled for the shop not migrated to SKU.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">SKU移行前に登録、更新または削除しようとした場合</td>
+      <td class="confluenceTd">SKU移行前の場合ItemAPI(商品API)をご利用ください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">135</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0429</td>
+      <td class="confluenceTd">When the articleNumber.exemptionReason is 1, the articleNumberForSet is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">必須商品属性の入力猶予期間が終了後、カタログIDなしの理由に「1：セット商品」が指定され、セット商品用カタログIDを設定しない場合</td>
+      <td class="confluenceTd">カタログIDなしの理由またはセット商品用カタログIDをご確認の上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">136</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0416</td>
+      <td class="confluenceTd">Cannot update selectorValues for the same variantId.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">SKU管理番号を変更せず、SKU情報のバリエーション項目を変更しようとした場合</td>
+      <td class="confluenceTd">SKU管理番号を変更した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">137</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1101</td>
+      <td class="confluenceTd">${fieldName} exceeds the maximum number of entries allowed.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">リストの要素数が上限に超えてリクエストしようとした場合</td>
+      <td class="confluenceTd">リストの要素数を削減した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">138</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE1106</td>
+      <td class="confluenceTd">There are multiple occurrences of the same manageNumber : ${invalidValue}</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">一括取得（items.bulk.get）の際、商品管理番号が重複してリクエストしようとした場合</td>
+      <td class="confluenceTd">重複した値を削除した上、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">139</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0117</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">Both subscription and buyingClub cannot be set at the same time.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入商品設定と頒布会商品設定を同時に指定した場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入商品設定か頒布会商品設定のいずれかを設定の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">140</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0127</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">If buyingClub.displayItems is true, buyingClub.items is mandatory.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品内訳情報の表示がtrueに指定されているが、商品内訳情報に値が指定されていない場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品内訳情報の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">141</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0186</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">If buyingClub.items field is set, amount of buyingClub.Items and numberOfDeliveries should be same.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">お届け回数に設定されている値と、商品内訳情報に設定されている個数が異なる場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">お届け回数と商品内訳情報の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">142</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0187</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">BuyingClub, set one of shippingDateFlag and shippingIntervalFlag to be true.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">頒布会商品設定を指定したが、shippingDateFlag、shippingIntervalFlagのいずれかをtrueに指定しなかった場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">shippingDateFlag、shippingIntervalFlagのいずれかをtrueに設定の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">143</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0430</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">For SKU sold as subscription, basePrice or firstPrice should be 5% off from standardPrice.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品種別が通常商品で定期購入・頒布会ボタンがtrueに指定されているが、定期購入販売価格および初回価格の値が販売価格より低い価格に指定されていない場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入販売価格と初回価格の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">144</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0431</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">For SKU sold as subscription, ${fieldName} cannot be 0 when basePrice is set.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品種別が通常商品で定期購入・頒布会ボタンがtrueに指定されているが、販売価格の値が0の場合<br><br>${fieldName}: 項目名</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">販売価格の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">145</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0432</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">features.displaySubscriptionCartButton cannot be true, when features.displayNormalCartButton is false.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品種別が通常商品で定期購入・頒布会ボタンがtrueに指定されているが、注文ボタンの値がfalseの場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入・頒布会ボタンと注文ボタンの値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">146</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0433</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">For the item sold as subscription which itemType is "NORMAL" and displaySubscriptionCartButton is true,&nbsp;at least 1 variant of&nbsp;basePrice is mandatory.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品種別が通常商品で定期購入・頒布会ボタンがtrueに指定されているが、定期購入販売価格がいずれのSKUにも設定されていない場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入価格の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">147</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">IE0434</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">firstPrice cannot be registered when basePrice is null.</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">初回価格が指定されているが、定期購入価格・頒布会価格が設定されていない場合</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">定期購入価格・頒布会価格と初回価格の値をご確認の上、再度お試しください。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">148</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0457</td>
+      <td class="confluenceTd">Pre-order and buying club items cannot set socialGiftFlag as true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品種別が通常商品以外でsocialGiftFlagをtrueに設定した場合</td>
+      <td class="confluenceTd">socialGiftFlagの設定をご確認の上、 再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">149</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">IE0458</td>
+      <td class="confluenceTd">shipping.postageIncluded must be true for all SKU if socialGiftFlag is set to true.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">socialGiftFlagをtrue に設定しているときに、いずれかの SKU の送料無料フラグがfalseに設定されている場合</td>
+      <td class="confluenceTd">すべての SKU で送料無料が true に設定されていることを確認するか、socialGiftFlag 設定を変更して、再度お試しください。</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">400</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<span>※200番以外のHTTP Status Codeについては、HTTPの規格で規定されているものに従います。</span><br>
+<h2 id=" details中のエラーコード定義"> details中のエラーコード定義</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>エラーコード</b></th>
+      <th class="confluenceTh"><b>エラーメッセージ</b></th>
+      <th class="confluenceTh"><b>原因</b></th>
+      <th class="confluenceTh"><b>対応方法</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">notUniqueAttributeId</td>
+      <td class="confluenceTd">Cannot set duplicate value in attributes list.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">attributes内に重複がある場合</td>
+      <td class="confluenceTd">重複するattributeがないかご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidAllUnifyAttributes</td>
+      <td class="confluenceTd">The SKU unified attributes are missing. attributeNames:&nbsp;{attributeNames}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">rmsSkuUnifyFlgがtrueのattributeが設定されていない場合</td>
+      <td class="confluenceTd">rmsSkuUnifyFlgがtrueのattributeをご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidRCategoryIdAttributeId</td>
+      <td class="confluenceTd">The combination of genreId and attributes.name is invalid.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">genreIdとattributeの組み合わせが正しくない場合</td>
+      <td class="confluenceTd">genreIdとattributeの組み合わせをご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidMandatoryValue</td>
+      <td class="confluenceTd">attributes.values is mandatory.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">必須のattribute内でvaluesが設定されていない場合</td>
+      <td class="confluenceTd">必須のattribute内のvaluesをご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidNumberOfValue</td>
+      <td class="confluenceTd">The size of attributes.values must be within {rmsMultiValueLimit}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">valuesに設定した値が{rmsMultiValueLimit}以上の場合</td>
+      <td class="confluenceTd">valuesに設定した値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidSelectiveValue</td>
+      <td class="confluenceTd">The attributes.values is not defined as dictionary value.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">選択式のattributeを設定した場合に、values内に正しい選択肢が設定されていない場合</td>
+      <td class="confluenceTd">選択式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidStringValue</td>
+      <td class="confluenceTd">The length of attributes.values is invalid.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでvalues内の値が文字列形式の場合に、正しい長さの値が設定されていない場合</td>
+      <td class="confluenceTd">記述式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidNumberValue</td>
+      <td class="confluenceTd">attributes.values is invalid.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでvalues内の値が数値形式の場合に、<br><br>・数値でない値を設定した場合<br>・最大値と最小値に反する値を設定した場合<br>・小数点以下の桁数が7桁を超過した場合</td>
+      <td class="confluenceTd">記述式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidDateValue</td>
+      <td class="confluenceTd">attributes.values is invalid date format.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでvalues内の値が日付形式の場合に、正しい日付の値が設定されていない場合</td>
+      <td class="confluenceTd">記述式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidNoInputUnit</td>
+      <td class="confluenceTd">Cannot input attributes.unit&nbsp;when the attributes.values is input.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでvalues内の値が文字列形式または日付形式の場合に、unitが設定されていた場合</td>
+      <td class="confluenceTd">記述式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidUnit</td>
+      <td class="confluenceTd">Max length of attributes.unit is {unitCharLimit}.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでvalues内の値が数値形式の場合に、unitが {unitCharLimit}以上の場合</td>
+      <td class="confluenceTd">記述式のattributeのunitの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidNoUnitAndValues</td>
+      <td class="confluenceTd">attributes.unit and attributes.values are mandatory when the target attribute has a base unit.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでベースとなるunitがある場合に、unitまたはvaluesに値が設定されていない場合</td>
+      <td class="confluenceTd">記述式のattributeのunitまたはvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidUnitAndNoValues</td>
+      <td class="confluenceTd">attributes.values is mandatory when the attributes.unit is input.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeでunitが設定されているが、valuesに値が設定されていない場合</td>
+      <td class="confluenceTd">記述式のattributeのvaluesの値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidAllSameValue</td>
+      <td class="confluenceTd">All the values of attributes.values should be same.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">同一のattributes.nameで異なる値がvaluesに設定されている場合</td>
+      <td class="confluenceTd">valuesに設定した値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidAllSameUnit</td>
+      <td class="confluenceTd">All the attributes.unit should be same.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">同一のattributes.nameで異なる値がunitに設定されている場合</td>
+      <td class="confluenceTd">unitに設定した値をご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidAllSelectableMandatoryAttributes</td>
+      <td class="confluenceTd">At least one of the following selectable mandatory attributes is required. attributeNames: {attributeNames}</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">いずれか必須のattribute内でvaluesが設定されていない場合</td>
+      <td class="confluenceTd">いずれか必須のattribute内のvaluesをご確認の上、再度お試しください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">invalidUnitWhenNoBaseUnit</td>
+      <td class="confluenceTd">attributes.unit cannot be input when the target attribute has no base unit.</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">記述式のattributeで、valuesが数値形式であり、ベースとなるunitがない場合に、unitが設定されている場合</td>
+      <td class="confluenceTd">記述式のattributeのunitの値をご確認の上、再度お試しください。</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

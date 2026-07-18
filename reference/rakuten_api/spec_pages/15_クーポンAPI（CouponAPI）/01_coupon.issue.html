@@ -1,0 +1,1467 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37672" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/couponapi/">CouponAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : coupon.issue</span></h1>
+</div>
+<span>この機能を利用すると、クーポン情報を登録することができます。</span><br>
+<span></span><br>
+<span></span><br>
+<h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+      <th class="confluenceTh"><b>HTTP Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">https://api.rms.rakuten.co.jp/es/1.0/coupon/issue</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">POST</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Authorization</td>
+      <td class="confluenceTd give_space">ESA Base64(serviceSecret:licenseKey)</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Query parameters">Query parameters</h3>
+<span>None</span><br>
+<h3 id="HTTP Body">HTTP Body</h3>
+<h4 id="XML: request">XML: request</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">request.<b>couponIssueRequest</b></td>
+      <td class="confluenceTd give_space">クーポン情報登録要求</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:couponIssueRequest</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: couponIssueRequest">XML: couponIssueRequest</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">couponIssueRequest.<b>coupon</b></td>
+      <td class="confluenceTd give_space">クーポン情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:coupon</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: coupon">XML: coupon</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponName</b></td>
+      <td class="confluenceTd give_space">クーポン名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">60</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">不正な文字
+　・半全角スペース、タブのみ
+　・機種依存文字
+　・EUC_JPの 補助漢字に入る 文字、もしくはUTF-8 -&gt; EUC_JPに変換出来ない文字
+
+文字列の前後にある全半角空白、タブの削除をして、半角カナを全角カナに変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponCaption</b></td>
+      <td class="confluenceTd give_space">クーポン詳細説明文</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">200</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">不正な文字
+　・機種依存文字
+
+文字列の前後にある全半角空白、タブの削除をして、半角カナを全角カナに変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponStartDate</b></td>
+      <td class="confluenceTd give_space">クーポン有効期間（開始日時）</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">dateTime</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">現在日時の最短60分後から最長30日後の範囲で設定可能です。
+YYYY-MM-DDThh:mm:ss+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponEndDate</b></td>
+      <td class="confluenceTd give_space">クーポン有効期間（終了日時）</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">dateTime</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">couponStartDate ＋ 5分以降で設定可能です。
+YYYY-MM-DDThh:mm:ss+09:00
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponImage</b></td>
+      <td class="confluenceTd give_space">クーポン画像</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">画像のURLは https://image.rakuten.co.jp/ +shopUrl+ /cabinet/ で始まり、
+かつ
+対応している画像URLの拡張子が jpg, jpeg, gif,pngの4つです。
+
+デフォルト値: https://image.rakuten.co.jp/&lt;shop_url&gt;/logo/logo1.jpg</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>issueCount</b></td>
+      <td class="confluenceTd give_space">クーポンの全利用回数上限</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">最大桁数：6
+全角数字を自動的に半角数字に変換します。
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。
+※0を指定した場合、無制限となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>itemType</b></td>
+      <td class="confluenceTd give_space">商品タイプ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">discountTypeによって、値が異なります。
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>discountType</b></th>
+      <th class="confluenceTh"><b>itemType</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1,2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1：単一商品
+3：複数商品
+4：受注</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">5：送料無料</td>
+    </tr>
+  </tbody>
+</table></div>
+
+全角数字を自動的に半角数字に変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>discountType</b></td>
+      <td class="confluenceTd give_space">値引きプラン</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1： 定額値引き
+2： 定率値引き
+4： 送料無料
+
+全角数字を自動的に半角数字に変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>discountFactor</b></td>
+      <td class="confluenceTd give_space">割引因子</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">discountTypeによって、値が異なります。
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>discountType</b></th>
+      <th class="confluenceTh"><b>discountFactor</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1 ～ 999999999： 値引き額</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1 ～ 99： 値引き率</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1： 送料無料</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+全角数字を自動的に半角数字に変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>memberAvailMaxCount</b></td>
+      <td class="confluenceTd give_space">1ユーザあたりの利用回数上限</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">最大桁数：6
+全角数字を自動的に半角数字に変換します。
+※0を指定した場合、無制限となります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>purchaseHistoryCond</b></td>
+      <td class="confluenceTd give_space">購入履歴条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:purchaseHistoryCond</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>multiRankCond</b></td>
+      <td class="confluenceTd give_space">複数会員ランク条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:multiRankCond</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>genderCond</b></td>
+      <td class="confluenceTd give_space">性別条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">NONE: 指定なし
+MALE: 男性
+FEMALE: 女性
+
+※以下のいずれかの条件に該当する場合はNONEを指定する必要があります。
+・multiRankCond.rankCond(会員ランク条件)に0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>ageRangeCond</b></td>
+      <td class="confluenceTd give_space">年齢条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:ageRangeCond</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>birthmonthCond</b></td>
+      <td class="confluenceTd give_space">誕生月条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0: 指定なし
+1 - 12: 誕生月を指定する
+
+※以下の条件に該当する場合は0を指定する必要があります。
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>multiPrefectureCond</b></td>
+      <td class="confluenceTd give_space">居住地条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">List&lt;XML:multiPrefectureCond&gt;</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>combineFlag</b></td>
+      <td class="confluenceTd give_space">併用可否フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0： 併用不可
+1： 併用可
+
+全角数字を自動的に半角数字に変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>displayFlag</b></td>
+      <td class="confluenceTd give_space">公開設定フラグ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0： 限定公開（クーポン獲得URLを配布）
+1： 全ユーザに公開
+
+全角数字を自動的に半角数字に変換します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>items</b></td>
+      <td class="confluenceTd give_space">対象商品リスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:items</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">送料無料の場合： 項目を設定できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>otherConditions</b></td>
+      <td class="confluenceTd give_space">その他条件リスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:otherConditions</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: multiRankCond">XML: multiRankCond</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">multiRankCond.<b>rankCond</b></td>
+      <td class="confluenceTd give_space">会員ランク条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1..5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0： 条件なし
+1： レギュラー
+2： シルバー
+3： ゴールド
+4： プラチナ
+5： ダイヤモンド
+
+全角数字を自動的に半角数字に変換します。
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: purchaseHistoryCond">XML: purchaseHistoryCond</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.<b>type</b></td>
+      <td class="confluenceTd give_space">購入履歴条件の種別</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0: 指定なし
+1: 購入履歴なし
+2: 購入履歴あり
+
+multiRankCond.rankCondに0以外の値を指定した場合、0を指定する必要があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.<b>dynamicPeriod</b></td>
+      <td class="confluenceTd give_space">購入履歴期間の月数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.type = 2の場合に必須
+
+有効な値は以下
+1, 3, 6, 12, 24</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.<b>purchaseCount</b></td>
+      <td class="confluenceTd give_space">購入回数</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML: purchaseCount</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.type = 2の場合に必須</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: purchaseCount">XML: purchaseCount</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseCount<b>.minimum</b></td>
+      <td class="confluenceTd give_space">購入回数の下限値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.type = 2の場合に必須
+
+1-10のみ入力可能
+
+購入回数の上限値を指定する場合は、下限値は上限値以下の値を指定する必要があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseCount<b>.maximum</b></td>
+      <td class="confluenceTd give_space">購入回数の上限値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">purchaseHistoryCond.type = 2の場合に必須
+
+0: 購入回数の上限なし
+指定する場合は 1-10のみ入力可能
+
+購入回数の上限値を指定する場合は、上限値は下限値以上の値を指定する必要があります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: ageRangeCond">XML: ageRangeCond</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ageRangeCond<b>.lowerBound</b></td>
+      <td class="confluenceTd give_space">年齢の下限値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0: 指定なし
+10 - 100: 年齢の下限値
+
+※以下のいずれかの条件に該当する場合は、lowerBoundは0を指定する必要があります。
+・multiRankCond.rankCondに0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+
+年齢の下限値と上限値を指定する場合は、下限値は上限値以下の値を指定する必要があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ageRangeCond<b>.upperBound</b></td>
+      <td class="confluenceTd give_space">年齢の上限値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">int</td>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0: 指定なし
+10 - 100: 年齢の上限値
+
+※以下のいずれかの条件に該当する場合は、upperBoundは0を指定する必要があります。
+・multiRankCond.rankCondに0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+
+年齢の下限値と上限値を指定する場合は、上限値は下限値以上の値を指定する必要があります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: multiPrefectureCond">XML: multiPrefectureCond</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">multiPrefectureCond.<b>prefectureCond</b></td>
+      <td class="confluenceTd give_space">都道府県名</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">○</td>
+      <td class="confluenceTd give_space">1..47</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">NONE: 指定しない場合
+multiRankCond.rankCondに0以外の値を指定した場合、NONEを指定する必要があります。
+
+都道府県を指定する場合は以下のいずれか
+・HOKKAIDO
+・AOMORI
+・IWATE
+・MIYAGI
+・AKITA
+・YAMAGATA
+・FUKUSHIMA
+・IBARAKI
+・TOCHIGI
+・GUNMA
+・SAITAMA
+・CHIBA
+・TOKYO
+・KANAGAWA
+・NIIGATA
+・TOYAMA
+・ISHIKAWA
+・FUKUI
+・YAMANASHI
+・NAGANO
+・GIFU
+・SHIZUOKA
+・AICHI
+・MIE
+・SHIGA
+・KYOTO
+・OSAKA
+・HYOGO
+・NARA
+・WAKAYAMA
+・TOTTORI
+・SHIMANE
+・OKAYAMA
+・HIROSHIMA
+・YAMAGUCHI
+・TOKUSHIMA
+・KAGAWA
+・EHIME
+・KOCHI
+・FUKUOKA
+・SAGA
+・NAGASAKI
+・KUMAMOTO
+・OITA
+・MIYAZAKI
+・KAGOSHIMA
+・OKINAWA</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:items">XML:items</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">items.<b>item</b></td>
+      <td class="confluenceTd give_space">対象商品</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:item</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..5000</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">対象商品は5000個まで指定可能です。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:item">XML:item</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">item.<b>itemUrl</b></td>
+      <td class="confluenceTd give_space">商品管理番号</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">以下の条件にあてはまる商品の商品管理番号は指定できません。
+　・存在しない商品
+　・販売価格が値引き額未満の商品 ※
+　・予約商品および頒布会商品
+　・倉庫指定の商品
+　・注文ボタン非表示の商品
+
+※「販売価格」の定義は以下の通りです。
+1.商品が楽天サーチ検索対象外の場合
+　すべてのSKUの中の最低価格
+2.一部SKUが楽天サーチ検索対象外の場合
+　楽天サーチ検索対象であるSKU内の最低価格</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:otherConditions">XML:otherConditions</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">otherConditions.<b>otherCondition</b></td>
+      <td class="confluenceTd give_space">その他条件</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:otherCondition</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0..n</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML:otherCondition">XML:otherCondition</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Mandatory</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">otherCondition.<b>conditionTypeCode</b></td>
+      <td class="confluenceTd give_space">その他条件コード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">RS001： デバイス指定（設定のない場合は自動的に設定される）
+RS002： 販売方法 (設定のない場合は自動的に設定される）
+RS003： 利用金額
+RS004： 利用個数
+
+※39ショップに限り、 利用個数(RS004)を設定した場合、複数商品(「coupon.itemType」に「3」)が設定可能です。
+※ 対象商品リストが設定されている場合はクーポン発行条件を参照ください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">otherCondition.<b>startValue</b></td>
+      <td class="confluenceTd give_space">開始値</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">60</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"></td>
+      <td class="confluenceTd give_space">0,1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">conditionTypeCodeによって、値が異なります。
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>conditionTypeCode</b></th>
+      <th class="confluenceTh"><b>startValue</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">RS001</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0： PC （設定のない場合は自動的に設定される）
+1： モバイル （設定のない場合は自動的に設定される）</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">RS002</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0： 通常購入
+1：定期購入
+99：通常＆定期購入（設定のない場合は自動的に設定される）</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">RS003</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0 ～ 999999999： 金額</td>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">RS004</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0 ～ 999999999： 個数</td>
+    </tr>
+  </tbody>
+</table>
+</div></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<span>対象商品リストが設定されている場合のクーポン発行条件</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>項目名</b></th>
+      <th class="confluenceTh"><b>条件等詳細</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">couponEndDate
+または
+issueCount
+または
+rankCond</td>
+      <td class="confluenceTd give_space">couponStartDate から14日以内
+
+1000回以下
+
+0でない</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Request Sample">Request Sample</h4>
+<div id="samplerequest example (normal case)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>request example (normal case)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;request&gt;
+&nbsp; &nbsp; &lt;couponIssueRequest&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;coupon&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;couponName&gt;Test&lt;/couponName&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;couponCaption&gt;Test&lt;/couponCaption&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;couponStartDate&gt;2024-04-15T00:00:00+09:00&lt;/couponStartDate&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;couponEndDate&gt;2024-05-15T23:59:59+09:00&lt;/couponEndDate&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;issueCount&gt;100&lt;/issueCount&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;itemType&gt;3&lt;/itemType&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;discountType&gt;2&lt;/discountType&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;discountFactor&gt;1&lt;/discountFactor&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;memberAvailMaxCount&gt;0&lt;/memberAvailMaxCount&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;purchaseHistoryCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;type&gt;0&lt;/type&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/purchaseHistoryCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;multiRankCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;rankCond&gt;0&lt;/rankCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/multiRankCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;genderCond&gt;MALE&lt;/genderCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;ageRangeCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;lowerBound&gt;0&lt;/lowerBound&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;upperBound&gt;0&lt;/upperBound&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/ageRangeCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;birthmonthCond&gt;0&lt;/birthmonthCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;multiPrefectureCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;prefectureCond&gt;NONE&lt;/prefectureCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/multiPrefectureCond&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;combineFlag&gt;1&lt;/combineFlag&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;displayFlag&gt;0&lt;/displayFlag&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;items&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;itemUrl&gt;test1&lt;/itemUrl&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;itemUrl&gt;test2&lt;/itemUrl&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;itemUrl&gt;test3&lt;/itemUrl&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/item&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/items&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;otherConditions&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;otherCondition&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;conditionTypeCode&gt;RS003&lt;/conditionTypeCode&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;startValue&gt;2&lt;/startValue&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/otherCondition&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/otherConditions&gt;
+&nbsp; &nbsp; &nbsp; &nbsp; &lt;/coupon&gt;
+&nbsp; &nbsp; &lt;/couponIssueRequest&gt;
+&lt;/request&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Response">Response</h2>
+<h3 id="HTTP Header">HTTP Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Content-Type</td>
+      <td class="confluenceTd give_space">text/xml</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="HTTP Body">HTTP Body</h3>
+<h4 id="XML: result">XML: result</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">result.<b>status</b></td>
+      <td class="confluenceTd give_space">ステータス情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red"><a href="/merchant-portal/view/ja/common/1-1_service_index/functionscommondefinition/">XML:status</a></td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">interfaceId = coupon.issue</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">result.<b>errors</b></td>
+      <td class="confluenceTd give_space">エラー情報リスト</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:errors</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0,1</td>
+      <td class="confluenceTd give_space">エラー発生時のみ返却されます</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">result.<b>coupon</b></td>
+      <td class="confluenceTd give_space">クーポン情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:coupon</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">0,1</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: errors">XML: errors</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">errors.<b>error</b></td>
+      <td class="confluenceTd give_space">エラー情報</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">XML:error</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1..n</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: error">XML: error</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">error.<b>code</b></td>
+      <td class="confluenceTd give_space">エラーコード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">詳細は、 <a href="/merchant-portal/view/ja/common/1-1_service_index/couponapi/couponapiresponsecodesreference/">CouponAPI Response Codes Reference</a> を参照してください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">error.<b>message</b></td>
+      <td class="confluenceTd give_space">エラーメッセージ</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space">詳細は、 <a href="/merchant-portal/view/ja/common/1-1_service_index/couponapi/couponapiresponsecodesreference/">CouponAPI Response Codes Reference</a> を参照してください。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="XML: coupon">XML: coupon</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Element</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Size(byte)</b></th>
+      <th class="confluenceTh"><b>Multiplicity</b></th>
+      <th class="confluenceTh"><b>Note</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>couponCode</b></td>
+      <td class="confluenceTd give_space">クーポンコード</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">coupon.<b>pcGetUrl</b></td>
+      <td class="confluenceTd give_space">取得URL (PC)</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1</td>
+      <td class="confluenceTd give_space"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Response Sample">Response Sample</h4>
+<div id="sampleresponse example (normal case)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (normal case)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;result&gt;
+    &lt;status&gt;
+        &lt;interfaceId&gt;coupon.issue&lt;/interfaceId&gt;
+        &lt;systemStatus&gt;OK&lt;/systemStatus&gt;
+        &lt;message&gt;OK&lt;/message&gt;
+        &lt;requestId&gt;4d75166d-54b9-4ea7-ac21-2dfb891931a4&lt;/requestId&gt;
+    &lt;/status&gt;
+    &lt;coupon&gt;
+        &lt;couponCode&gt;PFL7-2MRH-FBGF-A39W&lt;/couponCode&gt;
+        &lt;pcGetUrl&gt;https://coupon.rakuten.co.jp/getCoupon?getkey=Mk1SSC1QRkw3LUZCR0YtQTM5Vw--&amp;amp;rt=&lt;/pcGetUrl&gt;
+    &lt;/coupon&gt;
+&lt;/result&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<div id="sampleresponse example (error case : general error)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (error case : general error)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;result&gt;
+    &lt;status&gt;
+        &lt;interfaceId&gt;coupon.issue&lt;/interfaceId&gt;
+        &lt;systemStatus&gt;OK&lt;/systemStatus&gt;
+        &lt;message&gt;OK&lt;/message&gt;
+        &lt;requestId&gt;714a4983-555f-42d9-aeea-89dae89f2f55&lt;/requestId&gt;
+    &lt;/status&gt;
+    &lt;errors&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE03-002&lt;/code&gt;
+            &lt;message&gt;discountType.out_of_bounds&lt;/message&gt;
+        &lt;/error&gt;
+    &lt;/errors&gt;
+&lt;/result&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<div id="sampleresponse example (error case: in case there are errors in itemUrl)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (error case: in case there are errors in itemUrl)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;result&gt;
+    &lt;status&gt;
+        &lt;interfaceId&gt;coupon.issue&lt;/interfaceId&gt;
+        &lt;systemStatus&gt;OK&lt;/systemStatus&gt;
+        &lt;message&gt;OK&lt;/message&gt;
+        &lt;requestId&gt;48259f6a-a422-44e6-bd95-5300105d3f2c&lt;/requestId&gt;
+    &lt;/status&gt;
+    &lt;errors&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-001&lt;/code&gt;
+            &lt;message&gt;itemUrl.absent :200502&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-001&lt;/code&gt;
+            &lt;message&gt;itemUrl.absent :200503&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-002&lt;/code&gt;
+            &lt;message&gt;itemUrl.not_normal :200504&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-004&lt;/code&gt;
+            &lt;message&gt;itemUrl.duplicate :200605&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-004&lt;/code&gt;
+            &lt;message&gt;itemUrl.duplicate :200606&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-005&lt;/code&gt;
+            &lt;message&gt;itemUrl.over_discount :200505&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-005&lt;/code&gt;
+            &lt;message&gt;itemUrl.over_discount :200506&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-005&lt;/code&gt;
+            &lt;message&gt;itemUrl.over_discount :200507&lt;/message&gt;
+        &lt;/error&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE15-005&lt;/code&gt;
+            &lt;message&gt;itemUrl.over_discount :200508&lt;/message&gt;
+        &lt;/error&gt;
+    &lt;/errors&gt;
+&lt;/result&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<div id="sampleresponse example (error case : in case RS004 and itemType(value is 3) are set for non-39 shops)" class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <td colspan="1" class="confluenceTd">
+      <div class="code panel pdl" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+        <b>response example (error case : in case RS004 and itemType(value is 3) are set for non-39 shops)</b>
+      </div>
+      <div class="codeContent panelContent pdl">
+        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;result&gt;
+    &lt;status&gt;
+        &lt;interfaceId&gt;coupon.issue&lt;/interfaceId&gt;
+        &lt;systemStatus&gt;OK&lt;/systemStatus&gt;
+        &lt;message&gt;OK&lt;/message&gt;
+        &lt;requestId&gt;41c5ed7f-1ac0-4f1d-b75a-a9e7d4964e33&lt;/requestId&gt;
+    &lt;/status&gt;
+    &lt;errors&gt;
+        &lt;error&gt;
+            &lt;code&gt;COUPON_EE13-003&lt;/code&gt;
+            &lt;message&gt;itemType3_RS004_notAllowed_forNon39shop&lt;/message&gt;
+        &lt;/error&gt;
+    &lt;/errors&gt;
+&lt;/result&gt;</pre>
+      </div>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

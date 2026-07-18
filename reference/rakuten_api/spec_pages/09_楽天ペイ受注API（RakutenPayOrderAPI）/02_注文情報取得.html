@@ -1,0 +1,3117 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock37604" class="HTMLBlock">
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/">RakutenPayOrderAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : getOrder</span></h1>
+</div>
+<h2 id="Overview">Overview</h2>
+<span>この機能を利用すると、楽天ペイ注文の「注文情報の取得」を行うことができます。こちらは同期処理となります。</span><br>
+<br>
+<span>※RMSの受注管理画面で表示されている「総合計（税込）」および「商品小計（税込）」の項目について、</span><br>
+<span>　本機能ではResponseされませんが、その他項目から算出可能です。計算方法の詳細は<a href="#tips" target"_self"="" rel="nofollow">こちら</a>
+をご確認ください。</span><br>
+<br>
+<span><font color="red">SKUプロジェクトにて追加・修正となる項目は背景色を緑に変更しています。</font></span><br>
+<h2 id="Endpoint">Endpoint</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Endpoint</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">https://api.rms.rakuten.co.jp/es/2.0/order/getOrder/<br></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Request">Request</h2>
+<h3 id="Request Method">Request Method</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Method</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">POST</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Request Header">Request Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Authorization </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ESA Base64(serviceSecret:licenseKey)</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Content-Type </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">application/json; charset=utf-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Request Parameter">Request Parameter</h3>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">No</th>
+      <th class="confluenceTh">Logical Name</th>
+      <th class="confluenceTh">Parameter Name</th>
+      <th class="confluenceTh">Required</th>
+      <th class="confluenceTh">Type</th>
+      <th class="confluenceTh">Max Byte</th>
+      <th class="confluenceTh">Default</th>
+      <th class="confluenceTh">Descripiton</th>
+      <th class="confluenceTh">Sample</th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文番号リスト</td>
+      <td class="confluenceTd">orderNumberList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">List &lt;String&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">4096</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">最大 100 件まで指定可能<br><br>過去 730 日(2年)以内の注文を取得可能</td>
+      <td class="confluenceTd">["502763-20171027-00006701","502763-20171027-00006702"]</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">2</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">バージョン番号</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">version</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">yes</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">Number</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">5</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">以下のいずれか<br><br>3: 消費税増税対応<br>4: 共通の送料込みライン対応<br>5: 領収書、前払い期限版<br>6: 顧客・配送対応注意表示詳細対応<br>7: SKU対応<br>8: 配送品質向上制度対応<br>9: 置き配対応<br>10: ソーシャルギフト対応<br><br>※versionは今後も追加されます。<br>最新version(数字の大きい方)をご利用ください。<br>※古いversionは順次廃止予定となります。時期は決まり次第ご連絡いたします。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">10</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Response">Response</h2>
+<span><table id="tips" class="wrapped confluenceTable" style="width: 80%">
+ <tbody>
+   <tr><td>
+    <div class="content-wrapper">
+     <div class="code panel pdl conf-macro output-block" style="border-width: 1px;">
+      <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+       <b>Tips：RMSの受注管理画面で表示されている「総合計（税込）」および「商品小計（税込）」の項目について</b>
+      </div>
+      「総合計（税込）」および「商品小計（税込）」の項目については、以下の通り算出することが可能です。<br><br>
+      ― <b>総合計（税込）</b><br>
+      Level 2: OrderModel(totalPrice - couponAllTotalPrice + deliveryPrice + paymentCharge + additionalFeeOccurAmountToUser)<br><br>
+      ― <b>商品小計（税込）</b><br>
+      <b>注文ごとの商品小計（税込）：Level 2: OrderModel(goodsPrice) の税込価格</b><br>
+      Level 4: ItemModel(priceTaxIncl × units) + Level 3: WrappingModel(price)<br>
+      ※送付先ごとの総和<br><br>
+      <b>送付先ごとの商品小計（税込）：Level 3: Package Model(goodsPrice) の税込価格</b><br>
+      Level 4: ItemModel(priceTaxIncl × units) + Level 3: WrappingModel(price)<br>
+      ※Level 4: ItemModel(priceTaxIncl × units)は商品ごとの総和
+     </div>
+    </div>
+   </td>
+ </tr></tbody>
+</table></span><br>
+<h3 id="HTTP Status">HTTP Status</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Code</b></th>
+      <th class="confluenceTh"><b>Status</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">200</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">OK</td>
+      <td class="confluenceTd">リクエストが成功した。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">400</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Bad Request</td>
+      <td class="confluenceTd">リクエストが不正である。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">404</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Not Found</td>
+      <td class="confluenceTd">Request-URI に一致するものを見つけられなかった。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">405</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Method Not Allowed</td>
+      <td class="confluenceTd">許可されていないメソッドを使用しようとした。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">500</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Internal Server Error</td>
+      <td class="confluenceTd">サーバ内部にエラーが発生した。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">503</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Service Unavailable</td>
+      <td class="confluenceTd">サービスが一時的に過負荷やメンテナンスで使用不可能である。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Response Header">Response Header</h3>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Key</b></th>
+      <th class="confluenceTh"><b>Value</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">Content-Type</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">application/json;charset=utf-8</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="Response Parameter">Response Parameter</h3>
+<h4 id="Level 1: base">Level 1: base</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メッセージモデルリスト</td>
+      <td class="confluenceTd">MessageModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">List &lt;MessageModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受注情報モデルリスト</td>
+      <td class="confluenceTd">OrderModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;OrderModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">バージョン番号</td>
+      <td class="confluenceTd">version</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Request Parameterの「version」に「6」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: MessageModel">Level 2: MessageModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メッセージ種別</td>
+      <td class="confluenceTd">messageType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">16</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>・INFO<br>・ERROR<br>・WARNING</td>
+      <td class="confluenceTd">INFO</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メッセージコード</td>
+      <td class="confluenceTd">messageCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">128</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="2">メッセージコードの一覧は<a href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/rakutenpaymsgcodereference/">こちら</a></td>
+      <td class="confluenceTd">MESSAGE_CODE_SAMPLE</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メッセージ</td>
+      <td class="confluenceTd">message</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1024</td>
+      <td class="confluenceTd">-</td>
+      <td class="confluenceTd">メッセージサンプル</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文番号</td>
+      <td class="confluenceTd">orderNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">502763-20171027-00006701</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 2: OrderModel">Level 2: OrderModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文番号</td>
+      <td class="confluenceTd">orderNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">502763-20171027-00006701</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ステータス</td>
+      <td class="confluenceTd">orderProgress</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>100: 注文確認待ち<br>200: 楽天処理中<br>300: 発送待ち<br>400: 変更確定待ち<br>500: 発送済<br>600: 支払手続き中<br>700: 支払手続き済<br>800: キャンセル確定待ち<br>900: キャンセル確定</td>
+      <td class="confluenceTd">200</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">サブステータスID</td>
+      <td class="confluenceTd">subStatusId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">1101</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">サブステータス</td>
+      <td class="confluenceTd">subStatusName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">255</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">03.サブステータスC</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文日時</td>
+      <td class="confluenceTd">orderDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:03:43+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文確認日時</td>
+      <td class="confluenceTd">shopOrderCfmDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:03:43+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文確定日時</td>
+      <td class="confluenceTd">orderFixDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:36:07+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発送指示日時</td>
+      <td class="confluenceTd">shippingInstDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:36:07+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発送完了報告日時</td>
+      <td class="confluenceTd">shippingCmplRptDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-26T00:05:06+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">キャンセル期限日</td>
+      <td class="confluenceTd">cancelDueDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">16</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">お届け日指定</td>
+      <td class="confluenceTd">deliveryDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-10-29</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">お届け時間帯</td>
+      <td class="confluenceTd">shippingTerm</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: なし<br>1: 午前<br>2: 午後<br>9: その他<br><br>h1h2: h1時-h2時 (h1は7～24まで任意で数値指定可能。h2は07～24まで任意で数値指定可能)</td>
+      <td class="confluenceTd">708<br>2324</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">コメント</td>
+      <td class="confluenceTd">remarks</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32767</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">備考欄のこと</td>
+      <td class="confluenceTd">[配送日時指定:]<br>2017-11-01(水)<br>14:00<br>自由記入欄の入力</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ギフト配送希望フラグ</td>
+      <td class="confluenceTd">giftCheckFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: ギフト注文ではない<br>1: ギフト注文である</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ソーシャルギフト注文フラグ</td>
+      <td class="confluenceTd">socialGiftFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: ソーシャルギフト注文ではない<br>1: ソーシャルギフト注文である</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">複数送付先フラグ</td>
+      <td class="confluenceTd">severalSenderFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 複数配送先無し<br>1: 複数配送先有り</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先一致フラグ</td>
+      <td class="confluenceTd">equalSenderFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 注文者と送付先の住所が同じではない<br>1: 注文が単数で注文者と送付先の住所が同じ</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">18</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">離島フラグ</td>
+      <td class="confluenceTd">isolatedIslandFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 送付先に離島が含まれていない<br>1: 送付先に離島が含まれている</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">19</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天会員フラグ</td>
+      <td class="confluenceTd">rakutenMemberFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 楽天会員ではない<br>1: 楽天会員である</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">20</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">利用端末</td>
+      <td class="confluenceTd">carrierCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: PC (Windows系のスマートフォン、タブレットを含む)<br>1: モバイル(docomo) フィーチャーフォン<br>2: モバイル(KDDI) フィーチャーフォン<br>3: モバイル(Softbank) フィーチャーフォン<br>5: モバイル(WILLCOM) フィーチャーフォン<br>11: スマートフォン（iPhone系）<br>12: スマートフォン（Android系）<br>19: スマートフォン（その他）<br>21: タブレット（iPad系）<br>22: タブレット（Android系）<br>29: タブレット（その他）<br>99: その他　不明な場合も含む</td>
+      <td class="confluenceTd">11</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">21</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メールキャリアコード</td>
+      <td class="confluenceTd">emailCarrierCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: PC ("@i.softbank.jp"を含む)<br>1: DoCoMo<br>2: au<br>3: SoftBank<br>5: WILLCOM<br>99: その他</td>
+      <td class="confluenceTd">2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">22</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文種別</td>
+      <td class="confluenceTd">orderType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1: 通常購入<br>4: 定期購入<br>5: 頒布会<br>6: 予約商品</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">23</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">申込番号</td>
+      <td class="confluenceTd">reserveNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">定期購入、予約、頒布会の申込番号</td>
+      <td class="confluenceTd">502763-20171027-00003701-r</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">24</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">申込お届け回数</td>
+      <td class="confluenceTd">reserveDeliveryCount</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">予約は常に１、定期購入、頒布会は確定した回数</td>
+      <td class="confluenceTd">6</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">25</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">警告表示タイプ</td>
+      <td class="confluenceTd">cautionDisplayType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 表示なし<br>1: 表示あり 注意喚起<br>2: 表示あり キャンセル確定<br>※「顧客・配送対応注意表示」のこと</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">26</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">警告表示タイプ詳細</td>
+      <td class="confluenceTd">cautionDisplayDetailType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>101: 前払い未払いに注意<br>102: 受取拒否に注意<br>103: 長期不在による受取拒否に注意<br>104: 開梱後の返品に注意<br>105: 高いサービスレベルの要望に注意<br><br>※2021年10月13日（水）以降に、警告表示タイプ（cautionDisplayType）が「1: 表示あり 注意喚起」と判断された注文にのみ、本項目内に値が設定されます。<br>2021年10月13日（水）以前に、警告表示タイプ（cautionDisplayType）が「1: 表示あり 注意喚起」と判断された注文、または「1: 表示あり 注意喚起」以外と判断された注文には、本項目内に値は設定されません。<br> <br>※Request Parameterの「version」に「6」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd">101</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">27</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天確認中フラグ</td>
+      <td class="confluenceTd">rakutenConfirmFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 楽天確認中ではない<br>1: 楽天確認中</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">28</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品合計金額</td>
+      <td class="confluenceTd">goodsPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品金額 + ラッピング料</td>
+      <td class="confluenceTd">1000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">29</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">外税合計</td>
+      <td class="confluenceTd">goodsTax</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税込み商品の場合は0が取得される<br><br>※未確定の場合、-9999になります。<br>※廃止予定項目のため、version8以降は取得できません。"請求額に対する税額(reqPriceTax)"をご使用ください。</td>
+      <td class="confluenceTd">80</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">30</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料合計</td>
+      <td class="confluenceTd">postagePrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">対象受注に紐付く送料（送付先毎の送料の合計）<br><br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">31</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引料合計</td>
+      <td class="confluenceTd">deliveryPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引手数料が掛からない決済手段の場合は、0になります。<br><br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">50</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">32</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">決済手数料合計</td>
+      <td class="confluenceTd">paymentCharge</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">決済手数料が掛からない決済手段の場合は、0になります。<br><br>※未確定の場合、-9999になります。<br>※決済手数料については、<a href="https://navi-manual.faq.rakuten.net/service/000008025">こちら</a>をご確認ください。</td>
+      <td class="confluenceTd">250</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">33</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">決済手続税率</td>
+      <td class="confluenceTd">paymentChargeTaxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">34</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">合計金額</td>
+      <td class="confluenceTd">totalPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品金額 + 送料 + ラッピング料<br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">1230</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">35</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">請求金額</td>
+      <td class="confluenceTd">requestPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品金額 + 送料 + ラッピング料 + 決済手数料 + 注文者負担金 - クーポン利用総額 - ポイント利用額<br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">1000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">36</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン利用総額</td>
+      <td class="confluenceTd">couponAllTotalPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポンの総額</td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">37</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">店舗発行クーポン利用額</td>
+      <td class="confluenceTd">couponShopPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン原資コードが「1」のクーポンの総額<br><br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">70</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">38</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天発行クーポン利用額</td>
+      <td class="confluenceTd">couponOtherPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン原資コードが「1」以外のクーポンの総額<br><br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">30</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">39</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文者負担金合計</td>
+      <td class="confluenceTd">additionalFeeOccurAmountToUser</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文者が支払う負担金の合計<br>負担金がない場合は、0になります。<br><br>※負担金はRMS画面や<a href="https://navi-manual.faq.rakuten.net/shop-setting/000010508">マニュアル</a>上では、後払い利用手数料と表記されています。<br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">250</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">40</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">店舗負担金合計</td>
+      <td class="confluenceTd">additionalFeeOccurAmountToShop</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"> 店舗様が支払う負担金の合計<br>負担金がない場合は、0になります。<br><br>※負担金はRMS画面や<a href="https://navi-manual.faq.rakuten.net/shop-setting/000010508">マニュアル</a>上では、後払い利用手数料と表記されています。<br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">250</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">41</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">あす楽希望フラグ</td>
+      <td class="confluenceTd">asurakuFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: あす楽希望無し注文<br>1: あす楽希望有り注文</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">42</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品受注フラグ</td>
+      <td class="confluenceTd">drugFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 医薬品を含む注文ではない<br>1: 医薬品を含む注文である</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">43</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天スーパーDEAL商品受注フラグ</td>
+      <td class="confluenceTd">dealFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 楽天スーパーディール商品を含む受注ではない<br>1: 楽天スーパーディール商品を含む受注である</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">44</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メンバーシッププログラム受注タイプ </td>
+      <td class="confluenceTd">membershipType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 楽天プレミアムでも楽天学割対象受注でもない<br>1: 楽天プレミアム対象受注である<br>2: 楽天学割対象受注である<br><br>※2020/10/27以降の注文の場合、2は取得できません。<br>　2021/12/1以降の注文の場合、1は取得できません。</td>
+      <td class="confluenceTd">2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">45</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ひとことメモ</td>
+      <td class="confluenceTd">memo</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">4000</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">全角、半角にかかわらず1000文字以下</td>
+      <td class="confluenceTd">ひとことメモ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">46</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">担当者</td>
+      <td class="confluenceTd">operator</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">担当者</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">47</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メール差込文<br>(お客様へのメッセージ)</td>
+      <td class="confluenceTd">mailPlugSentence</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">3072</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">メール差込文</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">48</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">購入履歴修正有無フラグ</td>
+      <td class="confluenceTd">modifyFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 購入履歴画面からの修正無し<br>1: 購入履歴画面からの修正有り</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">49</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">領収書発行回数</td>
+      <td class="confluenceTd">receiptIssueCount</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Long型の最大値に準ずる</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※Request Parameterの「version」に「5」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd">2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">50</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">領収書発行履歴リスト</td>
+      <td class="confluenceTd">receiptIssueHistoryList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;Datetime&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発行回数に準ずる(32byte × 発行回数)<br>※Request Parameterの「version」に「5」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd">["2019-09-26T00:05:06+0900", "2020-09-26T00:05:06+0900"]</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">51</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">注文者モデル</td>
+      <td class="confluenceTd">OrdererModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">OrdererModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">52</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法モデル</td>
+      <td class="confluenceTd">SettlementModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">SettlementModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">53</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送方法モデル</td>
+      <td class="confluenceTd">DeliveryModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">DeliveryModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">54</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイントモデル</td>
+      <td class="confluenceTd">PointModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">PointModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">55</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピングモデル1</td>
+      <td class="confluenceTd">WrappingModel1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">WrappingModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">56</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピングモデル2</td>
+      <td class="confluenceTd">WrappingModel2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">WrappingModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">57</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先モデルリスト</td>
+      <td class="confluenceTd">PackageModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">List &lt;PackageModel&gt; </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">58</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポンモデルリスト</td>
+      <td class="confluenceTd">CouponModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;CouponModel&gt; </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">59</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更・キャンセルモデルリスト</td>
+      <td class="confluenceTd">ChangeReasonModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;ChangeReasonModel&gt; </td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">60</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税情報モデルリスト</td>
+      <td class="confluenceTd">TaxSummaryModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;TaxSummaryModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※2019/7/30の増税対応リリース前の注文の場合、初期値は[]（空のモデル）となります。<br>店舗様にて税率等の項目を更新した後は値が設定されます。<br>なお、リリース後の注文には最初から値が設定されています。</td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">61</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">期限日モデルリスト</td>
+      <td class="confluenceTd">DueDateModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List&lt;DueDateModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※Request Parameterの「version」に「5」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">62</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">最強翌日配送フラグ</td>
+      <td class="confluenceTd">deliveryCertPrgFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br>0: 最強翌日配送対象外注文<br>1: 最強翌日配送対象注文<br>※購入時に遅延補償対象となった注文です。補償対象外となった場合でもフラグは変更されません。<br>※2024年11月20日（水）のサービス名称変更（「最強配送」から「最強翌日配送」に変更）に伴いLogical Nameのみ変更。</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">63</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">当日出荷フラグ</td>
+      <td class="confluenceTd">oneDayOperationFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br>0: 1営業日以内出荷ではない注文<br>1: 1営業日以内出荷の注文<br>※購入時に最短お届け可能日が指定された注文、またはソーシャルギフト注文において受取情報入力時に最短お届け可能日が指定された注文です。</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: OrdererModel">Level 3: OrdererModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郵便番号1</td>
+      <td class="confluenceTd">zipCode1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">158</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郵便番号2</td>
+      <td class="confluenceTd">zipCode2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0094</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">都道府県</td>
+      <td class="confluenceTd">prefecture</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">東京都</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郡市区</td>
+      <td class="confluenceTd">city</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">世田谷区</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">それ以降の住所</td>
+      <td class="confluenceTd">subAddress</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">玉川</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">姓</td>
+      <td class="confluenceTd">familyName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">楽天</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">名</td>
+      <td class="confluenceTd">firstName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">太郎</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">姓カナ</td>
+      <td class="confluenceTd">familyNameKana</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">ラクテン</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">名カナ</td>
+      <td class="confluenceTd">firstNameKana</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">タロウ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号1</td>
+      <td class="confluenceTd">phoneNumber1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">no<br><br>電話番号の1,2,3の内、nullは１つまで許可</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">090</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号2</td>
+      <td class="confluenceTd">phoneNumber2</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">1111</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号3</td>
+      <td class="confluenceTd">phoneNumber3</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2222</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メールアドレス</td>
+      <td class="confluenceTd">emailAddress</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メールアドレスはマスキングされています</td>
+      <td class="confluenceTd">815db15ff6ee7c0285bf7f5ce8485450s1@pc.fw.rakuten.ne.jp</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">性別</td>
+      <td class="confluenceTd">sex</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">男</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">誕生日(年)</td>
+      <td class="confluenceTd">birthYear</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">4</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">1984</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">誕生日(月)</td>
+      <td class="confluenceTd">birthMonth</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">2</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">誕生日(日)</td>
+      <td class="confluenceTd">birthDay</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">2</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: SettlementModel">Level 3: SettlementModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法コード</td>
+      <td class="confluenceTd">settlementMethodCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">6</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1: クレジットカード<br>2: 代金引換<br>4: ショッピングクレジット／ローン<br>5: オートローン<br>6: リース<br>7: 請求書払い<br>8: ポイント<br>9: 銀行振込<br>12: Apple Pay<br>13: セブンイレブン（前払）<br>14: ローソン、郵便局ATM等（前払）、または、ファミリーマート、ローソン等（前払）※<br>16: Alipay<br>17: PayPal<br>21: 後払い決済<br>27: Alipay（支付宝）<br><br>※2026年1月22日（木）の支払方法名変更に伴い、新旧名称どちらの注文もコードは14となります。</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法名</td>
+      <td class="confluenceTd">settlementMethod</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">クレジットカード</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天市場の共通決済手段フラグ</td>
+      <td class="confluenceTd">rpaySettlementFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法の種別が以下のいずれか<br><br>0: 選択制決済<br>1: 楽天市場の共通決済手段</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード種類</td>
+      <td class="confluenceTd">cardName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法名が「クレジットカード」の場合のみ値があります</td>
+      <td class="confluenceTd">VISA</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード番号</td>
+      <td class="confluenceTd">cardNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法名が「クレジットカード」の場合のみ値があります</td>
+      <td class="confluenceTd">XXXX-XXXX-XXXX-0015</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード名義人</td>
+      <td class="confluenceTd">cardOwner</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法名が「クレジットカード」の場合のみ値があります</td>
+      <td class="confluenceTd">TARO RAKUTEN</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード有効期限</td>
+      <td class="confluenceTd">cardYm</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">支払方法名が「クレジットカード」の場合のみ値があります</td>
+      <td class="confluenceTd">2017-11</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード支払い方法</td>
+      <td class="confluenceTd">cardPayType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 一括払い<br>1: リボ払い<br>2: 分割払い<br>3: その他払い<br>4: ボーナス一括払い<br><br>支払方法名が「クレジットカード」の場合のみ値があります</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クレジットカード支払い回数</td>
+      <td class="confluenceTd">cardInstallmentDesc</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>103: 3回払い<br>105: 5回払い<br>106: 6回払い<br>110: 10回払い<br>112: 12回払い<br>115: 15回払い<br>118: 18回払い<br>120: 20回払い<br>124: 24回払い<br><br>支払方法名が「クレジットカード」、かつ、「クレジットカード支払い方法」が「2: 分割払い」の場合のみ値があります</td>
+      <td class="confluenceTd"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: DeliveryModel">Level 3: DeliveryModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送方法</td>
+      <td class="confluenceTd">deliveryName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">店舗設定で設定した配送方法。</td>
+      <td class="confluenceTd">宅配便</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送区分</td>
+      <td class="confluenceTd">deliveryClass</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0: 選択なし<br>1: 普通<br>2: 冷蔵<br>3: 冷凍<br>4: その他１<br>5: その他２<br>6: その他３<br>7: その他４<br>8: その他５</td>
+      <td class="confluenceTd"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: PointModel">Level 3: PointModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント利用額</td>
+      <td class="confluenceTd">usedPoint</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">100</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: WrappingModel">Level 3: WrappingModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピングタイトル</td>
+      <td class="confluenceTd">title</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1: 包装紙<br>2: リボン</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピング名</td>
+      <td class="confluenceTd">name</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">396</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">ラッピング名</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">料金</td>
+      <td class="confluenceTd">price</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税込別</td>
+      <td class="confluenceTd">includeTaxFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 税別<br>1: 税込</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピング削除フラグ</td>
+      <td class="confluenceTd">deleteWrappingFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピング税率</td>
+      <td class="confluenceTd">taxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ラッピング税額</td>
+      <td class="confluenceTd">taxPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※税込/税抜に関わらず、値が設定されます。</td>
+      <td class="confluenceTd">10</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: PackageModel">Level 3: PackageModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先ID</td>
+      <td class="confluenceTd">basketId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">10631675</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料</td>
+      <td class="confluenceTd">postagePrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先に紐付く送料 （R-StoreFrontで指定した送料設定に準拠）<br><br>※未設定の場合、-9999になります。</td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料税率</td>
+      <td class="confluenceTd">postageTaxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引料</td>
+      <td class="confluenceTd">deliveryPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※未設定の場合、-9999になります</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引料税率</td>
+      <td class="confluenceTd">deliveryTaxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先外税合計</td>
+      <td class="confluenceTd">goodsTax</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税込み商品の場合は0が取得される<br><br>※未設定の場合、-9999になります。<br>※廃止予定項目のため、version8以降は取得できません。"請求額に対する税額(reqPriceTax)"をご使用ください。</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品合計金額</td>
+      <td class="confluenceTd">goodsPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先に紐付く<br>商品金額 + ラッピング料</td>
+      <td class="confluenceTd">10000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">合計金額</td>
+      <td class="confluenceTd">totalPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先に紐付く<br>商品金額 + 送料 + ラッピング料<br><br>※代引手数料は含まれません。<br>※未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">10100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">のし</td>
+      <td class="confluenceTd">noshi</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">のし</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付先モデル削除フラグ</td>
+      <td class="confluenceTd">packageDeleteFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 送付先モデルを削除しない<br>1: 送付先モデルを削除する</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送付者モデル</td>
+      <td class="confluenceTd">SenderModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">SenderModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品モデルリスト</td>
+      <td class="confluenceTd">ItemModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">List &lt;ItemModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発送モデルリスト</td>
+      <td class="confluenceTd">ShippingModelList</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">List &lt;ShippingModel&gt;</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">コンビニ配送モデル</td>
+      <td class="confluenceTd">DeliveryCvsModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">DeliveryCvsModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送方法がコンビニ、郵便局受取の場合、参照可能。</td>
+      <td class="confluenceTd"></td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">購入時配送会社</td>
+      <td class="confluenceTd">defaultDeliveryCompanyCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1000: その他<br>1001: ヤマト運輸<br>1002: 佐川急便<br>1003: 日本郵便<br>1004: 西濃運輸<br>1005: セイノースーパーエクスプレス<br>1006: 福山通運<br>1007: 名鉄運輸<br>1008: トナミ運輸<br>1009: 第一貨物<br>1010: 新潟運輸<br>1011: 中越運送<br>1012: 岡山県貨物運送<br>1013: 久留米運送<br>1014: 山陽自動車運送<br>1015: NXトランスポート<br>1016: エコ配<br>1017: EMS<br>1018: DHL<br>1019: FedEx<br>1020: UPS<br>1021: 日本通運<br>1022: TNT<br>1023: OCS<br>1024: USPS<br>1025: SFエクスプレス<br>1026: Aramex<br>1027: SGHグローバル・ジャパン<br>1028: Rakuten EXPRESS<br>1029: 日本郵便 楽天倉庫出荷<br>1030: ヤマト運輸 クロネコゆうパケット<br>1031: 名鉄NX運輸<br><br>※Request Parameterの「version」に「4」以降の値を指定すると取得可能。</td>
+      <td class="confluenceTd">1001</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">置き配フラグ</td>
+      <td class="confluenceTd">dropOffFlag	</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 置き配対象外注文<br>1: 置き配注文<br><br>※対面受取り (置き配を利用しない）を選ばれた時、0となります。</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">置き配場所</td>
+      <td class="confluenceTd">dropOffLocation</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">宅配ボックス<br>玄関前<br>玄関前鍵付容器<br>ポスト（郵便受箱）<br>メーターボックス<br>物置<br>車庫<br><br>※置き配対象外注文の場合、Nullとなります。</td>
+      <td class="confluenceTd">宅配ボックス</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">18</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ソーシャルギフト情報モデル</td>
+      <td class="confluenceTd">SocialGiftModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">SocialGiftModel</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ソーシャルギフト注文の場合、参照可能</td>
+      <td class="confluenceTd"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: SenderModel">Level 4: SenderModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郵便番号1</td>
+      <td class="confluenceTd">zipCode1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"999"になります。</td>
+      <td class="confluenceTd">158</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郵便番号2</td>
+      <td class="confluenceTd">zipCode2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"9999"になります。</td>
+      <td class="confluenceTd">0094</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">都道府県</td>
+      <td class="confluenceTd">prefecture</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"入力待ち"になります。</td>
+      <td class="confluenceTd">東京都</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郡市区</td>
+      <td class="confluenceTd">city</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"入力待ち"になります。</td>
+      <td class="confluenceTd">世田谷区</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">それ以降の住所</td>
+      <td class="confluenceTd">subAddress</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"入力待ち"になります。</td>
+      <td class="confluenceTd">玉川</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">姓</td>
+      <td class="confluenceTd">familyName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"入力待ち"になります。</td>
+      <td class="confluenceTd">楽天</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">名</td>
+      <td class="confluenceTd">firstName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"入力待ち"になります。</td>
+      <td class="confluenceTd">太郎</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">姓カナ</td>
+      <td class="confluenceTd">familyNameKana</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"ニュウリョクマチ"になります。</td>
+      <td class="confluenceTd">ラクテン</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">名カナ</td>
+      <td class="confluenceTd">firstNameKana</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"ニュウリョクマチ"になります。</td>
+      <td class="confluenceTd">タロウ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号1</td>
+      <td class="confluenceTd">phoneNumber1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red" rowspan="3">no<br><br>電話番号の1,2,3の内、nullは１つまで許可<br><br><br></td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"999"になります。</td>
+      <td class="confluenceTd">090</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号2</td>
+      <td class="confluenceTd">phoneNumber2</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"9999"になります。</td>
+      <td class="confluenceTd">0000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">電話番号3</td>
+      <td class="confluenceTd">phoneNumber3</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">※ソーシャルギフト注文において受取情報が未入力の場合、ダミーデータ"9999"になります。</td>
+      <td class="confluenceTd">0000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">離島フラグ</td>
+      <td class="confluenceTd">isolatedIslandFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 離島ではない<br>1: 離島である</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: ItemModel">Level 4: ItemModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品明細ID</td>
+      <td class="confluenceTd">itemDetailId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">10631675</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品名</td>
+      <td class="confluenceTd">itemName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">3072</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">商品名</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品ID</td>
+      <td class="confluenceTd">itemId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">10000119</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">4</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品番号</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">itemNumber</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">no</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">String</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">382</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">項目選択肢別在庫が指定された商品の場合、以下のルールで値が表示されます<br><br>SKU移行前注文：商品番号（店舗様が登録した番号）＋項目選択肢ID（横軸）＋項目選択肢ID（縦軸）<br><br>SKU移行後注文：商品番号（店舗様が登録した番号）</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品番号mgreen</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品管理番号</td>
+      <td class="confluenceTd">manageNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">mikan</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">単価</td>
+      <td class="confluenceTd">price</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">個数</td>
+      <td class="confluenceTd">units</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">送料込別</td>
+      <td class="confluenceTd">includePostageFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 送料別<br>1: 送料込みもしくは送料無料</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税込別</td>
+      <td class="confluenceTd">includeTaxFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 税別<br>1: 税込み</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引手数料込別</td>
+      <td class="confluenceTd">includeCashOnDeliveryPostageFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 代引手数料別<br>1: 代引手数料込み</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">11</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">項目・選択肢</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">selectedChoice</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">no</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">String</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">12000</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">HTMLタグ除去済み。<br>項目選択肢、項目選択肢別在庫が指定された商品が購入された注文の場合、以下のルールで値が入ります。<br><br>SKU移行前注文：項目選択肢情報、項目選択肢別在庫情報が入ります。<br><br>SKU移行後注文：項目選択肢情報は引き続き入ります。<br>バリエーション項目名・バリエーション選択肢（旧・項目選択肢別在庫情報）は入りません。Level 5: skuModel &gt; skuInfo にて取得可能です。</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">項目選択肢A:A選択肢１<br>項目選択肢B:B選択肢２</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイント倍率</td>
+      <td class="confluenceTd">pointRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイントレート</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">13</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ポイントタイプ</td>
+      <td class="confluenceTd">pointType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 変倍なし<br>1: 店舗別変倍<br>2: 商品別変倍<br>-99: エラー時無効値</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">14</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫タイプ</td>
+      <td class="confluenceTd">inventoryType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 在庫設定なし<br>1: 通常在庫設定<br>2: 項目選択肢在庫設定</td>
+      <td class="confluenceTd">2</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">15</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">納期情報</td>
+      <td class="confluenceTd">delvdateInfo</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">96</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2～5日以内に発送</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">16</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">在庫連動オプション</td>
+      <td class="confluenceTd">restoreInventoryFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 商品の設定に従う<br>1: 在庫連動する<br>2: 在庫連動しない</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">17</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天スーパーDEAL商品フラグ</td>
+      <td class="confluenceTd">dealFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 楽天スーパーディール商品ではない<br>1: 楽天スーパーディール商品である</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">18</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">医薬品フラグ</td>
+      <td class="confluenceTd">drugFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 医薬品ではない<br>1: 医薬品である</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">19</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品削除フラグ</td>
+      <td class="confluenceTd">deleteItemFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 商品を削除しない<br>1: 商品を削除する</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">20</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品税率</td>
+      <td class="confluenceTd">taxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">21</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品毎税込価格</td>
+      <td class="confluenceTd">priceTaxIncl</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">・税込商品の場合：<br>    商品単価＝商品毎税込価格<br>・税別商品の場合：<br>    商品単価＝税別価格<br>    商品毎税込単価＝税込価格（商品単価 * (1+税率））<br>    端数処理は、店舗設定に準ずる</td>
+      <td class="confluenceTd">1100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">22</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">単品配送フラグ</td>
+      <td class="confluenceTd">isSingleItemShipping</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 単品配送ではない<br>1: 単品配送である<br><br>※Request Parameterの「version」に「4」以降の値を指定すると取得可能</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">23</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SKUモデルリスト</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SkuModelList</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">yes</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">List&lt;skuModel&gt;</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green"></td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: ShippingModel">Level 4: ShippingModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発送明細ID</td>
+      <td class="confluenceTd">shippingDetailId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">12</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">楽天が発行するIDで更新・削除の場合に利用します</td>
+      <td class="confluenceTd">56486</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">お荷物伝票番号</td>
+      <td class="confluenceTd">shippingNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">111-22-334</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送会社</td>
+      <td class="confluenceTd">deliveryCompany</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1000: その他<br>1001: ヤマト運輸<br>1002: 佐川急便<br>1003: 日本郵便<br>1004: 西濃運輸<br>1005: セイノースーパーエクスプレス<br>1006: 福山通運<br>1007: 名鉄運輸<br>1008: トナミ運輸<br>1009: 第一貨物<br>1010: 新潟運輸<br>1011: 中越運送<br>1012: 岡山県貨物運送<br>1013: 久留米運送<br>1014: 山陽自動車運送<br>1015: NXトランスポート<br>1016: エコ配<br>1017: EMS<br>1018: DHL<br>1019: FedEx<br>1020: UPS<br>1021: 日本通運<br>1022: TNT<br>1023: OCS<br>1024: USPS<br>1025: SFエクスプレス<br>1026: Aramex<br>1027: SGHグローバル・ジャパン<br>1028: Rakuten EXPRESS<br>1029: 日本郵便 楽天倉庫出荷<br>1030: ヤマト運輸 クロネコゆうパケット<br>1031: 名鉄NX運輸</td>
+      <td class="confluenceTd">1001</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">配送会社名</td>
+      <td class="confluenceTd">deliveryCompanyName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">64</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">ヤマト運輸</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発送日</td>
+      <td class="confluenceTd">shippingDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">YYYY-MM-DD</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd"></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: DeliveryCVSModel">Level 4: DeliveryCVSModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">コンビニコード</td>
+      <td class="confluenceTd">cvsCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1: ファミリーマート<br>20: ミニストップ<br>40: サークルK<br>41: サンクス<br>50: ローソン<br>60: 郵便局<br>70: スリーエフ<br>71: エブリワン<br>72: ココストア<br>74: セーブオン<br>80: デイリーヤマザキ<br>81: ヤマザキデイリーストア<br>82: ニューヤマザキデイリーストア<br>85: ニューデイズ<br>90: ポプラ<br>91: くらしハウス<br>92: スリーエイト<br>93: 生活彩家</td>
+      <td class="confluenceTd">41</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ストア分類コード</td>
+      <td class="confluenceTd">storeGenreCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">96</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">8895</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ストアコード</td>
+      <td class="confluenceTd">storeCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">96</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">15358</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ストア名称</td>
+      <td class="confluenceTd">storeName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">楽天クリムゾンハウス</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">郵便番号</td>
+      <td class="confluenceTd">storeZip</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">18</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">158-0094</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">都道府県</td>
+      <td class="confluenceTd">storePrefecture</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">24</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">東京都</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">その他住所</td>
+      <td class="confluenceTd">storeAddress</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">世田谷区玉川一丁目14番1号 楽天クリムゾンハウス</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">発注エリアコード</td>
+      <td class="confluenceTd">areaCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">96</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">01</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">センターデポコード</td>
+      <td class="confluenceTd">depo</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">96</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">07</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">開店時間</td>
+      <td class="confluenceTd">openTime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">7</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">06:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">11</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">閉店時間</td>
+      <td class="confluenceTd">closeTime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">7</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">24:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">12</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">特記事項</td>
+      <td class="confluenceTd">cvsRemarks</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">備考</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 4: SocialGiftModel">Level 4: SocialGiftModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">ソーシャルギフト管理番号</td>
+      <td class="confluenceTd">sgMngNumber</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受取人からの問合せ用に発行される管理番号。</td>
+      <td class="confluenceTd">502763-20171027-000155555-sg</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受取情報入力期限日</td>
+      <td class="confluenceTd">inputDueDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">YYYY-MM-DD</td>
+      <td class="confluenceTd">2026-06-15</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受取情報入力済フラグ</td>
+      <td class="confluenceTd">inputFlag</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">1</td>
+      <td class="confluenceTd">0</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 受取情報未入力<br>1: 受取情報入力済み</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受取情報入力日時</td>
+      <td class="confluenceTd">inputCompDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">YYYY-MM-DDThh:mm:ss+09:00</td>
+      <td class="confluenceTd">2026-06-10T09:59:47+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">受取人メールアドレス</td>
+      <td class="confluenceTd">receiverEmailAddress	</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">メールアドレスはマスキングされています。</td>
+      <td class="confluenceTd">815db15ff6ee7c0285bf7f5ce8485450s1@pc.fw.rakuten.ne.jp</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: CouponModel">Level 3: CouponModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポンコード</td>
+      <td class="confluenceTd">couponCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">28</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">UCSK-XEPV-LEGJ-H0SW</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン対象の商品ID</td>
+      <td class="confluenceTd">itemId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">該当する商品がない場合は 0 が指定されます。</td>
+      <td class="confluenceTd">10631675</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン名</td>
+      <td class="confluenceTd">couponName</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">テストクーポンです</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン効果(サマリー)</td>
+      <td class="confluenceTd">couponSummary</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">382</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">定額割引 100円</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン原資</td>
+      <td class="confluenceTd">couponCapital</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">64</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>・ショップ<br>・メーカー<br>・サービス<br><br>※RMS画面ではショップは店舗原資、メーカーは楽天原資、サービスは楽天原資と表記されています。</td>
+      <td class="confluenceTd">ショップ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン原資コード</td>
+      <td class="confluenceTd">couponCapitalCode</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">5</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1：ショップ<br>2：メーカー<br>3：サービス<br><br>※RMS画面ではショップは店舗原資、メーカーは楽天原資、サービスは楽天原資と表記されています。</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">有効期限</td>
+      <td class="confluenceTd">expiryDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">日付のみ取得可能です。時分秒は無効な値です。</td>
+      <td class="confluenceTd">2017-01-29</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン割引単価</td>
+      <td class="confluenceTd">couponPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">9</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン利用数</td>
+      <td class="confluenceTd">couponUnit</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">10</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン利用金額</td>
+      <td class="confluenceTd">couponTotalPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン割引単価<br>×<br>クーポン利用数<br><br>※クーポン割引単価もしくはクーポン利用数がnullの場合、-9999になります。</td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">11</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品明細ID</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">itemDetailId</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">yes</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">Number</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">10</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">商品指定クーポンの場合：対象商品のitemDetailId<br>商品指定クーポン以外の場合：0</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">10631675</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: ChangeReasonModel">Level 3: ChangeReasonModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更ID</td>
+      <td class="confluenceTd">changeId</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">12</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">12345</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更種別</td>
+      <td class="confluenceTd">changeType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: キャンセル申請<br>1: キャンセル確定<br>2: キャンセル完了<br>3: キャンセル取消<br>4: 変更申請<br>5: 変更確定<br>6: 変更完了<br>7: 変更取消<br>8: 注文確認<br>9: 再決済手続き</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更種別(詳細)</td>
+      <td class="confluenceTd">changeTypeDetail</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 減額<br>1: 増額<br>2: その他<br>10: 支払方法変更<br>11: 支払方法変更・減額<br>12: 支払方法変更・増額<br><br>※「2: その他」は後払い決済選択注文で金額以外の変更が行われた場合のみ</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更理由</td>
+      <td class="confluenceTd">changeReason</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 店舗様都合<br>1: お客様都合</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更理由(小分類)</td>
+      <td class="confluenceTd">changeReasonDetail</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>1: キャンセル<br>2: 受取後の返品<br>3: 長期不在による受取拒否<br>4: 未入金<br>5: 代引決済の受取拒否<br>6: お客様都合 - その他<br>8: 欠品<br>10: 店舗様都合 - その他<br>13: 発送遅延<br>14: 顧客・配送対応注意表示<br>15: 返品(破損・品間違い)<br>16: 受取情報入力期限切れ</td>
+      <td class="confluenceTd">1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更申請日</td>
+      <td class="confluenceTd">changeApplyDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:03:43+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更確定日</td>
+      <td class="confluenceTd">changeFixDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:03:43+0900</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">8</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">変更完了日</td>
+      <td class="confluenceTd">changeCmplDatetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">no</td>
+      <td class="confluenceTd">Datetime</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">32</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2017-09-25T20:03:43+0900</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: TaxSummaryModel">Level 3: TaxSummaryModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税率</td>
+      <td class="confluenceTd">taxRate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">-</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">0.1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">請求金額</td>
+      <td class="confluenceTd">reqPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">税率ごとの請求金額（税込）<br>以下の場合、-9999になります。<br>・送料未確定<br>・代引手数料未確定<br> <br>&lt;楽天ポイントに係る消費税の課税処理および税込金額表示対応&gt;に伴い、注文日が2022年4月1日（金）以降のデータから計算方法が変更されます。<br> <br>注文日が2022年3月31日（木）以前のデータ：商品金額 + 送料 + ラッピング料 + 決済手数料 + 注文者負担金 - クーポン割引額 - 利用ポイント数<br>注文日が2022年4月1日（金）以降のデータ：商品金額 + 送料 + ラッピング料 + 決済手数料 + 注文者負担金 - クーポン割引額<br>※利用ポイント数を減算する前に計算<br>&lt;適格請求書等保存方式（インボイス制度）対応&gt;に伴い、2023年9 月14日（木）以降に初回決済確定・発送完了となった注文より、後払い手数料（追加）分が含まれなくなります。</td>
+      <td class="confluenceTd">1000</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">請求額に対する税額</td>
+      <td class="confluenceTd">reqPriceTax</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">請求額に対する税額<br>以下の場合、-9999になります。<br>・送料未確定<br>・代引手数料未確定<br><br>&lt;楽天ポイントに係る消費税の課税処理および税込金額表示対応&gt;に伴い、注文日が2022年4月1日（金）以降のデータから計算方法が変更されます。<br> <br>注文日が2022年3月31日（木）以前のデータ：（商品金額 + 送料 + ラッピング料 + 決済手数料 + 注文者負担金 - クーポン割引額 - 利用ポイント数）に対する税額<br>注文日が2022年4月1日（金）以降のデータ：（商品金額 + 送料 + ラッピング料 + 決済手数料 + 注文者負担金 - クーポン割引額）に対する税額<br>※利用ポイント数を減算する前の各税額<br>&lt;適格請求書等保存方式（インボイス制度）対応&gt;に伴い、2023年9 月14日（木）以降に初回決済確定・発送完了となった注文より、後払い手数料（追加）分が含まれなくなります。</td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">合計金額</td>
+      <td class="confluenceTd">totalPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">商品金額 + 送料 + ラッピング料<br><br>送料未確定の場合、-9999になります。<br><br>※クーポン値引額、利用ポイント数、決済手数料、注文者負担金を含みません。</td>
+      <td class="confluenceTd">1250</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">決済手数料</td>
+      <td class="confluenceTd">paymentCharge</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">代引手数料未確定の場合、-9999になります。</td>
+      <td class="confluenceTd">50</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">クーポン割引額</td>
+      <td class="confluenceTd">couponPrice</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">100</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">利用ポイント数</td>
+      <td class="confluenceTd">point</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-9999</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">&lt;楽天ポイントに係る消費税の課税処理および税込金額表示対応&gt;に伴い、注文日が2022年4月1日（金）以降のデータから計算方法が変更されます。<br> <br>注文日が2022年3月31日（木）以前のデータは対象税率ごとの利用ポイント数<br>注文日が2022年4月1日（金）以降のデータは常に0</td>
+      <td class="confluenceTd">150</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 3: DueDateModel">Level 3: DueDateModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">期限日タイプ</td>
+      <td class="confluenceTd">dueDateType</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Number</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">以下のいずれか<br><br>0: 支払い期限日<br>1: 支払い方法変更期限日<br>2: 返金手続き期限日<br><br>※複数の期限日が発生する場合は上書きではなく、追記となります。</td>
+      <td class="confluenceTd">0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">期限日</td>
+      <td class="confluenceTd">dueDate</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">yes</td>
+      <td class="confluenceTd">Date</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">10</td>
+      <td class="confluenceTd">-</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red"></td>
+      <td class="confluenceTd">2020-08-01</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h4 id="Level 5: skuModel">Level 5: skuModel</h4>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No</b></th>
+      <th class="confluenceTh"><b>Logical Name</b></th>
+      <th class="confluenceTh"><b>Parameter Name</b></th>
+      <th class="confluenceTh"><b>Not Null</b></th>
+      <th class="confluenceTh"><b>Type</b></th>
+      <th class="confluenceTh"><b>Max Byte</b></th>
+      <th class="confluenceTh"><b>Default</b></th>
+      <th class="confluenceTh"><b>Description</b></th>
+      <th class="confluenceTh"><b>Sample</b></th>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">1</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SKU管理番号</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">variantId</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">yes</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">String</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">40</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SKU移行前の注文の場合、値は空になります。<br><br>※Request Parameterの「version」に「7」以降の値を指定すると取得可能</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">17095519</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">2</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">システム連携用SKU番号</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">merchantDefinedSkuId</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">no</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">String</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">386</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SKU移行前の注文の場合、値は空になります。<br><br>※Request Parameterの「version」に「7」以降の値を指定すると取得可能</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">itemNumber-m-white</td>
+    </tr>
+    <tr>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">3</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">SKU情報</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">skuInfo</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">no</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">String</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">1600</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">-</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">以下のルールで値が入ります。<br><br>
+SKU移行前注文：値は空になります。<br><br>
+SKU移行後注文：バリエーション項目名・バリエーション選択肢（旧・項目選択肢別在庫情報）が入ります。<br>
+項目選択肢情報は入りません。Level 4: ItemModel &gt; selectedChoiceにて取得可能です。
+<table class="wrapped confluenceTable">
+<tbody>
+<tr>
+<th class="confluenceTh">商品種別</th>
+<th class="confluenceTh">内容</th>
+</tr>
+<tr>
+<td class="highlight-green confluenceTd" data-highlight-colour="green">シングルSKU</td>
+<td class="highlight-green confluenceTd" data-highlight-colour="green">該当項目は無い為、データ無し</td>
+</tr>
+<tr>
+<td class="highlight-green confluenceTd" data-highlight-colour="green">マルチSKU</td>
+<td class="highlight-green confluenceTd" data-highlight-colour="green">バリエーション項目名とバリエーション選択肢。 <br>下記のフォーマットで返却されます。<br><br>バリエーション項目名:バリエーション選択肢</td>
+</tr>
+</tbody>
+</table>
+※Request Parameterの「version」に「7」以降の値を指定すると取得可能</td>
+      <td class="highlight-green confluenceTd" data-highlight-colour="green">容量:560ml<br>本数:24本（1ケース）<br>ラベル:あり</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Sample">Sample</h2></div><p><a style="font-size: medium;" href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/getorder/getorder-sample-v7/">getOrder バージョン 7 Samples</a></p>
+<p><span style="font-size: medium;"><a href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/getorder/getorder-sample-v8/">getOrder バージョン 8 Samples</a></span></p>
+<p><a title="getorder-sample-v9" href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/getorder/getorder-sample-v9/"><span style="font-size: medium;">getOrder バージョン 9 Samples</span></a></p>
+<p><a title="getorder-sample-v10" href="/merchant-portal/view/ja/common/1-1_service_index/rakutenpayorderapi/getorder/getorder-sample-v10/"><span style="font-size: medium;"><span style="font-size: medium;">getOrder バージョン 10 Samples</span></span></a></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span><br></span></p>
+<div id="gtx-trans" style="position: absolute; left: -73px; top: 98px;">&nbsp;</div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

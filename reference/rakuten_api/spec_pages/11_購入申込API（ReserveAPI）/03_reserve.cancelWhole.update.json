@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "購入申込API（ReserveAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/reserveapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/reserveapi/"
+  },
+  "feature_page": {
+    "name": "reserve.cancelWhole.update",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/reserveapi/reservecancelwholeupdate/",
+    "description": "この機能を利用すると、予約・定期・頒布会の申込について、申込の完全キャンセルを行うことができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/reserveapi/reservecancelwholeupdate/",
+  "main_text": "サービス一覧へ戻る / ReserveAPI\n\nRMS WEB SERVICE : reserve.cancelWhole.update\nOverview\nこの機能を利用すると、予約・定期・頒布会の申込について、申込の完全キャンセルを行うことができます。\n「申込中」ステータスの申込にのみ有効です。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/1.0/reserve/cancelReservation\tPOST\nRequest\nRequest Header\nKey\tValue\nAuthorization\tESA Base64(serviceSecret:licenseKey)\nContent-Type\tapplication/json; charset=utf-8\nRequest Body\nNo\tParameter Name\tDescription\tRequired\tMultiple\tType\tDefault\tNote\tSample\n1\treserveNumber\t申込番号\tYes\tNo\tString\t-\t\t123456-20191204-262709-r\n2\tchangeReasonDetailApply\tキャンセル理由\tYes\tNo\tNumber\t-\t\nValue\tDescription\n1\tお客様都合：キャンセル\n5\tお客様都合：いたずら\n6\tお客様都合：その他\n8\tお客様都合：途中解約\n22\t店舗様都合：欠品\n23\t店舗様都合：予約商品販売中止\n24\t店舗様都合：その他\n\t1\nRequest Sample\nRequest (curl コマンドを使った例)\ncurl -X POST \\\n  https://api.rms.rakuten.co.jp/es/1.0/reserve/cancelReservation \\\n  -H 'Authorization:ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \\\n  -H 'Content-Type: application/json; charset=utf-8' \\\n  -d '{\n    \"reserveNumber\":\"123456-20200409-9195583-r\",\n    \"changeReasonDetailApply\":1\n  }'\nResponse\nResponse Header\nKey\tValue\nContent-Type\tapplication/json; charset=utf-8\nResponse Body\nNo\tParameter Name\tDescription\tType\tNot Null\tNote\tSample\n1\tmessageType\tメッセージ種別\tString\tYes\t・INFO\n・ERROR\tINFO\n2\tmessageCode\tメッセージコード\tString\tYes\tResponse Code Reference の一覧は こちら\tRESERVE_EXT_API_CANCEL_RESERVATION_ERROR_001\n3\tmessage\tメッセージ\tString\tYes\t指定された申込番号は既にキャンセルされています。\n4\treserveNumber\t申込番号\tString\tNo\t\t123456-20230409-9195583-r\nResponse Sample\n正常終了の場合\n{    \n    \"messageType\": \"INFO\",\n    \"messageCode\": \"RESERVE_EXT_API_CANCEL_RESERVATION_INFO_100\",\n    \"message\": \"申込キャンセル処理が完了しました。\",\n    \"reserveNumber\": \"123456-20230409-9195583-r\"\n}\n必須パラメータ不足等により後続処理が行えない場合\n{    \n    \"messageType\": \"ERROR\",\n    \"messageCode\": \"RESERVE_EXT_API_CANCEL_RESERVATION_ERROR_001\",\n    \"message\": \"changeReasonDetailApplyの項目・値を指定して下さい。\",\n    \"reserveNumber\": \"123456-20200409-9195583-r\"\n}"
+}

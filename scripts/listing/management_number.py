@@ -18,3 +18,19 @@ def generate_management_number_bundle(management_suffix: str = "187", now: datet
         safe_candidate=safe_candidate,
         note="dry-run uses a collision-safe candidate; legacy format is kept for compatibility notes only",
     )
+
+
+def build_management_number_bundle_from_selected(selected: str) -> ManagementNumberBundle:
+    normalized = str(selected or "").strip()
+    if not normalized:
+        raise ValueError("selected management number is required")
+    parts = normalized.split("_")
+    legacy_candidate = normalized
+    if len(parts) >= 3:
+        legacy_candidate = "_".join(parts[:-1])
+    return ManagementNumberBundle(
+        selected=normalized,
+        legacy_candidate=legacy_candidate,
+        safe_candidate=normalized,
+        note="explicit management number provided by operator; legacy candidate derived from selected value",
+    )

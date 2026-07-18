@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "組み合わせ販売API（ItemBundleAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/"
+  },
+  "feature_page": {
+    "name": "ItemBundle.delete",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/btodelete/",
+    "description": "この機能を利用すると、組み合わせ販売を削除することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/btodelete/",
+  "main_text": "サービス一覧へ戻る / ItemBundleAPI\n\nRMS WEB SERVICE : ItemBundle.delete\nOverview\n\nこの機能を利用すると、組み合わせ販売を削除することができます。\n\nEndpoint\nEndpoint\nhttps://api.rms.rakuten.co.jp/es/1.0/bto/bundle/<bundleManageNumber>\nRequest\nRequest Method\nMethod\nDELETE\nRequest Header\nKey\tValue\nAuthorization\tESA Base64(serviceSecret:licenseKey)\nContent-Type\tapplication/json; charset=utf-8\nRequest Parameter\nQuery URL\nNo\tLogical Name\tParameter Name\tRequired\tType\tMax Char\tDescription\tSample\n1\t組み合わせ管理番号\tbundleManageNumber\tyes\tString\t64\t組み合わせ販売の管理番号。\n組み合わせを新規登録する際に指定され、店舗内においてユニークな番号です。\tmy-shop-bundle-001\nResponse\nHTTP Status\nCode\tStatus\tDescription\n200\tOK\tリクエストが成功した。\n405\tMethod Not Allowed\t許可されていないメソッドを使用しようとした。\n例：POSTメソッドを利用すべきフォームでGETメソッドを使う\n406\tNot Acceptable\tAccept関連のヘッダに受理できない内容が含まれている場合に返される。\n例：'Accept-type'はXML、リスポンスはJSON。\n422\tUnprocessable Entity error\tリクエストエンティティが読み込み/解析できないか、パラメータまたはヘッダが間違っている/見つからない。\nエラーコードの詳細はこちら。\n500\tInternal Server Error\tサーバ内部にエラーが発生した。\nエラーコードの詳細はこちら。\n503\tService Unavailable\tサービスが一時的に過負荷やメンテナンスで使用不可能である。\nエラーコードの詳細はこちら。\nResponse Header\nKey\tValue\nContent-Type\tapplication/json;charset=utf-8\nResponse Parameter\n\n\n\n\nSuccess\n\n成功した場合、リスポンスボディはありません。「200」は組み合わせの削除が成功したことを表しています。\n\n\n\n\nError\n\nLevel 1: base\nNo\tLogical Name\tParameter Name\tRequired\tType\tMax Char\tDescription\n1\tエラー\terrors\tyes\tList<Error>\t-\t組み合わせを削除する際に発生したエラーのリスト\nLevel 2: Error\nNo\tLogical Name\tParameter Name\tRequired\tType\tMax Char\tDescription\tSample\n1\tメッセージ\tmessage\tyes\tString\t-\tエラーの説明\tB1038\n2\tコード\tcode\tyes\tString\t-\tエラーコード。\n詳細はこちら。\t組み合わせの削除に失敗しました。再度お試しください。\nSample\n削除処理が成功した場合\nRequest (curl コマンドを使った例)\ncurl -X DELETE \\\n  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/my-shop-bundle-001 \\\n  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \\\n  -H 'Content-Type: application/json; charset=utf-8' \\\n\nResponse in JSON format (Status: 200 OK)\n200\nパラメータ指定に誤りがある場合\nRequest (curl コマンドを使った例)\ncurl -X DELETE \\\n  https://api.rms.rakuten.co.jp/es/1.0/bto/bundle/MyShop-Bundle-XX \\\n  -H 'Authorization: ESA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' \\\n  -H 'Content-Type: application/json; charset=utf-8' \\\n\nResponse in JSON format (Status: 422 Unprocessable Entity)\n{\n  \"errors\": [\n    {\n      \"code\": \"B1038\",\n      \"message\": \"組み合わせの削除に失敗しました。再度お試しください。\"\n    }\n  ]\n}"
+}

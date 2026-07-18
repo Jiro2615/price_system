@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "組み合わせ販売API（ItemBundleAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/"
+  },
+  "feature_page": {
+    "name": "Partial Match Rules",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/partialmatch/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/partialmatch/",
+  "main_text": "サービス一覧へ戻る / ItemBundleAPI\n\nRMS WEB SERVICE : Item Bundle Partial Match Rules\nOverview\n\n検索時の動作は下記のガイドラインで定義されております。\n\n日本語\n組み合わせ管理名称\t検索キーワード\t詳細\t検索結果\n日本語で検索するときの注意点および例\t検索\t漢字で検索\t検索可能\nけんさく\t組み合わせ管理名称にある漢字テキストを平仮名で検索\t検索不可\nケンサク\t組み合わせ管理名称にある漢字テキストをカタカナで検索\t検索不可\nとき\t平仮名で検索\t検索可能\nトキ\t組み合わせ管理名称にある平仮名テキストをカタカナで検索\t検索不可\n注\t漢字一文字で検索\t検索可能\n全角文字と半角文字\n半角文字の検索キーワードでは、全角文字のテキストを検索できません。\n同様に、全角文字の検索キーワードでは、半角文字のテキストを検索できません。\n\n \n\n組み合わせ管理名称\t検索キーワード\t詳細\t検索結果\nＤＯＵＢＬＥ　ＢＹＴＥ\tＤＯＵＢＬＥ　ＢＹＴＥ\t組み合わせ管理名称にある全角テキストを全角キーワードで検索\t検索可能\nDOUBLE\t組み合わせ管理名称にある全角テキストを半角キーワードで検索\t検索不可\n記号\n\n一部の記号で検索する場合は、対象文字をエンコードする必要があります。詳細は下記リストの通りです。\n\n \n\n記号\tエンコード\n^\t%5E\n{\t%7B\n}\t%7D\n|\t%7C\n\\\t%5C\n#\t%23\n+\t%2B\n&\t%26"
+}

@@ -1,0 +1,117 @@
+サービス一覧へ戻る / InquiryManagementAPI
+
+RMS WEB SERVICE : inquirymngapi.attachment.get
+Overview
+この機能を利用すると、問い合わせ返信の添付ファイルを取得することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/inquirymng-api/attachment	GET
+Request
+Request Header
+Key	Value
+Authorization	ESA Base64(serviceSecret:licenseKey)
+Content-Type	application/json; charset=utf-8
+Request Parameter
+No	Parameter Name	Description	Required	Type	Note
+1	path	添付ファイルのパス	yes	string	inquirymngapi.inquiry.get や、inquirymngapi.attachment.post のレスポンスの中にある、attachments の path を指定します。
+
+・文字列の長さは1000文字以内
+・/yyyy/MM/dd/{shopId}/xxxxxxxxxxxxxxxxxxxxx
+・アップロードした日から最大で90日間取得可能
+2	label	ファイル名	yes	string	文字列の長さは100文字以内
+※使用不可文字："[", "]".
+
+label には下記のいずれかを指定することで、画像を取得し保存できるようになります。
+
+・inquirymngapi.inquiry.get や、inquirymngapi.attachment.post のレスポンスの中にある、attachments の label
+・任意のファイル名
+　※label で取得したファイルと同じ拡張子であること
+
+指定可能な拡張子は下記の通りです。
+
+
+
+MIME type	file extension
+image/png	*.png
+image/jpeg	*.jpeg, *.jpg
+image/gif	*.gif
+application/pdf	*.pdf
+
+
+ 
+Response
+Response Header
+Key	Value
+Content-Type	・画像の取得ファイルに即した値を指定します。
+image/jpeg;charset=UTF-8
+image/png;charset=UTF-8
+image/gif;charset=UTF-8  
+image/bmp;charset=UTF-8
+image/tiff;charset=UTF-8
+application/pdf;charset=UTF-8
+Content-Length	ファイルの長さ
+Content-Disposition	attachment; filename="filename.jpg"
+HTTP Response Status
+Code	Status	Description
+200	OK	リクエストが成功しました。
+400	Bad Request	パラメータに不備があります。
+404	Not Found	指定された条件に一致するデータがありません。
+500	Internal Server Error	APIに障害が起こっているか、レスポンスが遅くなっている可能性があります。しばらく経ってから再度アクセスしてください。
+503	Temporary Unavailable	一時的にAPIがサービス提供できない状態になっています。
+HTTP Response Error message
+InquiryManagementAPI Error Codes Reference を参照してください。
+
+Response Body
+バイナリファイル自体を返します。ファイルが存在しない場合は HTTP Response Status 404 を返却します。
+
+Sample
+リクエストが成功した場合
+添付ファイルが取得できた場合
+Request
+https://api.rms.rakuten.co.jp/es/1.0/inquirymng-api/attachment?path=2019/11/14/999999/154153_9e3138e3de334bb68be7d70158b0af83&label=test.jpeg
+Response (Status: 200 OK)
+
+
+リクエストが失敗した場合のResponse Sample
+ファイルの形式とパラメータで指定された拡張子が一致しない場合
+Response (Status: 400 Bad Request)
+{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "label": "extension type does not match"
+        }
+    }
+}
+label にファイルの拡張子が指定されていない場合
+Response (Status: 400 Bad Request)
+{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "label": "no extension provided"
+        }
+    }
+}
+リクエストパラメータが不正な場合
+Response (Status: 400 Bad Request)
+{
+    "error": {
+        "code": "IE001",
+        "message": "bad parameter",
+        "targets": {
+            "label": "must match \"^([^ \t\n\r\f])+\\.(jpg|jpeg|png|pdf|gif)$\""
+        }
+    }
+}
+指定されたファイルがない場合
+Response (Status: 404 Not Found)
+{
+    "error": {
+        "code": "IE000",
+        "message": "404 Not Found"
+    }
+}

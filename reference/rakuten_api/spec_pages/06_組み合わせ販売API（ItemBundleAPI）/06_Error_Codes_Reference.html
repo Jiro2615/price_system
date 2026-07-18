@@ -1,0 +1,594 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock36823" class="HTMLBlock">
+<style>.give_space{white-space: pre-wrap;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/itembundleapi/">ItemBundleAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : Item Bundle API Error Codes Reference</span></h1>
+</div>
+<div class="give_space"><br><a href="#Item Bundle Error Codes"><font size="2">    1. Item Bundle Error Codes</font></a>
+<a href="#Framework Errors"><font size="2">    2. Framework Errors</font></a>
+</div>
+<h2 id="Item Bundle Error Codes">Item Bundle Error Codes</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No.</b></th>
+      <th class="confluenceTh"><b>Message Code</b></th>
+      <th class="confluenceTh"><b>Short Message</b></th>
+      <th class="confluenceTh"><b>Underlying Cause</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1003</td>
+      <td class="confluenceTd give_space">親商品の「mandatory」パラメータは必ず「true」に設定する必要があります。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせを新規、更新する時に、親商品の選択必須フラッグ「mandatory」は必ず「true」に設定する必要があります。
+未指定、あるいは「false」に設定されている場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1005</td>
+      <td class="confluenceTd give_space">親商品は組み合わせ商品リストにも入っている必要があります。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせ商品リスト「bundleItems」には親商品が含まれている必要があります。
+リクエストの「bundleItems」に親商品の商品管理番号が存在しない場合、該当エラーになります。
+該当エラーはItemBundle.create と ItemBundle.update 機能において、発生します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1010</td>
+      <td class="confluenceTd give_space">組み合わせられた商品リストのサイズが不正です。リストサイズの範囲は2から4までです。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">親商品もリストに入っているため、組み合わせ商品リストのサイズは2から4までです。
+リストのサイズは2未満、あるいは4を超えた場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1011</td>
+      <td class="confluenceTd give_space">重複する子商品が存在しています。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">重複する商品が存在しています。
+組み合わせ商品リストに重複する商品（親商品、あるいは子商品としてすでに存在している）を追加しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1012</td>
+      <td class="confluenceTd give_space">子商品の並び順番号が不正です。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">子商品に指定された並び順番号が不正です。
+不正な並び順番号に指定し、組み合わせを新規、更新する場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1014</td>
+      <td class="confluenceTd give_space">親商品につき、2つまで表示設定が可能です。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">1つの親商品に対して、2つの組み合わせまで表示することが可能です。
+組み合わせを新規、更新する時に、1つの親商品に対して、 2つ以上「表示設定」を「表示」に設定しようとすると該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1015</td>
+      <td class="confluenceTd give_space">この組み合わせが既に登録されています。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">重複している組み合わせ（同じ親商品と子商品の組み合わせ）が存在しています。
+同じ組み合わせを新規、更新しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1018</td>
+      <td class="confluenceTd give_space">組み合わせ管理名称にHTMLタグなどは登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせ管理名称にはHTMLタグが利用できません。
+組み合わせ管理名称にHTMLタグを入力し、組み合わせを新規、更新しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1019</td>
+      <td class="confluenceTd give_space">組み合わせ販売説明文にHTMLタグなどは登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせ販売説明文にはHTMLタグが利用できません。
+組み合わせ販売説明文にHTMLタグを入力し、組み合わせを新規、更新しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1025</td>
+      <td class="confluenceTd give_space">更新した組み合わせは存在しません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された「bundleManageNumber」が存在しません。
+リクエストパラメーターに不正な「bundleManageNumber」に指定し、組み合わせを更新しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1026</td>
+      <td class="confluenceTd give_space">商品ページ上の表示設定が不正です。
+「ACTIVE」 か「INACTIVE」のみ設定可能です。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ItemBundle.create と ItemBundle.update 機能を利用する時に、指定された「表示設定」が不正です。
+「ACTIVE」 と「 INACTIVE」以外に設定すると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1029</td>
+      <td class="confluenceTd give_space">指定された条件に該当する組み合わせはありませんでした。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された条件に該当する組み合わせはありませんでした。
+例えば、下記の項目（１つ、あるいは複数）を条件として検索し、結果がない場合は、該当エラーになります。
+・親商品管理番号、
+・子商品管理番号、
+・組み合わせ管理番号、
+・表示設定</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1030</td>
+      <td class="confluenceTd give_space">組み合わせ記録はデータベースの内容と同期していません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">提供された組み合わせ記録の内容はデータベースの内容と異なります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1032</td>
+      <td class="confluenceTd give_space">組み合わせの登録に失敗しました。再度お試しください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせの登録に失敗しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">15</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1034</td>
+      <td class="confluenceTd give_space">「type」は「parent」か「child」に設定することが可能です。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">パラメーター「type」に設定できるのは「parent」と「child」のみです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">16</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1036</td>
+      <td class="confluenceTd give_space">ページサイズの範囲は1から100の間で、かつ、ページ番号は1から100の間で指定してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ページサイズの範囲は1から100の間で、かつ、ページ番号は1から100の間で指定する必要があります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">17</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1037</td>
+      <td class="confluenceTd give_space">組み合わせの更新に失敗しました。再度お試しください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">システムエラーにより、組み合わせの更新に失敗しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">18</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1038</td>
+      <td class="confluenceTd give_space">組み合わせの削除に失敗しました。再度お試しください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">システムエラーにより、組み合わせの削除に失敗しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">19</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1050</td>
+      <td class="confluenceTd give_space">&lt;parent/child item_manage_no&gt; が店舗に存在しないか、商品の種類が以下のいずれか： -\n\n予約商品\n頒布会商品\nこちらの商品は組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">該当商品が存在しません。
+予約商品、頒布会商品は組み合わせに登録できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">20</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1051</td>
+      <td class="confluenceTd give_space">&lt;parent/child item_manage_no&gt; は販売期間指定商品です。販売期間指定商品は組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせに利用できない商品タイプです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">21</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1052</td>
+      <td class="confluenceTd give_space">&lt;child item_manage_no&gt; は項目選択肢別在庫商品です。項目選択肢別在庫商品は子商品として組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">子商品として、組み合わせに利用できない商品タイプです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">22</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1053</td>
+      <td class="confluenceTd give_space">&lt;child item_manage_no&gt; は項目選択肢あり商品です。項目選択肢あり商品は子商品として組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">子商品として、組み合わせに利用できない商品タイプです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">23</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1054</td>
+      <td class="confluenceTd give_space">&lt;child item_manage_no&gt; は闇市商品です。闇市商品は子商品として組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">子商品として、組み合わせに利用できない商品タイプです。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">24</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1055</td>
+      <td class="confluenceTd give_space">&lt;parent/child item_manage_no&gt; は医薬品・酒類・コンタクトレンズジャンルの商品です。 医薬品・酒類・コンタクトレンズジャンルの商品は組み合わせに登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">医薬品・酒類・コンタクトレンズジャンルの商品は組み合わせに登録することが禁止されています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">25</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1056</td>
+      <td class="confluenceTd give_space">組み合わせ管理番号に不正な文字が入力されています。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">組み合わせ管理番号には小文字のアルファベットと数字のみが利用できます。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">26</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1058</td>
+      <td class="confluenceTd give_space">システムエラーが発生しました。再度お試しください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">情報取得中、システムエラーが発生しました。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">27</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1059</td>
+      <td class="confluenceTd give_space">正常に処理が終了しましたが、システム遅延のため反映されていません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ItemBundle.create、 ItemBundle.update、 ItemBundle.delete などの操作は正常に処理が終了しましたが、システム遅延のためすべて反映されていません。しばらくお待ちください。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">28</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1060</td>
+      <td class="confluenceTd give_space">指定された組み合わせ管理番号 &lt;bundleManageNo&gt; がすでに存在しています。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">指定された組み合わせ管理番号がすでに存在している場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">29</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1061</td>
+      <td class="confluenceTd give_space">組み合わせされた親商品は変更できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Itembundle.update機能を利用し、親商品を変更しようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">30</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1062</td>
+      <td class="confluenceTd give_space">キーワードが長すぎます。「組み合わせ管理名称」は32文字以下で指定してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">検索時に指定した「組み合わせ管理名称」が、32文字より長い場合、該当のエラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">31</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1063</td>
+      <td class="confluenceTd give_space">漢字以外を利用した「組み合わせ管理名称」の検索には、2文字以上を指定してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">検索時に指定した「組み合わせ管理名称」が2文字に満たない場合、該当のエラーになります。
+ただし、漢字での検索の場合、1文字のみの指定が可能です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">32</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1064</td>
+      <td class="confluenceTd give_space">キーワードが長すぎます。「組み合わせ管理番号」は32文字以下で指定してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">検索時に指定した「組み合わせ管理番号」が、32文字より長い場合、該当のエラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">33</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1065</td>
+      <td class="confluenceTd give_space">「組み合わせ管理番号」には2文字以上を指定してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">検索時に指定した「組み合わせ管理番号」が2文字に満たない場合、該当のエラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">34</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1066</td>
+      <td class="confluenceTd give_space">「組み合わせ管理番号」に、許可されていない文字が含まれています。「組み合わせ管理番号」での検索には半角英数字、_、-のみが利用できます。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">「組み合わせ管理番号」に半角英数字、_、-以外が含まれていた場合に、該当のエラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">35</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">X0000</td>
+      <td class="confluenceTd give_space">「type」と「itemManageNumber」にNULLは登録できません。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">アイテムタイプ「type」と商品管理番号「itemManageNumber」はどちらもNULLでは登録できません。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">36</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1067</td>
+      <td class="confluenceTd give_space">&lt;parent/child item_manage_no&gt; は在庫情報、配送情報が登録されていないため、商品編集ページから登録してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">在庫情報、配送情報が登録されていない商品を含む組み合わせ販売を登録、更新した場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">37</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">B1068</td>
+      <td class="confluenceTd give_space">&lt;parent/child item_manage_no&gt; は1度削除されている商品のため、組み合わせの更新ではなく新規登録してください。</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">再利用された商品管理番号を持つ組み合わせ販売を更新した場合、該当エラーになります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h2 id="Framework Errors">Framework Errors</h2>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>No.</b></th>
+      <th class="confluenceTh"><b>Message Code</b></th>
+      <th class="confluenceTh"><b>Short Message</b></th>
+      <th class="confluenceTh"><b>Underlying Cause</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">1</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0001</td>
+      <td class="confluenceTd give_space">Invalid value on field &lt;field_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディのフィールドに下記にエラーがある場合、該当エラーになります。
+・データタイプ不一致（数値フィールドに文字列を指定）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">2</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0002</td>
+      <td class="confluenceTd give_space">Invalid value on parameter &lt;parameter_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">クエリパラメーターや、URLパラメーターに下記のエラーがある場合、該当エラーになります。
+・データタイプ不一致（数値フィールドに文字列を指定）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">3</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0003</td>
+      <td class="confluenceTd give_space">Invalid value on header &lt;header_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">ヘッダに下記のエラーがある場合、該当エラーになります。
+・データタイプ不一致（数値フィールドに文字列を指定）</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">4</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0004</td>
+      <td class="confluenceTd give_space">Missing required field &lt;missing_field_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディにある特定のフィールドが未設定の場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">5</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0005</td>
+      <td class="confluenceTd give_space">Missing required parameter &lt;missing_parameter_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディにある特定のクエリパラメーター、あるいはURL パラメーターが未設定の場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">6</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0006</td>
+      <td class="confluenceTd give_space">Missing required header &lt;missing_header_name&gt;.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディにある特定のヘッダが未設定の場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">7</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0007</td>
+      <td class="confluenceTd give_space">Requested path does not exist.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストにあるURLが間違えた場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">8</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0008</td>
+      <td class="confluenceTd give_space">The call is unauthorized. Check Authorization header.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Authorizationが失敗した場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">9</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0009</td>
+      <td class="confluenceTd give_space">The HTTP method utilized is not supported by this resource.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">許可されていないメソッドを使用しようとしました。
+例：POSTメソッドを利用すべきフォームでGETメソッドを使う。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">10</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0010</td>
+      <td class="confluenceTd give_space">Request body must not be empty.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">POST あるいは PUTのリクエストボディが空の場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">11</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0011</td>
+      <td class="confluenceTd give_space">Request body cannot be processed.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">リクエストボディに誤りがあり、処理できない場合、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">12</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0012</td>
+      <td class="confluenceTd give_space">Media Type &lt;media_type&gt; is not supported.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">Accept関連のヘッダに受理できない内容が含まれている場合に返されます。
+例：'Accept-type'はXML、リスポンスはJSON。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">13</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0013</td>
+      <td class="confluenceTd give_space">Forbidden to update this field.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">該当リソースの更新権限を持っていないユーザが更新リクエストしようとすると、該当エラーになります。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">14</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">GE0014</td>
+      <td class="confluenceTd give_space">The resource with id: &lt;given_id&gt; does not exist.</td>
+      <td class="highlight-red confluenceTd give_space" data-highlight-colour="red">バックエンドに該当リクエストリソースは存在しない場合、該当エラーになります。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<br></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

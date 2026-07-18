@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "R-CabinetAPI（CabinetAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"
+  },
+  "feature_page": {
+    "name": "cabinet.usage.get",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetusageget/",
+    "description": "この機能を利用すると、R-Cabinetの利用状況を取得することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetusageget/",
+  "main_text": "サービス一覧へ戻る / CabinetAPI\n\n\nRMS WEB SERVICE : cabinet.usage.get\n\n\n\n\nこの機能を利用すると、R-Cabinetの利用状況を取得することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/1.0/cabinet/usage/get\tGET\nRequest\nHTTP Header\nNo\tKey\tValue\tNote\n1\tAuthorization\tESA Base64(serviceSecret:licenseKey)\t\nQuery parameters\n\n　None\n\nHTTP Body\n\n　None\n\nResponse\nHTTP Header\nNo\tKey\tValue\n1\tContent-Type\ttext/xml\nHTTP Body\nXML:result\nNo\tElement\tDescription\tType\t\n\nSize(byte)\n\n\t\n\nMultiplicity\n\n\tNote\n1\t\n\nresult.status\n\n\tステータス\tXML:status\t-\t1\t\n\ninterfaceId=cabinet.usage.get\n\n\n2\t\n\nresult.cabinetUsageGetResult\n\n\t\n\nキャビネット利用情報取得結果\n\n\t\n\nXML : cabinetUsageGetResult\n\n\n\t-\t1\t\nXML:cabinetUsageGetResult\nNo\tElement\tDescription\tType\t\n\nSize(byte)\n\n\t\n\nMultiplicity\n\n\tNote\n1\t\n\ncabinetUsageGetResult.resultCode\n\n\t\n\n結果コード\n\n\t\n\nInteger\n\n\t4\t1\t\n2\t\n\ncabinetUsageGetResult.MaxSpace\n\n\t\n\n契約容量 (MB)\n\n\t\n\nInteger\n\n\t10\t1\t\n3\t\n\ncabinetUsageGetResult.FolderMax\n\n\t\n\nフォルダ数上限\n\n\t\n\nInteger\n\n\t10\t1\t\n4\t\n\ncabinetUsageGetResult.FileMax\n\n\t\n\nフォルダ内画像数上限\n\n\t\n\nInteger\n\n\t10\t1\t\n5\t\n\ncabinetUsageGetResult.UseSpace\n\n\t\n\n利用容量 (KB)\n\n\t\n\nDecimal\n\n\t10,3\n※少数点第3位まで\n\t1\t\n6\t\n\ncabinetUsageGetResult.AvailSpace\n\n\t\n\n利用可能容量 (KB)\n\n\t\n\nDecimal\n\n\t10,3\n※少数点第3位まで\t1\t契約容量 - 利用容量\n7\t\n\ncabinetUsageGetResult.UseFolderCount\n\n\t\n\n利用フォルダ数\n\n\t\n\nInteger\n\n\t10\t1\t\n8\tcabinetUsageGetResult.AvailFolderCount\t利用可能フォルダ数\tInteger\t10\t1\tフォルダ数上限 - 利用フォルダ数\nResponse sample\n\n\n <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<result>\n    <status>\n        <interfaceId>cabinet.usage.get</interfaceId>\n        <systemStatus>OK</systemStatus>\n        <message>OK</message>\n        <requestId>714a4983-555f-42d9-aeea-89dae89f2f55</requestId>\n    </status>\n     \n    <cabinetUsageGetResult>\n        <resultCode>0</resultCode>\n        <MaxSpace>100</MaxSpace>\n        <!-- omission -->\n    </cabinetUsageResult>\n</result>"
+}

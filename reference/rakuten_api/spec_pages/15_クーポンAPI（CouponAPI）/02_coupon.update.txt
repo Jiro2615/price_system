@@ -1,0 +1,440 @@
+サービス一覧へ戻る / CouponAPI
+
+RMS WEB SERVICE : coupon.update
+この機能を利用すると、クーポン情報を更新することができます。
+
+
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/coupon/update	POST
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+None
+
+HTTP Body
+XML: request
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	request.couponUpdateRequest	クーポン情報更新要求	XML:couponUpdateRequest	-	○	1	
+XML: couponUpdateRequest
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	couponUpdateRequest.coupon	クーポン情報	XML:coupon	-	○	1	
+XML: coupon
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	coupon.couponCode	クーポンコード	String	19	○	1	更新不可
+2	coupon.couponName	クーポン名	String	60	○	1	不正な文字
+　・半全角スペース、タブのみ
+　・機種依存文字
+　・EUC_JPの 補助漢字に入る 文字、もしくはUTF-8 -> EUC_JPに変換出来ない文字
+
+文字列の前後にある全半角空白、タブの削除をして、半角カナを全角カナに変換します。
+3	coupon.couponCaption	クーポン詳細説明文	String	200		0,1	不正な文字
+　・機種依存文字
+
+文字列の前後にある全半角空白、タブの削除をして、半角カナを全角カナに変換します。
+4	coupon.couponStartDate	クーポン有効期間（開始日時）	dateTime	-	○	1	現在日時の最短60分後から最長30日後の範囲で設定可能です。
+YYYY-MM-DDThh:mm:ss+09:00
+5	coupon.couponEndDate	クーポン有効期間（終了日時）	dateTime	-	○	1	couponStartDate ＋ 5分以降で設定可能です。
+YYYY-MM-DDThh:mm:ss+09:00
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。
+6	coupon.couponImage	クーポン画像	String	-		0,1	画像のURLは https://image.rakuten.co.jp/ +shopUrl+ /cabinet/ で始まり、
+かつ
+対応している画像URLの拡張子が jpg, jpeg, gif,pngの4つです。
+
+デフォルト値: https://image.rakuten.co.jp/<shop_url>/logo/logo1.jpg
+7	coupon.issueCount	クーポンの全利用回数上限	int	4	○	1	最大桁数：6
+全角数字を自動的に半角数字に変換します。
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。
+※0を指定した場合、無制限となります。
+8	coupon.itemType	商品タイプ	int	4	○	1	discountTypeによって、値が異なります。
+
+
+
+discountType	itemType
+1,2	1：単一商品
+3：複数商品
+4：受注
+4	5：送料無料
+
+全角数字を自動的に半角数字に変換します。
+9	coupon.discountType	値引きプラン	int	4	○	1	1： 定額値引き
+2： 定率値引き
+4： 送料無料
+
+全角数字を自動的に半角数字に変換します。
+10	coupon.discountFactor	割引因子	int	4	○	1	discountTypeによって、値が異なります。
+
+
+
+discountType	discountFactor
+1	1 ～ 999999999： 値引き額
+2	1 ～ 99： 値引き率
+4	1： 送料無料
+
+
+
+全角数字を自動的に半角数字に変換します。
+11	coupon.memberAvailMaxCount	1ユーザあたりの利用回数上限	int	4	○	1	最大桁数：6
+全角数字を自動的に半角数字に変換します。
+※0を指定した場合、無制限となります。
+12	coupon.purchaseHistoryCond	購入履歴条件	XML:purchaseHistoryCond	-	○	1	
+13	coupon.multiRankCond	複数会員ランク条件	XML:multiRankCond	-	○	1	
+14	coupon.genderCond	性別条件	String	32	○	1	NONE: 指定なし
+MALE: 男性
+FEMALE: 女性
+
+※以下のいずれかの条件に該当する場合はNONEを指定する必要があります。
+・multiRankCond.rankCond(会員ランク条件)に0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+15	coupon.ageRangeCond	年齢条件	XML:ageRangeCond	-	○	1	
+16	coupon.birthmonthCond	誕生月条件	int	4	○	1	0: 指定なし
+1 - 12: 誕生月を指定する
+
+※以下の条件に該当する場合は0を指定する必要があります。
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+17	coupon.multiPrefectureCond	居住地条件	List<XML:multiPrefectureCond>	-	○	1	
+18	coupon.combineFlag	併用可否フラグ	int	4	○	1	0： 併用不可
+1： 併用可
+
+全角数字を自動的に半角数字に変換します。
+19	coupon.displayFlag	公開設定フラグ	int	4	○	1	0： 限定公開（クーポン獲得URLを配布）
+1： 全ユーザに公開
+
+全角数字を自動的に半角数字に変換します。
+20	coupon.items	対象商品リスト	XML:items	-		0,1	送料無料の場合： 項目を設定できません。
+21	coupon.otherConditions	その他条件リスト	XML:otherConditions	-		0,1	
+XML: multiRankCond
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	multiRankCond.rankCond	会員ランク条件	int	4	○	1..5	0： 条件なし
+1： レギュラー
+2： シルバー
+3： ゴールド
+4： プラチナ
+5： ダイヤモンド
+
+全角数字を自動的に半角数字に変換します。
+
+※対象商品リストが設定されている場合はクーポン発行条件を参照ください。
+XML: purchaseHistoryCond
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	purchaseHistoryCond.type	購入履歴条件の種別	int	4	○	1	0: 指定なし
+1: 購入履歴なし
+2: 購入履歴あり
+
+multiRankCond.rankCondに0以外の値を指定した場合、0を指定する必要があります。
+2	purchaseHistoryCond.dynamicPeriod	購入履歴期間の月数	int	4		0..1	purchaseHistoryCond.type = 2の場合に必須
+有効な値は以下
+1, 3, 6, 12, 24
+3	purchaseHistoryCond.purchaseCount	購入回数	XML: purchaseCount	-		0..1	purchaseHistoryCond.type = 2の場合に必須
+XML: purchaseCount
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	purchaseCount.minimum	購入回数の下限値	int	4		0..1	purchaseHistoryCond.type = 2の場合に必須
+1-10のみ入力可能
+購入回数の上限値を指定する場合は、下限値は上限値以下の値を指定する必要があります。
+2	purchaseCount.maximum	購入回数の上限値	int	4		0..1	purchaseHistoryCond.type = 2の場合に必須
+0: 購入回数の上限なし
+指定する場合は 1-10のみ入力可能
+購入回数の上限値を指定する場合は、上限値は下限値以上の値を指定する必要があります。
+XML: ageRangeCond
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	ageRangeCond.lowerBound	年齢の下限値	int	4	○	1	0: 指定なし
+10 - 100: 年齢の下限値
+
+※以下のいずれかの条件に該当する場合は、lowerBoundは0を指定する必要があります。
+・multiRankCond.rankCondに0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+
+年齢の下限値と上限値を指定する場合は、下限値は上限値以下の値を指定する必要があります。
+2	ageRangeCond.upperBound	年齢の上限値	int	4	○	1	0: 指定なし
+10 - 100: 年齢の上限値
+
+※以下のいずれかの条件に該当する場合は、lowerBoundは0を指定する必要があります。
+・multiRankCond.rankCondに0以外の値を指定した場合
+・otherCondition.conditionTypeCode(その他条件コード)にRS002を指定し、かつotherCondition.startValue(開始値)に1を指定した場合
+
+年齢の下限値と上限値を指定する場合は、上限値は下限値以上の値を指定する必要があります。
+XML: multiPrefectureCond
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	multiPrefectureCond.prefectureCond	都道府県名	String	32	○	1..47	NONE: 指定しない場合
+multiRankCond.rankCondに0以外の値を指定した場合、NONEを指定する必要があります。
+
+都道府県を指定する場合は以下のいずれか
+・HOKKAIDO
+・AOMORI
+・IWATE
+・MIYAGI
+・AKITA
+・YAMAGATA
+・FUKUSHIMA
+・IBARAKI
+・TOCHIGI
+・GUNMA
+・SAITAMA
+・CHIBA
+・TOKYO
+・KANAGAWA
+・NIIGATA
+・TOYAMA
+・ISHIKAWA
+・FUKUI
+・YAMANASHI
+・NAGANO
+・GIFU
+・SHIZUOKA
+・AICHI
+・MIE
+・SHIGA
+・KYOTO
+・OSAKA
+・HYOGO
+・NARA
+・WAKAYAMA
+・TOTTORI
+・SHIMANE
+・OKAYAMA
+・HIROSHIMA
+・YAMAGUCHI
+・TOKUSHIMA
+・KAGAWA
+・EHIME
+・KOCHI
+・FUKUOKA
+・SAGA
+・NAGASAKI
+・KUMAMOTO
+・OITA
+・MIYAZAKI
+・KAGOSHIMA
+・OKINAWA
+XML: items
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	items.item	対象商品	XML:item	-		0..5000	対象商品は5000個まで指定可能です。
+XML: item
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	item.itemUrl	商品管理番号	String	32		1	以下の条件にあてはまる商品の商品管理番号は指定できません。
+　・存在しない商品
+　・販売価格が値引き額未満の商品 ※
+　・予約商品および頒布会商品
+　・倉庫指定の商品
+　・注文ボタン非表示の商品
+
+※「販売価格」の定義は以下の通りです。
+1.商品が楽天サーチ検索対象外の場合
+　すべてのSKUの中の最低価格
+2.一部SKUが楽天サーチ検索対象外の場合
+　楽天サーチ検索対象であるSKU内の最低価格
+XML: otherConditions
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	otherConditions.otherCondition	その他条件	XML:otherCondition	-		0..n	
+XML: otherCondition
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	otherCondition.conditionTypeCode	その他条件コード	String	20		1	RS001： デバイス指定（設定のない場合は自動的に設定される）
+RS002： 販売方法 (設定のない場合は自動的に設定される）
+RS003： 利用金額
+RS004： 利用個数
+
+※39ショップに限り、 利用個数(RS004)を設定した場合、複数商品(「coupon.itemType」に「3」)が設定可能です。
+※ 対象商品リストが設定されている場合はクーポン発行条件を参照ください。
+2	otherCondition.startValue	開始値	String	60		0,1	conditionTypeCodeによって、値が異なります。
+
+
+
+conditionTypeCode	startValue
+RS001	0： PC （設定のない場合は自動的に設定される）
+1： モバイル （設定のない場合は自動的に設定される）
+RS002	0： 通常購入
+1： 定期購入
+99： 通常＆定期購入（設定のない場合は自動的に設定される）
+RS003	0 ～ 999999999： 金額
+RS004	0 ～ 999999999： 個数
+
+
+
+
+
+対象商品リストが設定されている場合のクーポン発行条件
+
+項目名	条件等詳細
+couponEndDate
+または
+issueCount
+または
+rankCond	couponStartDate から14日以内
+
+1000回以下
+
+0でない
+Request Sample
+request example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <couponUpdateRequest>
+        <coupon>
+            <couponCode>FOTN-EKXX-68T2-CXZV</couponCode>
+            <couponName>Test</couponName>
+            <couponCaption>Test</couponCaption>
+            <couponStartDate>2024-04-15T00:00:00+09:00</couponStartDate>
+            <couponEndDate>2024-05-15T23:59:59+09:00</couponEndDate>
+            <couponImage>https://image.rakuten.co.jp/test_shop/cabinet/imgrc0000000001.jpg</couponImage>
+            <issueCount>100</issueCount>
+            <itemType>3</itemType>
+            <discountType>2</discountType>
+            <discountFactor>1</discountFactor>
+            <memberAvailMaxCount>0</memberAvailMaxCount>
+            <purchaseHistoryCond>
+                <type>0</type>
+            </purchaseHistoryCond>
+            <multiRankCond>
+                <rankCond>0</rankCond>
+            </multiRankCond>
+            <genderCond>MALE</genderCond>
+            <ageRangeCond>
+                <lowerBound>21</lowerBound>
+                <upperBound>29</upperBound>
+            </ageRangeCond>
+            <birthmonthCond>0</birthmonthCond>
+            <multiPrefectureCond>
+                <prefectureCond>HOKKAIDO</prefectureCond>
+                <prefectureCond>AOMORI</prefectureCond>
+            </multiPrefectureCond>
+            <combineFlag>1</combineFlag>
+            <displayFlag>0</displayFlag>
+            <items>
+                <item>
+                    <itemUrl>test1</itemUrl>
+                </item>
+                <item>
+                    <itemUrl>test2</itemUrl>
+                </item>
+                <item>
+                    <itemUrl>test3</itemUrl>
+                </item>
+            </items>
+            <otherConditions>
+                <otherCondition>
+                    <conditionTypeCode>RS003</conditionTypeCode>
+                    <startValue>2</startValue>
+                </otherCondition>
+            </otherConditions>
+        </coupon>
+    </couponUpdateRequest>
+</request>
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML: result
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	result.status	ステータス情報	XML:status	-	1	interfaceId = coupon.update
+2	result.errors	エラー情報リスト	XML:errors	-	0,1	エラー発生時のみ返却されます
+3	result.coupon	クーポン情報	XML:coupon	-	0,1	
+XML: errors
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	errors.error	エラー情報	XML:error	-	1..n	
+XML: error
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	error.code	エラーコード	String	-	1	詳細は、 CouponAPI Response Codes Reference を参照してください。
+2	error.message	エラーメッセージ	String	-	1	詳細は、 CouponAPI Response Codes Reference を参照してください。
+XML: coupon
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	coupon.couponCode	クーポンコード	String	19	1	
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.update</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>c0ae977b-0d41-41a4-aa17-cac579141604</requestId>
+    </status>
+    <coupon>
+        <couponCode>FOTN-EKXX-68T2-CXZV</couponCode>
+    </coupon>
+</result>
+response example (error case : general error)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.update</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>4df7717f-1039-4599-8288-2501842fa71f</requestId>
+    </status>
+    <errors>
+        <error>
+            <code>COUPON_EE11-002</code>
+            <message>displayFlag.set_only_private</message>
+        </error>
+    </errors>
+</result>
+response example (error case: in case there are errors in itemUrl)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.update</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>48259f6a-a422-44e6-bd95-5300105d3f2c</requestId>
+    </status>
+    <errors>
+        <error>
+            <code>COUPON_EE15-001</code>
+            <message>itemUrl.absent :200502</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-001</code>
+            <message>itemUrl.absent :200503</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-002</code>
+            <message>itemUrl.not_normal :200504</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-004</code>
+            <message>itemUrl.duplicate :200605</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-004</code>
+            <message>itemUrl.duplicate :200606</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-005</code>
+            <message>itemUrl.over_discount :200505</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-005</code>
+            <message>itemUrl.over_discount :200506</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-005</code>
+            <message>itemUrl.over_discount :200507</message>
+        </error>
+        <error>
+            <code>COUPON_EE15-005</code>
+            <message>itemUrl.over_discount :200508</message>
+        </error>
+    </errors>
+</result>
+response example (error case : in case RS004 and itemType(value is 3) are set for non-39 shops)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.update</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>41c5ed7f-1ac0-4f1d-b75a-a9e7d4964e33</requestId>
+    </status>
+    <errors>
+        <error>
+            <code>COUPON_EE13-003</code>
+            <message>itemType3_RS004_notAllowed_forNon39shop</message>
+        </error>
+    </errors>
+</result>

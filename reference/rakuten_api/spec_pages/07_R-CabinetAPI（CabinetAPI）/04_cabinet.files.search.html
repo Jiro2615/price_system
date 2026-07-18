@@ -1,0 +1,356 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><span><a href="/merchant-portal/backToMenu"><span>サービス一覧へ戻る</span></a>&nbsp;/ <a title="CabinetAPI" href="/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"><span>CabinetAPI</span></a><br></span></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : cabinet.files.search</span></h1><p><span style="color: #000000;"><span style="color: #000000;"><br></span></span></p>
+<p><span style="color: #000000;"><span style="color: #000000;"><span style="color: #000000;"><span style="color: #000000;"><span style="color: #000000;">この機能を利用すると、画像名を指定して画像を検索することができます。</span><br>画像の登録、更新、削除後の情報が本機能の取得情報に反映されるまでの時間は最短10秒です。<br>ページング機能(offset, limit)を用いて情報取得をしている時には画像の登録、更新、削除はお控えください。情報が正しく取得できない場合があります。</span></span></span></span></p><h2 id="Endpoint / HTTP Method">Endpoint / HTTP Method</h2><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Endpoint</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>HTTP&nbsp;Method</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span class="nolink">https://api.rms.rakuten.co.jp/es/1.0/cabinet/files/search</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">GET</td></tr></tbody></table></div><h2 id="Request">Request</h2><h3 id="HTTP Header">HTTP Header</h3><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Key</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Value</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Note</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">Authorization</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">ESA Base64(serviceSecret:licenseKey)</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr></tbody></table></div><h3 id="Query parameters">Query parameters</h3>
+<div id="HTMLBlock13505" class="HTMLBlock">
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh">No</th>
+      <th class="confluenceTh">Parameter</th>
+      <th class="confluenceTh">Description</th>
+      <th class="confluenceTh">Type</th>
+      <th class="confluenceTh">Mandatory</th>
+      <th class="confluenceTh">Multiplicity</th>
+      <th class="confluenceTh">Note</th>
+    </tr>
+    <tr>
+      <td class="confluenceTd">1</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">fileId	</td>
+      <td class="confluenceTd">画像ID</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Integer</td>
+      <td colspan="1" rowspan="3" class="confluenceTd">△</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+      <td colspan="1" rowspan="3" class="confluenceTd">画像ID、ファイル名、画像名のうちいずれか一つを必ず指定する必要あります。<br><br>
+複数指定した場合、（１）画像ID　（２）ファイル名　（３）画像名の優先順位で検索します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">2</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">filePath</td>
+      <td class="confluenceTd">ファイル名</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">3</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">fileName</td>
+      <td class="confluenceTd">画像名</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">String</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">4</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">folderId</td>
+      <td class="confluenceTd">フォルダID</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Integer</td>
+      <td class="confluenceTd"></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+      <td colspan="1" rowspan="2" class="confluenceTd">フォルダID、フォルダ名を両方指定した場合は、フォルダIDを優先して検索します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">5</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">folderPath</td>
+      <td class="confluenceTd">フォルダ名</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">String</td>
+      <td class="confluenceTd"></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">6</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">offset</td>
+      <td class="confluenceTd">検索結果取得ページ数</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Integer</td>
+      <td class="confluenceTd"></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+      <td class="confluenceTd">
+      1を基準値とした検索結果取得ページ数<br><br>
+　例）100件データが存在する場合を仮定し、検索結果の1ページあたりの取得上限数を10に設定した場合<br>
+　offset=1、limit=10 → 1件目～10件目のデータを取得する<br>
+　offset=2、limit=10 → 11件目～20件目のデータを取得する<br>
+　offset=3、limit=10 → 21件目～30件目のデータを取得する<br><br>
+　例）100件データが存在する場合を仮定し、検索結果の1ページあたりの取得上限数を20に設定した場合<br>
+　offset=1、limit=20 → 1件目～20件目のデータを取得する<br>
+　offset=2、limit=20 → 21件目～40件目のデータを取得する<br>
+　offset=3、limit=20 → 41件目～60件目のデータを取得する</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd">7</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">limit</td>
+      <td class="confluenceTd">検索結果取得上限数</td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">Integer</td>
+      <td class="confluenceTd"></td>
+      <td class="highlight-red confluenceTd" data-highlight-colour="red">0,1</td>
+      <td colspan="1" rowspan="2" class="confluenceTd">
+      検索結果の1ページあたりの取得上限数<br><br>
+      　例）100件データが存在する場合を仮定し、検索結果の1ページあたりの取得上限数を10に設定した場合<br>
+      　offset=1、limit=10 → 1件目～10件目のデータを取得する<br>
+      　offset=2、limit=10 → 11件目～20件目のデータを取得する<br>
+      　offset=3、limit=10 → 21件目～30件目のデータを取得する<br><br>
+      　例）100件データが存在する場合を仮定し、検索結果の1ページあたりの取得上限数を20に設定した場合<br>
+      　offset=1、limit=20 → 1件目～20件目のデータを取得する<br>
+      　offset=2、limit=20 → 21件目～40件目のデータを取得する<br>
+      　offset=3、limit=20 → 41件目～60件目のデータを取得する<br><br>
+      <font color="blue">※値は100まで指定可能です。</font>
+    </td></tr>
+  </tbody>
+</table>
+</div> </div><h3 id="HTTP Body">HTTP Body</h3><p><span style="font-size: 14.0px; line-height: 1.5;">　None</span></p><h2 id="Response">Response</h2><h3 id="HTTP Header">HTTP Header</h3><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Key</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Value</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(61,61,61);">Content-Type</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">text/xml</td></tr></tbody></table></div><h3 id="HTTP Body">HTTP Body</h3><h4 id="XML:result">XML:result</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Element</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Description</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Type</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><p><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></p></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><p><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></p></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Note</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p>result.<strong>status</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">ステータス</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><a href="https://webservice.rms.rakuten.co.jp/enterprise-portal/view?page=document0030"></a><a href="/merchant-portal/view/ja/common/1-1_service_index/functionsCommonDefinition">XML:status</a></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">-</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>interfaceId=cabinet.files.search</p></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">result.</span><strong>cabinetFilesSearchResult</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>フォルダ内画像情報検索結果</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">XML:cabinetFilesSearchResult<br></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">-</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr></tbody></table></div><h4 id="XML:cabinetFilesSearchResult">XML:cabinetFilesSearchResult</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Element</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Description</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Type</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><p><b><span style="color: rgb(0,0,0);">Size(byte)</span></b></p></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Note</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p>cabinetFilesSearchResult.<strong>resultCode</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>結果コード</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Integer</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">4</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">cabinetFilesSearchResult.</span><strong>fileAllCount</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">全画像数</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Integer</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">5</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">3</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">cabinetFilesSearchResult.</span><strong>fileCount</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>返却<span style="color: rgb(0,0,0);">画像</span>数</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Integer</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">5</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">4</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p><span style="color: rgb(0,0,0);">cabinetFilesSearchResult.</span><strong>files</strong></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">画像</span>情報リスト</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><p>XML :&nbsp;files<br></p></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">-</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr></tbody></table></div><h4 id="XML:files">XML:files</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Element</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Description</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Type</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><p><b><span>Size(byte)</span></b></p></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span>Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Note</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">file</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">ファイル情報</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">XML :&nbsp;file<br></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">-</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1 ... n</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr></tbody></table></div><h4 id="XML:file">XML:file</h4><div class="support table-wrap" style="clear: both;"><table class="tableBordered confluenceTable"><tbody><tr><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>No</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Element</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Description</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Type</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Size(byte)</b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b><span style="color: rgb(0,0,0);">Multiplicity</span></b></td><td class="confluenceTd" style="background-color:rgb(240, 240, 240);"><b>Note</b></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">file.<strong>FolderId</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>フォルダID</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Integer</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">10</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">2</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FolderName</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>フォルダ名</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">String</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">50</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">3</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FolderNode</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>フォルダノード</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">Integer</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">1 or 2 or 3</span></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">4</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FolderPath</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p>フォルダパス</p></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">String</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">153</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><p><span style="color: rgb(0,0,0);">path1/path2/path3<br>　</span></p><p><span style="color: rgb(0,0,0);">区切り文字は"/"です。</span></p></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">5</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileId</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">画像ID</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">Integer</span></span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">10</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">6</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileName</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">画像名</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">String</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">50</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">7</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileUrl</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">画像保存先</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">String</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">265</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">8</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FilePath</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">file名</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">String</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">50</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">9</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileType</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">画像</span>タイプ</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">Integer</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">1</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">10</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileSize</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><strong></strong><span style="color: rgb(0,0,0);">画像</span>サイズ (KB)</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Decimal</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">7</span></td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">11</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileWidth</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">画像の</span>横幅</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">Integer</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">4</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">12</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileHeight</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">画像の</span>縦幅</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">Integer</span></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">4</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">13</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>FileAccessDate</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">画像</span>アクセス日</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">Date</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">10</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr><tr><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">14</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);"><span style="color: rgb(0,0,0);">file.</span><strong>TimeStamp</strong></td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"><span style="color: rgb(0,0,0);">画像情報</span>更新日時</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">DateTime</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);">19</td><td class="confluenceTd" style="background-color:rgb(255, 255, 255);">1</td><td class="confluenceTd" style="background-color:rgb(255, 231, 231);"></td></tr></tbody></table></div><h4 id="Response sample">Response sample</h4>
+<div id="HTMLBlock6348" class="HTMLBlock">
+<br><div class="table-wrap"><table class="confluenceTable"><tbody><tr><td colspan="1" class="confluenceTd"><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
+<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Default" data-theme="Default">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;result&gt;
+    &lt;status&gt;
+        &lt;interfaceId&gt;cabinet.files.search&lt;/interfaceId&gt;
+        &lt;systemStatus&gt;OK&lt;/systemStatus&gt;
+        &lt;message&gt;OK&lt;/message&gt;
+        &lt;requestId&gt;714a4983-555f-42d9-aeea-89dae89f2f55&lt;/requestId&gt; 
+        &lt;requests&gt;
+            &lt;folderId&gt;aaa&lt;/folderId&gt;
+            &lt;fileName&gt;bbb&lt;/fileName&gt;
+        &lt;/requests&gt;
+    &lt;/status&gt;
+    &lt;cabinetFilesSearchResult&gt; 
+        &lt;resultCode&gt;0&lt;/resultCode&gt;
+        &lt;fileAllCount&gt;1000&lt;/fileAllCount&gt;
+        &lt;fileCount&gt;100&lt;/fileCount&gt;
+        &lt;files&gt;
+            &lt;file&gt;
+                &lt;FolderId&gt;10001&lt;/FolderId&gt;
+                &lt;!-- omission --&gt;
+            &lt;/file&gt;
+            &lt;file&gt;
+                &lt;FolderId&gt;10002&lt;/FolderId&gt;
+                &lt;!-- omission --&gt;
+            &lt;/file&gt;
+            &lt;file&gt;
+                &lt;FolderId&gt;10003&lt;/FolderId&gt;
+                &lt;!-- omission --&gt;
+            &lt;/file&gt;
+        &lt;/files&gt;
+    &lt;/cabinetFilesSearchResult&gt;
+&lt;/result&gt;</pre>
+</div></div></td></tr></tbody></table></div><br></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

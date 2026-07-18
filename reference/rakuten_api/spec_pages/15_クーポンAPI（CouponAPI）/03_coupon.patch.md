@@ -1,0 +1,95 @@
+RMS WEB SERVICE
+
+URL: https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/couponapi/couponpatch
+サービス: クーポンAPI（CouponAPI）
+
+サービス一覧へ戻る / CouponAPI
+
+RMS WEB SERVICE : coupon.patch
+この機能を利用すると、利用開始後（クーポン有効期間の開始時間から60分前以降）にクーポンの表示フラグを更新することができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/coupon/patch	POST
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+None
+
+HTTP Body
+XML: request
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	request.couponPatchRequest	クーポン情報更新要求	XML:couponPatchRequest	-	○	1	
+XML: couponPatchRequest
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	couponPatchRequest.coupon	クーポン情報	XML:coupon	-	○	1	
+XML: coupon
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	coupon.couponCode	クーポンコード	String	19	○	1	更新不可
+2	coupon.displayFlag	公開設定フラグ	int	4	○	1	0： 限定公開（クーポン獲得URLを配布）
+1： 全ユーザに公開
+
+全角数字を自動的に半角数字に変換します。
+Request Sample
+request example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<request>
+    <couponPatchRequest>
+        <coupon>
+            <couponCode>FOTN-EKXX-68T2-CXZV</couponCode>
+            <displayFlag>1</displayFlag>
+        </coupon>
+    </couponPatchRequest>
+</request>
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML:result
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	result.status	ステータス情報	XML:status	-	1	interfaceId = coupon.patch
+2	result.errors	エラー情報リスト	XML:errors	-	0,1	エラー発生時のみ返却されます
+3	result.coupon	クーポン情報	XML:coupon	-	0,1	
+XML:errors
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	errors.error	エラー情報	XML:error	-	1..n	
+XML:error
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	error.code	エラーコード	String	-	1	詳細は、 CouponAPI Response Codes Reference を参照してください。
+2	error.message	エラーメッセージ	String	-	1	詳細は、 CouponAPI Response Codes Reference を参照してください。
+XML:coupon
+No	Element	Description	Type	Size(byte)	Multiplicity	Note
+1	coupon.couponCode	クーポンコード	String	19	1	
+Response Sample
+response example (normal case)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.patch</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>c0ae977b-0d41-41a4-aa17-cac579141604</requestId>
+    </status>
+    <coupon>
+        <couponCode>FOTN-EKXX-68T2-CXZV</couponCode>
+    </coupon>
+</result>
+response example (error case : general error)
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+    <status>
+        <interfaceId>coupon.patch</interfaceId>
+        <systemStatus>OK</systemStatus>
+        <message>OK</message>
+        <requestId>4df7717f-1039-4599-8288-2501842fa71f</requestId>
+    </status>
+    <errors>
+        <error>
+            <code>COUPON_EE11-001</code>
+            <message>displayFlag.invalid_value</message>
+        </error>
+    </errors>
+</result>

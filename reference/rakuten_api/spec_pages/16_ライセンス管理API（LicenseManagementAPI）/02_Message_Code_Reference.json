@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "ライセンス管理API（LicenseManagementAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/"
+  },
+  "feature_page": {
+    "name": "Message Code Reference",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/messagecodesreference/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/licensemanagementapi/messagecodesreference/",
+  "main_text": "サービス一覧へ戻る / LicenseManagementAPI\n\nRMS WEB SERVICE : Message Code Reference\nNo.\tCode\tMessage\tDescription\tHTTP Status Code\n1\tDR0001\tApplication Exception\tアプリケーション例外\t500\n2\tDR0002\tSystem Exception\tシステム例外\t500\n3\tDR0003\tBad Gateway\t不正あるいは誤ったレスポンス\t504\n4\tDR0004\tBad Gateway\tコネクション例外あるいはタイムアウト\t504\n5\tDR0005\tBad Request\tライセンスキーが空あるいは誤り\t400\n6\tDR0006\tBad Request\t有効期限のないライセンスキーが指定された\t400\n7\tDR0007\tUn-Authorised\tリクエストパラメータのlicenseKeyとAuthorizationが一致しない\t401"
+}

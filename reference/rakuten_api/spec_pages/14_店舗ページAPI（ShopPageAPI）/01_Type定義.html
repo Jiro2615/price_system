@@ -1,0 +1,324 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			
+<div id="HTMLBlock31117" class="HTMLBlock">
+<style>.give_space{white-space: pre;}</style>
+<div id="main-header">
+<p><a href="/merchant-portal/backToMenu">サービス一覧へ戻る</a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/shoppageapi/">ShopPageAPI</a></p>
+<h1 id="title-heading" class="pagetitle"><span id="title-text">ShopPageAPI : Type定義</span></h1>
+</div>
+<h2 id="Type(型) / Format(書式)">Type(型) / Format(書式)</h2>
+<span>ShopPageAPIで取り扱うType(型) / Format(書式)は下記表の通りです。</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>Type(型)</b></th>
+      <th class="confluenceTh"><b>Format(書式)</b></th>
+      <th class="confluenceTh"><b>説明</b></th>
+      <th class="confluenceTh"><b>値詳細</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">String</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">文字列です。</td>
+      <td class="confluenceTd give_space">・<a href="#サポート外の文字" target="_self" rel="nofollow">サポート外の文字</a>を含まないこと。<br>・楽天市場以外のリンクを含まないこと。<br><br>以下の範囲のユニコードを半角文字として扱います。<br>U+0000 ~ U+0081、U+F8F0 ~ U+F8F3 、U+FF61 ~ U+FFA0</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">String</td>
+      <td class="confluenceTd give_space">UUID</td>
+      <td class="confluenceTd give_space">UUID形式の文字列です。</td>
+      <td class="confluenceTd give_space">ハイフンを含めずに32文字で以下の書式になります。<br>XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX<br>(X = 0-9, a-f)<br><br>例：<br>92716cd2-a27c-5f7d-6ea6-08dfb46bcaab<br>UUIDはrfc4122に定義されています。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Enum</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">固定文字列（定数）です。</td>
+      <td class="confluenceTd give_space">各インターフェースのドキュメントに固定文字列（定数）が記載されています。<br><br>例：<br>定数：日本語名<br>SHOP_TOP：ショップトップページ</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">String</td>
+      <td class="confluenceTd give_space">link_url</td>
+      <td class="confluenceTd give_space">リンク先のURLに使用可能な文字列です。</td>
+      <td class="confluenceTd give_space">・URL形式であること。<br>・楽天市場以外のリンクを含まないこと。<br><br>使用できる文字は以下の通りです。<br>・0-9、a-z、A-Z<br>・!、#、$、%、&amp;、'、(、)、*、+、,、-、.、/、:、;、=、?、@、[、]、_、~<br>　※ユニコードではU+0021, U+0023~ U+002F, U+003A ~ U+003B, U+003D,  U+003F ~ U+0040, U+005B, U+005D, U+005F, U+007E</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">String</td>
+      <td class="confluenceTd give_space">date_time</td>
+      <td class="confluenceTd give_space">日時文字列です。</td>
+      <td class="confluenceTd give_space">ISO 8601（YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm）形式です。<br><br>例<br>UTC<br>2021-09-18T16:00:00Z<br>Asia/Tokyo<br>2021-09-18T16:00:00+09:00</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Integer</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">整数です。</td>
+      <td class="confluenceTd give_space">-2の31乗〜2の31乗-1の値が使用可能です。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Boolean</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">真偽値です。</td>
+      <td class="confluenceTd give_space">trueは真、falseは偽を表します。</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">List(Type)</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">順序付けされた値の集まりです。</td>
+      <td class="confluenceTd give_space">List(Type)は、Typeが並んだ値の集まりを表します。<br><br>例 List(String)<br>"abc", "aab", "test"のListはJsonだと以下のようになります。<br>["abc", "aab", "test"]</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Object</td>
+      <td class="confluenceTd give_space">-</td>
+      <td class="confluenceTd give_space">順序付けされない名前/値のペアのセットです。</td>
+      <td class="confluenceTd give_space">Object自体はJsonの仕様に従います。</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<h3 id="サポート外の文字">サポート外の文字</h3>
+<span>サポート外の文字は、下記表の通りです。</span><br>
+<div class="table-wrap">
+<table class="wrapped confluenceTable">
+  <tbody>
+    <tr>
+      <th class="confluenceTh"><b>種別</b></th>
+      <th class="confluenceTh"><b>ユニコード</b></th>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">制御文字<br>※水平タブ(U+0009)、改行(U+000A)、行頭復帰(U+000D)、空白(U+0020)を除く</td>
+      <td class="confluenceTd give_space">U+0000 ~ U+0020<br>※U+0009, U+000A, U+000D, U+0020を除く</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Delete character</td>
+      <td class="confluenceTd give_space">U+007F</td>
+    </tr>
+    <tr>
+      <td class="confluenceTd give_space">Replacement character</td>
+      <td class="confluenceTd give_space">U+FFFD</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

@@ -1,0 +1,1127 @@
+{
+  "meta": {
+    "status": "proposed_v2",
+    "source_files": [
+      "allowed_phrase_review_classified.json",
+      "allowed_phrases_rakuten_proposed.json"
+    ],
+    "policy": "保留候補のうち、長い保証・問い合わせ・返品・URL/メール系および空白以外の変更を含むものだけ除外し、それ以外は採用。",
+    "note": "本番反映前にレビューしてください。許可フレーズは文字列の誤検知回避専用で、危険物・医薬・酒類・監視・配送可否等の別判定を無効化しません。"
+  },
+  "rules": [
+    {
+      "forbidden_word": "ANA",
+      "allowed_phrases": [
+        "?KATANA"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "Apple Watch",
+      "allowed_phrases": [
+        "Apple Watch等のデジタル製品でも"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "Apple Watch等のデジタル製品でも",
+          "required_checks": [
+            "brand_masking"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "KATA",
+      "allowed_phrases": [
+        "?KATANA"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "クリ",
+      "allowed_phrases": [
+        "クリア",
+        "クリスタ",
+        "クリスマス",
+        "クリーンルーム"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "SONY",
+      "allowed_phrases": [
+        "SONY?NEX対応"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "SONY?NEX対応",
+          "required_checks": [
+            "brand_masking"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "iPhone",
+      "allowed_phrases": [
+        "iPhone"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "iPhone",
+          "required_checks": [
+            "brand_masking"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "たばこ",
+      "allowed_phrases": [
+        "たばこ、その他火気",
+        "たばこのヤニ"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "たばこ、その他火気",
+          "required_checks": [
+            "tobacco"
+          ]
+        },
+        {
+          "phrase": "たばこのヤニ",
+          "required_checks": [
+            "tobacco"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "まつ毛美容液",
+      "allowed_phrases": [
+        "まつ毛美容液?塗る アイラッシュ"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "アサヒ",
+      "allowed_phrases": [
+        "アサヒグループ食品?ディアナチュラ"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "アップル",
+      "allowed_phrases": [
+        "ムスク、アップル、ミント"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "アルコール",
+      "allowed_phrases": [
+        "ステアリルアルコール",
+        "セテアリルアルコール",
+        "無鉱物油、アルコール",
+        "ベヘニルアルコール",
+        "アルコールと医術",
+        "アルコールの研究",
+        "アルコールパッド",
+        "アルコールフリー",
+        "エチルアルコール",
+        "変性アルコール"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "ステアリルアルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "セテアリルアルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "無鉱物油、アルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ベヘニルアルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "アルコールと医術",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "アルコールの研究",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "アルコールパッド",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "アルコールフリー",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "エチルアルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "変性アルコール",
+          "required_checks": [
+            "alcohol"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "イラ",
+      "allowed_phrases": [
+        "スパイラル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ウイスキー",
+      "allowed_phrases": [
+        "ウイスキー?ブランデー?クリア ガラス",
+        "ウイスキーグラス?",
+        "ウイスキーグラス"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "ウイスキー?ブランデー?クリア ガラス",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ウイスキーグラス?",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ウイスキーグラス",
+          "required_checks": [
+            "alcohol"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "エアコン",
+      "allowed_phrases": [
+        "テレビやエアコンの電源がOFFになり"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "カメラ",
+      "allowed_phrases": [
+        "カメラ、ミリ波レーダー、赤外線レーザー",
+        "カメラリング"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "カメラリング",
+          "required_checks": [
+            "surveillance"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ガソリン",
+      "allowed_phrases": [
+        "シールチェーンでは灯油、ガソリン",
+        "4輪ガソリン/ディーゼル車両用",
+        "ガソリンフィルター",
+        "4輪車用ガソリン",
+        "ガソリンスタンド",
+        "ガソリン添加剤",
+        "ガソリン発電機",
+        "4輪ガソリン",
+        "ガソリン車"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "シールチェーンでは灯油、ガソリン",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "4輪ガソリン/ディーゼル車両用",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ガソリンフィルター",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "4輪車用ガソリン",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ガソリンスタンド",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ガソリン添加剤",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ガソリン発電機",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "4輪ガソリン",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ガソリン車",
+          "required_checks": [
+            "fuel"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "スパイ",
+      "allowed_phrases": [
+        "エアスパイラル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "スプレー",
+      "allowed_phrases": [
+        "スプレーするだけの瞬間3秒コーティング",
+        "足にスプレーやローション",
+        "ギャップスプレーモード",
+        "スプレー塗料で作られた",
+        "ナメクジカダンスプレー",
+        "ライセンスプレート",
+        "使用後はスプレーを",
+        "連続スプレーモード",
+        "スプレーするだけ",
+        "スプレーは手早く",
+        "テニスプレーヤー",
+        "洗濯物にスプレー",
+        "洗車後にスプレー",
+        "研磨剤のスプレー",
+        "集中してスプレー",
+        "オイルスプレー",
+        "スプレーしない",
+        "スプレードライ",
+        "スプレーボトル",
+        "ベースプレート",
+        "スプレー処理",
+        "スプレー機能",
+        "ディスプレー",
+        "最大スプレー",
+        "程度スプレー",
+        "防水スプレー",
+        "香水スプレー"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "スプレーするだけの瞬間3秒コーティング",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "足にスプレーやローション",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "ギャップスプレーモード",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレー塗料で作られた",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "ナメクジカダンスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "ライセンスプレート",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "使用後はスプレーを",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "連続スプレーモード",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレーするだけ",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレーは手早く",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "テニスプレーヤー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "洗濯物にスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "洗車後にスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "研磨剤のスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "集中してスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "オイルスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレーしない",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレードライ",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレーボトル",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "ベースプレート",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレー処理",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "スプレー機能",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "ディスプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "最大スプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "程度スプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "防水スプレー",
+          "required_checks": [
+            "spray"
+          ]
+        },
+        {
+          "phrase": "香水スプレー",
+          "required_checks": [
+            "spray"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ソニー",
+      "allowed_phrases": [
+        "に適用する?ソニーウォークマン",
+        "適用する?ソニーウォークマン",
+        "ソニーEマウント対応",
+        "?for?ソニー"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "に適用する?ソニーウォークマン",
+          "required_checks": [
+            "brand_masking"
+          ]
+        },
+        {
+          "phrase": "適用する?ソニーウォークマン",
+          "required_checks": [
+            "brand_masking"
+          ]
+        },
+        {
+          "phrase": "ソニーEマウント対応",
+          "required_checks": [
+            "brand_masking"
+          ]
+        },
+        {
+          "phrase": "?for?ソニー",
+          "required_checks": [
+            "brand_masking"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "タバコ",
+      "allowed_phrases": [
+        "タバコのニオイ",
+        "タバコや食べ物",
+        "タバコや汗",
+        "汗やタバコ"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "タバコのニオイ",
+          "required_checks": [
+            "tobacco"
+          ]
+        },
+        {
+          "phrase": "タバコや食べ物",
+          "required_checks": [
+            "tobacco"
+          ]
+        },
+        {
+          "phrase": "タバコや汗",
+          "required_checks": [
+            "tobacco"
+          ]
+        },
+        {
+          "phrase": "汗やタバコ",
+          "required_checks": [
+            "tobacco"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ティア",
+      "allowed_phrases": [
+        "セキュリティアラーム"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "テレビ",
+      "allowed_phrases": [
+        "テレビやエアコンの電源がOFFになり",
+        "テレビ、エアコン、扇風機"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ディーゼル",
+      "allowed_phrases": [
+        "4輪ガソリン/ディーゼル車両用",
+        "ディーゼルエンジン",
+        "ディーゼル車両用"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "4輪ガソリン/ディーゼル車両用",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ディーゼルエンジン",
+          "required_checks": [
+            "fuel"
+          ]
+        },
+        {
+          "phrase": "ディーゼル車両用",
+          "required_checks": [
+            "fuel"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "トニック",
+      "allowed_phrases": [
+        "治療薬とジン・トニック"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "治療薬とジン・トニック",
+          "required_checks": [
+            "medical"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ナンバープレート",
+      "allowed_phrases": [
+        "ナンバープレートの盗難防止"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ネオジム磁石",
+      "allowed_phrases": [
+        "ネオジム磁石"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ビール",
+      "allowed_phrases": [
+        "?ロックグラス?ビール?ハイボール グラス?",
+        "グラス?ビール?ハイボール グラス?",
+        "ビールは生水より清潔な栄養ドリンク",
+        "薬が酒で　ビール、ワイン",
+        "おやつ 海鮮 ビール",
+        "ビール酵母で誘引",
+        "健康的なビール?"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "?ロックグラス?ビール?ハイボール グラス?",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "グラス?ビール?ハイボール グラス?",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ビールは生水より清潔な栄養ドリンク",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "薬が酒で　ビール、ワイン",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "おやつ 海鮮 ビール",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ビール酵母で誘引",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "健康的なビール?",
+          "required_checks": [
+            "alcohol"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "フローラ",
+      "allowed_phrases": [
+        "フローラル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ブランデー",
+      "allowed_phrases": [
+        "ウイスキー?ブランデー?クリア ガラス",
+        "ブランデーグラス"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "ウイスキー?ブランデー?クリア ガラス",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ブランデーグラス",
+          "required_checks": [
+            "alcohol"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ミント",
+      "allowed_phrases": [
+        "ムスク、アップル、ミント"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "メール便",
+      "allowed_phrases": [
+        "ヤマトメール便での発送となります"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "モア",
+      "allowed_phrases": [
+        "【国内正規品】グランズレメディ?モアビビちゃんの",
+        "モアビビちゃんの魔法"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "リティア",
+      "allowed_phrases": [
+        "セキュリティアラーム"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "レーザー",
+      "allowed_phrases": [
+        "カメラ、ミリ波レーダー、赤外線レーザー"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ローション",
+      "allowed_phrases": [
+        "足にスプレーやローション"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "足にスプレーやローション",
+          "required_checks": [
+            "spray"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "ローラ",
+      "allowed_phrases": [
+        "フローラル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ワイン",
+      "allowed_phrases": [
+        "薬が酒で　ビール、ワイン",
+        "ギリシアのワイン",
+        "ワインダー"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "薬が酒で　ビール、ワイン",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ギリシアのワイン",
+          "required_checks": [
+            "alcohol"
+          ]
+        },
+        {
+          "phrase": "ワインダー",
+          "required_checks": [
+            "alcohol"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "刃物",
+      "allowed_phrases": [
+        "刃物ですから取扱いには十分ご注意ください",
+        "刃物などからつま先を保護",
+        "小山刃物製作所"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "刃物ですから取扱いには十分ご注意ください",
+          "required_checks": [
+            "weapon"
+          ]
+        },
+        {
+          "phrase": "刃物などからつま先を保護",
+          "required_checks": [
+            "weapon"
+          ]
+        },
+        {
+          "phrase": "小山刃物製作所",
+          "required_checks": [
+            "weapon"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "医療",
+      "allowed_phrases": [
+        "医療用感圧性接着剤および剥離紙で構成"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "医療用",
+      "allowed_phrases": [
+        "医療用感圧性接着剤および剥離紙で構成"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "商標",
+      "allowed_phrases": [
+        "ゴールデンパッドは(株)デイトナの登録商標"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "国内正規品",
+      "allowed_phrases": [
+        "【国内正規品】グランズレメディ?モアビビちゃんの"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "塗料",
+      "allowed_phrases": [
+        "スプレー塗料で作られた"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "スプレー塗料で作られた",
+          "required_checks": [
+            "spray"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "正規",
+      "allowed_phrases": [
+        "【国内正規品】グランズレメディ?モアビビちゃんの",
+        "この商品はブラウンの正規品ではなく"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "正規品",
+      "allowed_phrases": [
+        "【国内正規品】グランズレメディ?モアビビちゃんの",
+        "この商品はブラウンの正規品ではなく"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "治療",
+      "allowed_phrases": [
+        "治療薬とジン・トニック"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "治療薬とジン・トニック",
+          "required_checks": [
+            "medical"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "無線機",
+      "allowed_phrases": [
+        "電波法の技術基準に適合した無線機器"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "無線機器",
+      "allowed_phrases": [
+        "電波法の技術基準に適合した無線機器"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "登録商標",
+      "allowed_phrases": [
+        "ゴールデンパッドは(株)デイトナの登録商標"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "盗難防止",
+      "allowed_phrases": [
+        "盗難防止などの防犯対策にもご利用いただけます",
+        "盗難防止?防犯?ブザー"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "盗難防止などの防犯対策にもご利用いただけます",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "盗難防止?防犯?ブザー",
+          "required_checks": [
+            "surveillance"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "磁石",
+      "allowed_phrases": [
+        "ネオジム磁石"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "衣類乾燥",
+      "allowed_phrases": [
+        "衣類乾燥機スタンド"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "衣類乾燥機",
+      "allowed_phrases": [
+        "衣類乾燥機スタンド"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "防犯",
+      "allowed_phrases": [
+        "通路の防犯など様々なシーンで大活躍",
+        "人感センサーライト 防犯カメラ",
+        "アーテック(artec)防犯",
+        "田舎には防犯上役に立ちます",
+        "ロック用鍵穴で防犯対策",
+        "盗難防止?防犯?ブザー",
+        "防犯対策や車内泊",
+        "防犯アラーム",
+        "消灯/防犯",
+        "防犯や避難",
+        "防犯ライト"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "通路の防犯など様々なシーンで大活躍",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "人感センサーライト 防犯カメラ",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "アーテック(artec)防犯",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "田舎には防犯上役に立ちます",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "ロック用鍵穴で防犯対策",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "盗難防止?防犯?ブザー",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "防犯対策や車内泊",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "防犯アラーム",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "消灯/防犯",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "防犯や避難",
+          "required_checks": [
+            "surveillance"
+          ]
+        },
+        {
+          "phrase": "防犯ライト",
+          "required_checks": [
+            "surveillance"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "防犯カメラ",
+      "allowed_phrases": [
+        "人感センサーライト 防犯カメラ"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "人感センサーライト 防犯カメラ",
+          "required_checks": [
+            "surveillance"
+          ]
+        }
+      ]
+    },
+    {
+      "forbidden_word": "食品",
+      "allowed_phrases": [
+        "アサヒグループ食品?ディアナチュラ"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "高圧ガス",
+      "allowed_phrases": [
+        "?高圧ガスを使用した可燃性の製品であり",
+        "高圧ガス封入式で"
+      ],
+      "separate_check_phrases": [
+        {
+          "phrase": "?高圧ガスを使用した可燃性の製品であり",
+          "required_checks": [
+            "hazardous"
+          ]
+        },
+        {
+          "phrase": "高圧ガス封入式で",
+          "required_checks": [
+            "hazardous"
+          ]
+        }
+      ]
+    }
+  ]
+}

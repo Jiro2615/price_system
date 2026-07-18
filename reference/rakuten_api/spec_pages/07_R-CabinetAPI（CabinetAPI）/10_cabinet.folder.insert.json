@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "R-CabinetAPI（CabinetAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"
+  },
+  "feature_page": {
+    "name": "cabinet.folder.insert",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetfolderinsert/",
+    "description": "この機能を利用すると、フォルダを作成することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetfolderinsert/",
+  "main_text": "サービス一覧へ戻る / CabinetAPI\n\nRMS WEB SERVICE : cabinet.folder.insert\nこの機能を利用すると、フォルダを作成することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/1.0/cabinet/folder/insert\tPOST\nRequest\nHTTP Header\nNo\tKey\tValue\tNote\n1\tAuthorization\tESA Base64(serviceSecret:licenseKey)\t\nQuery parameters\nNone\n\nHTTP Body\nXML : request\nNo\tElement\tDescription\tType\tSize(byte)\tMandatory\tMultiplicity\tNote　　　\n1\trequest.folderInsertRequest\tフォルダ情報登録要求\tXML : folderInsertRequest\t-\t○\t1\t\nXML : folderInsertRequest\nNo\tElement\tDescription\tType\tSize(byte)\tMandatory\tMultiplicity\tNote\n1\tfolderInsertRequest.folder\tフォルダ情報\tXML : folder\t-\t○\t1\t\nXML : file\nNo\tElement\tDescription　　　　　　\tType　　　　　\tSize(byte)　　　\tMandatory　　　\tMultiplicity　　　\tNote\n1\tfolder.folderName\tフォルダ名\tString\t50\t○\t1\t\n2\tfolder.directoryName\tディレクトリ名\tString\t20\t\t0,1\t任意で指定可能なファイルパス。未指定の場合は自動採番(8桁以上の値)。\n\n以下の英数字、記号が使用可能。\n・\"a~z\"\n・\"0~9\"\n・\"-\", \"_\"\n3\tfolder.upperFolderId\t上位階層フォルダID\tInteger\t10\t\t0,1\t下位フォルダとして作成する場合はその上位階層フォルダIDを指定\n　\n0(基本フォルダ)は指定不可\nRequest Sample\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<request>\n    <folderInsertRequest>\n        <folder>\n            <folderName>xxx</folderName>\n            <directoryName>xxx</directoryName>\n            <upperFolderId>19946</upperFolderId>\n        </folder>\n    </folderInsertRequest>\n</request>\nResponse\nHTTP Header\nNo\tKey\tValue\n1\tContent-Type\ttext/xml\nHTTP Body\nXML : result\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\tresult.status\tステータス\tXML : status\t-\t1\tinterfaceId=cabinet.folder.insert\n2\tresult.cabinetFolderInsertResult\tフォルダ情報登録結果\tXML : cabinetFolderInsertResult\t-\t1\t\nXML : cabinetFolderInsertResult\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\tcabinetFolderInsertResult.resultCode\t結果コード\tInteger\t4\t1\t\n2\tcabinetFolderInsertResult.FolderId\tフォルダID\tInteger\t10\t1\t\nResponse sample\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<result>\n    <status>\n        <interfaceId>cabinet.folder.insert</interfaceId>\n        <systemStatus>OK</systemStatus>\n        <message>OK</message>\n        <requestId>714a4983-555f-42d9-aeea-89dae89f2f45</requestId>\n        <requests/>\n    </status>\n    <cabinetFolderInsertResult>\n        <resultCode>0</resultCode>\n        <FolderId>0</FolderId>\n    </cabinetFolderInsertResult>\n </result>"
+}

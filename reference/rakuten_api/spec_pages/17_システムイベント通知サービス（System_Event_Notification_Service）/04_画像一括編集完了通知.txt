@@ -1,0 +1,23 @@
+サービス一覧へ戻る / システムイベント通知サービス / システム情報通知
+
+RMS WEB SERVICE : 画像一括編集完了通知
+「システム情報通知」の画像一括編集完了通知サービスで提供される、格納データについて定義します。
+インターフェース項目は、「システム情報通知」の内容に準じます。
+
+実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。
+
+画像一括編集完了通知
+No	Element	Description	Sample	Note
+Element Name	Attribute Value	Element Name	Attribute Value
+1	value1	fileName	データ1	ファイル名	imageFile	常に"imageFile" (固定値)
+2	value2	processDatetime	データ2	処理日時	2013/11/01 15:15	処理をした日時
+　YYYY/MM/DD HH:mm
+3	value3	insertCount	データ3	処理件数(登録)	10	正常に登録できた件数
+4	value4	errorCount	データ4	処理件数(エラー)	10	エラーとなった件数
+5	value5	errorFilePath	データ5	エラーログファイルパス	cabinet/logs/image_20131101151501.csv	エラーログの出力場所
+※エラーが無い場合は空文字となる
+6	value6	空白	データ6	-	-	常に空文字 (固定値)
+7	value7	空白	データ7	-	-	常に空文字 (固定値)
+8	value8	空白	データ8	-	-	常に空文字 (固定値)
+9	value9	空白	データ9	-	-	常に空文字 (固定値)
+10	value10	空白	データ10	-	-	常に空文字 (固定値)

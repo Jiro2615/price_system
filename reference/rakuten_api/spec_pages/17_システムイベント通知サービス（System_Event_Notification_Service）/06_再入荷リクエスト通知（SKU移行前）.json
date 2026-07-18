@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "システムイベント通知サービス（System Event Notification Service）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"
+  },
+  "feature_page": {
+    "name": "再入荷リクエスト通知（SKU移行前）",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationnotifier/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/systemnotificationnotifier/",
+  "main_text": "サービス一覧へ戻る / システムイベント通知サービス / システム情報通知\n\nRMS WEB SERVICE : 再入荷リクエスト通知（SKU移行前）\n\n \n\n「システム情報通知」の再入荷リクエスト通知サービスで提供される、格納データについて定義します。\nインターフェース項目は、「システム情報通知」の内容に準じます。\n\n\n\n\n実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。\n\n \n\nこちらのページはSKU移行前受注（SKU移行前リクエスト）用の再入荷リクエスト通知となります。\n\nSKU移行後受注（SKU移行後リクエスト）に対する通知については「再入荷リクエスト通知（SKU移行後）」をご確認ください。\n\n※4100：再入荷リクエスト通知（SKU移行前）はSKU移行後は通知されなくなります。SKU移行後も継続して再入荷リクエスト通知を利用希望の場合は、4200：再入荷リクエスト通知（SKU移行後）のお申込みが必要です。\n\n再入荷リクエスト通知\n\n\nNo\t\n\nElement\n\n\tDescription\tSample\t\n\nNote\n\n\nElement Name\tAttribute Value\tElement Name\tAttribute Value\n1\t\n\nvalue1\n\n\tpageURL\tデータ1\t商品ページURL\t/_superagent001/ntf00001/\t\n\n/<店舗URL>/<商品管理番号>/\n\n\n2\t\n\nvalue2\n\n\torgItemNumber\tデータ2\t商品番号\ttestntf00001\t\n\n全角文字含む、最大255桁\n\n\n3\t\n\nvalue3\n\n\tinventoryType\tデータ3\t在庫タイプ\t2\t\n\n0：在庫設定なし\n1：通常在庫設定\n2：項目選択肢在庫設定\n\n\n4\t\n\nvalue4\n\n\thorizontalName\tデータ4\t項目選択肢別在庫用\n横軸選択肢項目名\tサイズ\t\n\n \n\n\n5\t\n\nvalue5\n\n\tverticalName\tデータ5\t項目選択肢別在庫用\n縦軸選択肢項目名\tカラー\t\n\n \n\n\n6\t\n\nvalue6\n\n\tchoiceNameHor \tデータ6\t項目選択肢別在庫用\n横軸選択肢\tL\t\n\n \n\n\n7\t\n\nvalue7\n\n\tchoiceNameVer\tデータ7\t項目選択肢別在庫用\n縦軸選択肢\tred\t\n\n \n\n\n8\t\n\nvalue8\n\n\tchildNoHor\tデータ8\t項目選択肢別在庫用\n横軸選択肢子番号\t3\t\n\n全角文字含む、最大32桁\n\n\n9\t\n\nvalue9\n\n\tchildNoVer\tデータ9\t項目選択肢別在庫用\n縦軸選択肢子番号\t1\t\n\n全角文字含む、最大32桁\n\n\n10\t\n\nvalue10\n\n\tentryDate\tデータ10\t再入荷リクエスト登録日付\t2013/10/10\t\n\nYYYY/MM/DD"
+}

@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "店舗情報API（ShopAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/shopapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/"
+  },
+  "feature_page": {
+    "name": "リクエストデータ内の数値項目について",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/post-request-integer-parsing/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/shopapi/post-request-integer-parsing/",
+  "main_text": "サービス一覧へ戻る / ShopAPI\n\nRMS WEB SERVICE : リクエストデータ内の数値項目について\nOverview\n\nShopAPIは、XML内の数値項目に文字列を入力した際は、以下のように解釈します。\n\n\n\n\n入力値\t例\t解釈\n数値\t<field>1</field>\t1\n全角数値\t<field>１</field>\t1\n半角スペース混合数値\t<field> 1 </field>\t1\n空白文字列\t<field></field>\t0\n半角スペース\t<field> </field>\t0\n全角スペース\t<field>　</field>\tnull\n半角テキスト\t<field>test</field>\tnull\n全角テキスト\t<field>テスト</field>\tnull\n半角・全角混合テキスト\t<field>テスト test</field>\tnull\n該当タグなし\t\tnull\n間のスペース\t<field>1 2 3</field>\tnull\n最大値を超える\tShort：32768\nInteger：11212266986\tnull\n全角スペース混合数値\t<field> 1 </field>\tnull"
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>RMS WEB SERVICE</title>
+    <link rel="stylesheet" type="text/css" href="/merchant-portal/contents/rms/common/css/style.css">
+    <link href="/merchant-portal/css/layout.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-3.5.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/jquery-ui-1.14.1.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/jquery-ui-1.14.1.min.js"></script>
+    <link type="text/css" href="/merchant-portal/css/datatables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/merchant-portal/js/datatables.min.js"></script>
+    <style type="text/css">
+        #contents {
+            margin-top: unset;
+        }
+    </style>
+</head>
+<body id="bodyWhole">
+
+<!-- 全体 -->
+<div id="whole">
+
+    <!-- Environment Banner -->
+    <div>
+        
+    </div>
+
+
+    <!-- ヘッダー -->
+    <header>
+    <div id="logo">
+        <table>
+            <tbody><tr>
+                <td>
+                <!--ロゴマーク-->
+                    <img src="/merchant-portal/img/rms_logo_32px_2x.png" width="167" height="32">
+                    <a href="/merchant-portal/backToMenu">
+                        <!--WEB SERVICE-->
+                        <img src="/merchant-portal/img/ttl_webservice_2x.png" style="margin-left: 8px; margin-bottom: 10px;" width="121" height="18">
+                    </a>
+                </td>
+                <td>
+                    <div class="headerMenu">
+                        <img src="/merchant-portal/img/icon_mail.gif" width="18" height="17">
+                        <a href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI" target="_blank">コールセンターへ問い合わせる</a>
+                        <img src="/merchant-portal/img/icn_arrow_l.gif" width="18" height="17">
+                        <a href="https://mainmenu.rms.rakuten.co.jp/">RMSメインメニュー</a>
+                        (<a href="/merchant-portal/logout">ログアウト</a>)
+                        <br>
+                        <div class="headerMenu">
+                            <a href="https://navi-manual.faq.rakuten.net/" target="_blank">店舗運営マニュアル</a>
+                            (<a href="https://navi-manual.faq.rakuten.net/service/000010629" target="_blank">＞ RMS WEB SERVICE マニュアル</a>)
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    <div id="headerBar">
+</div></header>
+
+    <!-- レフトナビとコンテンツの枠 -->
+    <div id="cn">
+
+        <!-- レフトナビ -->
+        <div id="leftNavi"><nav id="navWhole">
+    <!--現在ページをナビに表示-->
+    <script type="text/javascript">
+        // $(document).ready(function () {
+        //         $('.underList > li').removeClass('choice');
+        //         var contentsId = $('#hdnContentsId').attr('value');
+        //         if ($('.underList > li#navi' + contentsId) != null) {
+        //             $('.underList > li#navi' + contentsId).addClass('choice');
+        //         }
+        //     }
+        // );
+
+        $(function () {
+            $('.underList > li').removeClass('choice');
+            var contentsId = $('#hdnContentsId').attr('value');
+            $('#navi' + contentsId).addClass('choice');
+        });
+    </script>
+
+    <div class="navHead">
+        <div class="navNumber">1</div>
+        <span class="navTitle">サービス</span>
+    </div>
+    <ul class="underList">
+        <li id="navi1-1" class="listWhole choice">
+            <a class="listNavi" href="/merchant-portal/backToMenu">
+                <span class="listSpan">1-1</span>
+                <div class="listPosition">サービス一覧</div>
+            </a>
+        </li>
+
+        <li id="navi1-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/applicationContract">
+                <span class="listSpan">1-2</span>
+                <div class="listPosition">申込、利用規約確認</div>
+            </a>
+        </li>
+
+        <li id="navi1-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/common/1-3_api_use/">
+                <span class="listSpan">1-3</span>
+                <div class="listPosition">API活用例</div>
+            </a>
+        </li>
+    </ul>
+
+    <div class="navHead">
+        <div class="navNumber">2</div>
+        <span class="navTitle">利用設定</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi2-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceList">
+                <span class="listSpan">2-1</span>
+                <div class="listPosition">アプリ一覧</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-2" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/serviceCreate">
+                <span class="listSpan">2-2</span>
+                <div class="listPosition">アプリ登録</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensContract">
+                <span class="listSpan">2-3</span>
+                <div class="listPosition">システムイベント通知サービス　申込</div>
+            </a>
+        </li>
+    </ul>
+
+    <ul class="underList">
+        <li id="navi2-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/sensConfigurations">
+                <span class="listSpan">2-4</span>
+                <div class="listPosition">システムイベント通知サービス　設定</div>
+            </a>
+        </li>
+    </ul>
+
+
+    <div class="navHead">
+        <div class="navNumber">3</div>
+        <span class="navTitle">サポート</span>
+    </div>
+
+    <ul class="underList">
+        <li id="navi3-1" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/view/ja/merchant-portal/3-1_news/">
+                <span class="listSpan">3-1</span>
+                <div class="listPosition">楽天からのお知らせ</div>
+            </a>
+        </li>
+        <li id="navi3-2" class="listWhole">
+            <a class="listNavi" href="https://merchant-profile.rms.rakuten.co.jp/r2?type=group&amp;id=ichibaInquiryForm&amp;srcDataId=WEBAPI">
+                <span class="listSpan">3-2</span>
+                <div class="listPosition">お問い合わせ</div>
+            </a>
+        </li>
+        <li id="navi3-3" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/demoShopIndex">
+                <span class="listSpan">3-3</span>
+                <div class="listPosition">テスト店舗管理</div>
+            </a>
+        </li>
+        <li id="navi3-4" class="listWhole">
+            <a class="listNavi" href="/merchant-portal/failureList">
+                <span class="listSpan">3-4</span>
+                <div class="listPosition">障害情報(試験運用中)</div>
+            </a>
+        </li>
+    </ul>
+</nav></div>
+
+        <!-- コンテンツ(中身) -->
+        <div id="contentWhole">
+        <div id="contents">
+            <div id="confluence">
+	<div id="contentsMain">
+<link rel="stylesheet" href="/merchant-portal/contents/rms/common/css/site.css" type="text/css">
+		<div id="confluence">
+			<div id="main-content" class="wiki-content group">
+			<p><a href="/merchant-portal/backToMenu"><span>サービス一覧へ戻る</span></a> / <a href="/merchant-portal/view/ja/common/1-1_service_index/systemEventNotificationService"><span>システムイベント通知サービス</span></a> / <span><a href="/merchant-portal/view/ja/common/1-1_service_index/systemEventNotificationService/systemNotification">システム情報通知</a></span></p><h1 id="title-heading" class="pagetitle"><span id="title-text">RMS WEB SERVICE : 商品一括編集完了通知</span></h1><p>&nbsp;</p>
+<p><span style="color: #000000;"><span style="color: #000000;">「システム情報通知」</span>の商品一括編集完了通知サービスで提供される、格納データについて定義します。<br>インターフェース項目は、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemEventNotificationService/systemNotification">システム情報通知</a>」<span style="color: #000000;">の内容に準じます。</span></span></p>
+<p><span style="color: #000000;"><span style="color: #000000;"><br></span></span></p>
+<p><span style="color: #000000;">実装の前に、「<a href="/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice#制約事項">RMS WEB SERVICE : システムイベント通知サービス/４．制約事項</a> 」をご確認ください。</span></p>
+<p><span style="color: #000000;"><br></span></p>
+<p><span style="color: #000000;">こちらの通知はSKU移行前店舗様とSKU移行後店舗様によってデータ内容が異なります。<br>「<span style="color: #3366ff;"><a class="external-link" href="https://navi-manual.faq.rakuten.net/item/000038063" rel="nofollow"><span style="color: #3366ff;">CSV商品一括編集機能</span></a></span>」の仕様をご確認ください。</span></p>
+<p><span style="color: #000000;"><br></span></p><h2 id="商品一括編集完了通知">商品一括編集完了通知</h2>
+<div id="HTMLBlock37461" class="HTMLBlock">
+<br><div class="table-wrap"><table class="confluenceTable"><tbody><tr><th rowspan="2" class="confluenceTh">No</th><th colspan="2" class="confluenceTh"><p><span style="color: rgb(0,0,0);">Element</span></p></th><th colspan="2" class="confluenceTh"><span style="color: rgb(0,0,0);">Description</span></th><th rowspan="2" class="confluenceTh">Sample</th><th rowspan="2" class="confluenceTh"><p>Note</p></th></tr><tr><th colspan="1" class="confluenceTh"><span style="color: rgb(0,0,0);">Element Name</span></th><th colspan="1" class="confluenceTh"><span style="color: rgb(0,0,0);">Attribute Value</span></th><th class="confluenceTh"><span style="color: rgb(0,0,0);"><span style="color: rgb(0,0,0);">Element Name</span></span></th><th class="confluenceTh"><span style="color: rgb(0,0,0);">Attribute <span style="color: rgb(0,0,0);">Value</span></span></th></tr><tr><td colspan="1" class="confluenceTd">1</td><td class="highlight-red confluenceTd" data-highlight-colour="red"><p><span>value1</span></p></td><td colspan="1" class="confluenceTd"><p>fileName</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ1</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">商品一括編集.csv名</span></td>
+
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p>SKU移行前：item.csv<br>SKU移行後：normal-item_sale04-11.csv</p></td>
+
+<td class="confluenceTd"><p>アップロードしたファイル名</p></td></tr>
+
+<tr><td colspan="1" class="confluenceTd">2</td>
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value2</span></p></td>
+
+<td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">processDate</span></p></td>
+
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ2</span></td>
+
+<td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">処理日時</span></td>
+
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p>2013/11/01 15:15</p></td>
+
+<td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">YYYY/MM/DD HH:mm<br></span></p></td></tr>
+
+<tr><td colspan="1" class="confluenceTd">3</td>
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value3</span></p></td>
+<td colspan="1" class="confluenceTd"><p>insertCount</p></td>
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ3</span></td>
+<td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">処理件数(登録)</span></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p>0</p></td>
+
+<td colspan="1" class="confluenceTd"><p>SKU移行前：正常に登録できた件数<br>
+SKU移行後：常に'0'になります</p></td></tr>
+
+<tr><td colspan="1" class="confluenceTd">4</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value4</span></p></td><td colspan="1" class="confluenceTd"><p>updateCount</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ4</span></td>
+<td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">処理</span>
+<span style="color: rgb(0,0,0);">件数</span><span style="color: rgb(0,0,0);">(更新)</span></td>
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p>1</p></td>
+
+<td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">SKU移行前：正常に更新できた件数<br>SKU移行後：正常に登録出来た数と更新出来た数の合計値</span></p></td></tr>
+
+<tr><td colspan="1" class="confluenceTd">5</td><td class="highlight-red confluenceTd" data-highlight-colour="red"><p><span>value5</span></p></td><td class="confluenceTd"><p>deleteCount</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ5</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">処理件数(削除)</span></td><td class="highlight-red confluenceTd" data-highlight-colour="red"><p>0</p></td><td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">正常に削除できた件数</span></p></td></tr><tr><td colspan="1" class="confluenceTd">6</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value6</span></p></td><td colspan="1" class="confluenceTd"><p>errorCount</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ6</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">処理</span><span style="color: rgb(0,0,0);">件数</span><span style="color: rgb(0,0,0);">(エラー)</span></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">1</td><td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">エラーとなった件数</span></p></td></tr><tr><td colspan="1" class="confluenceTd">7</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value7</span></p></td><td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">errorFilePath</span></p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ7</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);">エラーログファイルパス</span></td>
+
+<td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red">SKU移行前：ritem/logs/item.20130521133309357.csv<br>
+SKU移行後：ritem/logs/normal-item_sale04-11.20330303135309357.csv</td>
+
+<td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);">エラーログの出力場所<br><span style="color: rgb(0,0,255);">※エラーが無い場合は空文字となる</span>&nbsp;</span></p></td></tr><tr><td colspan="1" class="confluenceTd">8</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value8</span></p></td><td colspan="1" class="confluenceTd"><p>-</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ8</span></td><td colspan="1" class="confluenceTd">-</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">-</span></td><td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);"></span></p></td></tr>
+<tr><td colspan="1" class="confluenceTd">9</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value9</span></p></td><td colspan="1" class="confluenceTd"><p>-</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ9</span></td><td colspan="1" class="confluenceTd">-</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">-</span></td><td colspan="1" class="confluenceTd"><p><span style="color: rgb(0,0,0);"></span></p></td></tr><tr><td colspan="1" class="confluenceTd">10</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><p><span>value10</span></p></td><td colspan="1" class="confluenceTd"><p>-</p></td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">データ10</span></td><td colspan="1" class="confluenceTd">-</td><td class="highlight-red confluenceTd" colspan="1" data-highlight-colour="red"><span style="color: rgb(0,0,0);">-</span></td><td colspan="1" class="confluenceTd"><span style="color: rgb(0,0,0);"></span></td></tr></tbody></table></div><br></div>			</div>
+		</div>
+	</div>
+	<!-- /#contentsMain -->
+</div>
+        </div>
+        <input type="hidden" id="hdnContentsId" name="contentsId" value="1-1">
+        <br><br><br>
+    </div>
+
+        <!-- ページの上部へ戻る -->
+        <div>
+            <p class="toTop">
+                <span>
+                    <a href="#">ページの上部に戻る</a>
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <div id="footerWhole"><footer>
+    <div>
+        <div id="footerBar">
+            <p id="copyrightWhole">Rakuten Merchant Server © Rakuten Group, Inc.</p>
+        </div>
+    </div>
+</footer></div>
+</div>
+
+</body></html>

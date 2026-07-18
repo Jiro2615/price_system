@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "システムイベント通知サービス（System Event Notification Service）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"
+  },
+  "feature_page": {
+    "name": "支払方法変更通知",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/paymentmethodchangenotification/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/paymentmethodchangenotification/",
+  "main_text": "サービス一覧へ戻る / システムイベント通知サービス / システム情報通知\n\nRMS WEB SERVICE : 支払方法変更通知\n「システム情報通知」の支払方法変更通知サービスで提供される、格納データについて定義します。\nインターフェース項目は、「システム情報通知」の内容に準じます。\n\n実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。\n\n支払方法変更通知\nNo\tElement\tDescription\tSample\tNote\nElement Name\tAttribute Value\tElement Name\tAttribute Value\n1\tvalue1\torderNumber\tデータ1\t受注番号\t201990-20130708-0243110105\tshopID-yyyymmdd-**********\n\n全桁で一意の値となり、末尾の数字(**********)はランダムに発行され桁数も増減する可能性があります。\n2\tvalue2\tbeforePaymentMethodCode\tデータ2\t変更前支払方法コード\t9\t1: クレジットカード\n9: 銀行振込\n12: Apple Pay\n13: セブンイレブン（前払）\n14: ローソン、郵便局ATM等（前払）\n16: Alipay\n17: PayPal\n21: 後払い決済\n選択制決済\n・2: 代金引換\n・4: ショッピングクレジット／ローン\n・5: オートローン\n・6: リース\n・7: 請求書払い\n・27: Alipay（支付宝）\n\n変更可能な支払方法のみを記載しています。\n購入時に利用可能な支払方法については、楽天ペイ受注API(受注情報取得)に記載している、4.3.5. Level 3: SettlementModelの「支払方法コード」をご参考ください。\n3\tvalue3\tbeforePaymentMethod\tデータ3\t変更前支払方法\t銀行振込\t上記「変更前支払方法コード」に対応する支払方法の名称が入ります。\n4\tvalue4\tafterPaymentMethodCode\tデータ4\t変更後支払方法コード\t13\t9: 銀行振込\n13: セブンイレブン（前払）\n14: ローソン、郵便局ATM等（前払）\n16: Alipay\n代金引換を除く選択制決済\n・4: ショッピングクレジット／ローン\n・5: オートローン\n・6: リース\n・7: 請求書払い\n・27: Alipay（支付宝）\n\n変更可能な支払方法のみを記載しています。\n購入時に利用可能な支払方法については、楽天ペイ受注API(受注情報取得)に記載している、4.3.5. Level 3: SettlementModelの「支払方法コード」をご参考ください。\n5\tvalue5\tafterPaymentMethod\tデータ5\t変更後支払方法\tセブンイレブン（前払）\t上記「変更後支払方法コード」に対応する支払方法の名称が入ります。\n6\tvalue6\torderDate\tデータ6\t注文日時\t2020-10-06 13:25:25\tYYYY-MM-DD hh:mm:ss\n7\tvalue7\tpaymentMethodChangeDate\tデータ7\t支払方法変更日時\t2020-10-06 13:25:25\tYYYY-MM-DD hh:mm:ss\n8\tvalue8\t\tデータ8\t\t\t\n9\tvalue9\t\tデータ9\t\t\t\n10\tvalue10\t\tデータ10"
+}

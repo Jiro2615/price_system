@@ -1,0 +1,107 @@
+サービス一覧へ戻る / CabinetAPI
+
+RMS WEB SERVICE : cabinet.trashbox.file.revert
+
+ 
+
+この機能を利用すると、削除フォルダ内にある画像を指定したフォルダに戻すことができます。
+
+Endpoint / HTTP Method
+Endpoint	HTTP Method
+https://api.rms.rakuten.co.jp/es/1.0/cabinet/trashbox/file/revert	POST
+Request
+HTTP Header
+No	Key	Value	Note
+1	Authorization	ESA Base64(serviceSecret:licenseKey)	
+Query parameters
+
+　None
+
+HTTP Body
+XML:request
+No	Element	Description	Type	Size(byte)	Mandatory	Multiplicity	Note
+1	request.fileRevertRequest	画像情報戻し要求	XML: fileRevertRequest	-	○	1	
+XML:fileRevertRequest
+No	Element	Description	Type	Size(byte)	
+Mandatory
+	Multiplicity	Note
+1	fileRevertRequest.file	画像情報	XML:file	-	○	1	
+XML:file
+No	Element	Description	Type	Size(byte)	
+Mandatory
+	Multiplicity	Note
+1	file.fileId	画像ID	Integer	10	○	1	
+2
+	file.folderId	戻し先のフォルダID	Integer	10	○	1	
+Request Sample
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<request>
+	<fileRevertRequest>
+		<file>
+			<fileId>xxx</fileId>
+			<folderId>xxx</folderId>
+		</file>
+	</fileRevertRequest>
+</request>
+Response
+HTTP Header
+No	Key	Value
+1	Content-Type	text/xml
+HTTP Body
+XML:result
+No	Element	Description	Type	
+
+Size(byte)
+
+	
+
+Multiplicity
+
+	Note
+1	
+
+result.status
+
+	ステータス	XML : status	-	1	
+
+interfaceId=cabinet.trashbox.file.revert
+
+
+2	
+
+result.cabinetTrashboxFileRevertResult
+
+
+	
+
+削除フォルダ内画像情報戻し結果
+
+	
+
+XML : cabinetTrashboxFileRevertResult
+
+	-	1	
+XML:cabinetTrashboxFileRevertResult
+No	Element	
+
+Description
+
+	Type	Size(byte)	Multiplicity	Note
+1	cabinetTrashboxFileRevertResult.resultCode	結果コード	Integer	4	1	
+Response sample
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+	<status>
+		<interfaceId>cabinet.trashbox.file.revert</interfaceId>
+		<systemStatus>OK</systemStatus>
+		<message>OK</message>
+		<requestId>714a4983-555f-42d9-aeea-89dae89f2f55</requestId>	 
+	</status>
+	<cabinetTrashboxFileRevertResult>
+		<resultCode>x</resultCode>
+	</cabinetTrashboxFileRevertResult>
+</result>

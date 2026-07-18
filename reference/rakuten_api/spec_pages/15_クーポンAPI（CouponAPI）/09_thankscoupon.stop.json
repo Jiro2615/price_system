@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "クーポンAPI（CouponAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/couponapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/couponapi/"
+  },
+  "feature_page": {
+    "name": "thankscoupon.stop",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/couponapi/thankscouponstop",
+    "description": "サンキュークーポンを停止することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/couponapi/thankscouponstop",
+  "main_text": "サービス一覧へ戻る / CouponAPI\n\nRMS WEB SERVICE : thankscoupon.stop\n\n \n\nこの機能を利用すると、サンキュークーポンを停止することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\n\n\nhttps://api.rms.rakuten.co.jp/es/1.0/thankscoupon/{thanksCouponId}/issuestatus/stop\n\n\tPUT\nRequest\nHTTP Header\nNo\tKey\tValue\tMandatory\t Note\n1\t\n\nAuthorization\n\n\tESA Base64(serviceSecret:licenseKey)\t○\t\n\n\n\n\n\n2\tAccept\tapplication/xml\t\n\t\n\nQuery parameters\n\n None\n\nPath parameters\nNo\tParameter\tDescription\tType\tMandatory\tNote\n1\tthanksCouponId\tサンキュークーポンID\tint\t○\t\n\nHTTP Body\n\n  None\n\nRequest Sample\n\n\nrequest example (normal case)\nAuthorization: ESA UHl3VDJIcU9JSEZQaFJETjpKTm9oeVloMTBhVjNveUpj\nAccept: application/xml\nhttps://{server}/{context}/1.0/thankscoupon/18493/issuestatus/stop\n\n\n\nResponse\nHTTP Header\nNo\tKey\tValue\n1\tContent-Type\tapplication/xml\n2\tStatus\t200 (OK) → 通常ケース\n400 (BAD REQUEST) → リクエストパラメータエラー\n401 (AUTH ERROR) → 認証エラー\n403 (MAX_QPS_OVER, MAX_QPM_OVER, MAX_CONNECTION_OVER) → リクエスト閾値エラー\n404 (NOT FOUND) → データが存在しないエラー\n405 (METHOD NOT ALLOWED) → 許可されていないHTTPメソッドエラー\n500 (INTERNAL SERVER ERROR) → 予期せぬエラー\n503 (API MAINTENANCE) → システムエラー\n\nHTTP Body\nXML:result\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\tresult.errors\tエラー情報リスト\tXML:errors\t-\t0,1\tエラー発生時のみ返却\n2\tresult.thanksCoupon\tサンキュークーポン情報\tXML:thanksCoupon\t-\t0,1\t\n\nXML:errors\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\terrors.error\tエラー情報\tXML:error\t-\t1..n\t\n\nXML:error\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\terror.code\tエラーコード\tString\t-\t1\t詳細は、 Thanks Coupon Response Codes Reference を参照\n2\terror.message\tエラーメッセージ\tString\t-\t1\t詳細は、 Thanks Coupon Response Codes Reference を参照\nXML:thanksCoupon\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\tthanksCoupon.thanksCouponId\tサンキュークーポンID\tint\t4\t1\t最大桁数：10\nResponse Sample\n\n\nresponse example(normal case)\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<result>\n    <thanksCoupon>\n        <thanksCouponId>20458</thanksCouponId>\n    </thanksCoupon>\n</result>\n\n\n\n\n\nresponse example(error case)\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<result>\n    <errors>\n        <error>\n            <code>COUPON_EE100-002</code>\n            <message>thanksCouponStop.over_term</message>\n        </error>\n    </errors>\n</result>"
+}

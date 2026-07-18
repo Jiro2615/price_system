@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "R-CabinetAPI（CabinetAPI）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/"
+  },
+  "feature_page": {
+    "name": "cabinet.file.delete",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetfiledelete/",
+    "description": "この機能を利用すると、画像IDを指定して画像を削除フォルダに移動することができます。"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/cabinetapi/cabinetfiledelete/",
+  "main_text": "サービス一覧へ戻る / CabinetAPI\n\nRMS WEB SERVICE : cabinet.file.delete\n\n \n\nこの機能を利用すると、画像IDを指定して画像を削除フォルダに移動することができます。\n\nEndpoint / HTTP Method\nEndpoint\tHTTP Method\nhttps://api.rms.rakuten.co.jp/es/1.0/cabinet/file/delete\tPOST\nRequest\nHTTP Header\nNo\tKey\tValue\tNote\n1\tAuthorization\tESA Base64(serviceSecret:licenseKey)\t\nQuery parameters\n\n　None\n\nHTTP Body\nXML:request\nNo\tElement\tDescription\tType\tSize(byte)\tMandatory\tMultiplicity\tNote\n1\trequest.fileDeleteRequest\t画像情報削除要求\tXML:fileDeleteRequest\t-\t○\t1\t\nXML:fileDeleteRequest\nNo\tElement\tDescription\tType\tSize(byte)\tMandatory\tMultiplicity\tNote\n1\tfileDeleteRequest.file\t画像情報\tXML:file\t-\t○\t1\t\nXML:file\nNo\tElement\t\nDescription\n\tType\tSize(byte)\tMandatory\tMultiplicity\tNote\n1\tfile.fileId\t画像ID\tInteger\t10\t○\t1\t\nRequest Sample\n\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<request>\n\t<fileDeleteRequest>\n\t\t<file>\n\t\t\t<fileId>xxx</fileId>\n\t\t</file>\n\t</fileDeleteRequest>\n</request>\n\n\nResponse\nHTTP Header\nNo\tKey\tValue\n1\tContent-Type\ttext/xml\nHTTP Body\nXML:result\nNo\tElement\tDescription\tType\t\n\nSize(byte)\n\n\t\n\nMultiplicity\n\n\tNote\n1\t\n\nresult.status\n\n\tステータス\tXML : status\t-\t1\t\n\nnterfaceId=cabinet.file.delete\n\n\n2\t\n\nresult.cabinetFileDeleteResult\n\n\t\n\n画像情報削除結果\n\n\tXML : cabinetFileDeleteResult\t-\t1\t\nXML:cabinetFileDeleteResult\nNo\tElement\tDescription\tType\tSize(byte)\tMultiplicity\tNote\n1\t\n\ncabinetFileDeleteResult.resultCode\n\n\t結果コード\tInteger\t4\t1\t\nResponse sample\n\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<result>\n\t<status>\n\t\t<interfaceId>cabinet.file.delete</interfaceId>\n\t\t<systemStatus>OK</systemStatus>\n\t\t<message>OK</message>\n\t\t<requestId>714a4983-555f-42d9-aeea-89dae89f2f45</requestId>\n\t</status>\n\t<cabinetFileDeleteResult>\n\t\t<resultCode>0</resultCode>\n\t</cabinetFileDeleteResult>\n </result>"
+}

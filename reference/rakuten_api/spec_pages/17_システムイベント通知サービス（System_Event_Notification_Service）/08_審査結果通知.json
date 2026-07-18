@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "システムイベント通知サービス（System Event Notification Service）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/"
+  },
+  "feature_page": {
+    "name": "審査結果通知",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/creditexamresultnotice/",
+    "description": ""
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/systemeventnotificationservice/creditexamresultnotice/",
+  "main_text": "サービス一覧へ戻る / システムイベント通知サービス / システム情報通知\n\nRMS WEB SERVICE : 審査結果通知\n「システム情報通知」の与信審査結果通知サービスで提供される、格納データについて定義します。\nインターフェース項目は、「システム情報通知」の内容に準じます。\n\n実装の前に、「RMS WEB SERVICE : システムイベント通知サービス/４．制約事項」をご確認ください。\n\n審査結果通知\nNo\tElement\tDescription\tSample\tNote\nElement Name\tAttribute Value\tElement Name\tAttribute Value\n1\tvalue1\torderNumber\tデータ1\t受注番号\t201990-20130708-0243110105\tshopID-yyyymmdd-**********\n\n全桁で一意の値となり、末尾の数字(**********)はランダムに発行され桁数も増減する可能性があります。\n2\tvalue2\tnotificationType\tデータ2\t審査結果コード\t1\t1：発送指示\n2：楽天側キャンセル※1\n3：発送指示取消※2\n\n※1 楽天側で注文がキャンセルされた後、通知が配信されます。\n※2 再オーソリ処理にて与信NGとなった際や店舗様でのキャンセル操作時に、通知が配信されます。\n3\tvalue3\toccurrenceDatetime\tデータ3\t審査完了日時\t2017/12/12 18:35:05\tYYYY/MM/DD hh:mm:ss\n4\tvalue4\t-\tデータ4\t\t\t\n5\tvalue5\t-\tデータ5\t\t\t\n6\tvalue6\t-\tデータ6\t\t\t\n7\tvalue7\t-\tデータ7\t\t\t\n8\tvalue8\t-\tデータ8\t\t\t\n9\tvalue9\t-\tデータ9\t\t\t\n10\tvalue10\t-\tデータ10\t\t\t\n備考\n\n審査結果通知の種別については以下の通りです。\n・審査結果コード「1：発送指示」の場合\n　　ユーザが注文してから14日以内に店舗様にて注文確認され、審査OKだった。\n\n・審査結果コード「2：楽天側キャンセル」の場合\n　　ユーザが注文し、注文確認した後、カード決済の審査がNGだった。\n　　ユーザが注文し、注文確認した後、銀行振込の審査がNGだった。\n　　ユーザが注文してから、注文確認されないまま15日経過した。\n　　ユーザが注文し、14日以内に注文確認したが、その翌日以降にユーザが受注をキャンセルした。（カード決済以外）　\n　　警告表示注文（RMS注文一覧・詳細表示でグレーの注文）を注文確認し、翌日になった。\n\n・審査結果コード「3：発送指示取消※2」の場合\n　　オーソリ取得日から30日以上店舗様から「発送完了報告」がされない場合に、店舗様にご登録いただいた発送日の7日前に楽天にて再度オーソリを取り直した結果、オーソリNGとなった。\n　　店舗様でのキャンセル処理があった。"
+}

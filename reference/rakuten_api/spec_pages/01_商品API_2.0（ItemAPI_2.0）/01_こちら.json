@@ -1,0 +1,15 @@
+{
+  "service_page": {
+    "title": "商品API 2.0（ItemAPI 2.0）",
+    "href": "/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/"
+  },
+  "feature_page": {
+    "name": "こちら",
+    "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/subscription/",
+    "description": ".give_space{white-space: pre-wrap;} サービス一覧へ戻る RMS WEB SERVICE : ItemAPI2.0 ItemAPI 2.0は商品の情報を取得し、更新を行うAPIです。 本機能はSKU移行後店舗様向けのAPIですが、下記の機能はSKU移行前から利用可能です。 items.get items.search items.inventory-related-settings.get items.bulk.get 定期購入リニューアルの概要は をご確認ください。 目次 1.機能一覧 2.エラーメッセージ 3.認証・認可 4.制約事項 5.参考資料 6.更新履歴 機能一覧 items.get商品管理番号を指定し、商品情報を取得することができます。 items.upsert商品管理番号を指定し、商品情報の登録・全項目の更新をすることができます。 部分更新の機能ではないため、リクエストに含まれない項目は値が削除されるか、デフォルト値で更新されます。 items.patch商品管理番号を指定し、商品情報の部分更新をすることができます。リクエストに含まれない項目は更新対象にならないため、指定した項目のみ更新されます。 items.delete商品管理番号を指定し、商品情報を削除することができます。 items.search指定した条件から通常商品（定期購入設定ありも含む）・予約商品・頒布会商品の商品情報を検索することができます。 items.inventory-related-settings.get商品管理番号を指定し、納期に関する設定などを取得することができます。 items.inventory-related-settings.update商品管理番号を指定し、納期に関する設定などを更新することができます。 items.bulk.get商品管理番号を指定し、最大で50件の商品情報を一括で取得することができます。 エラーメッセージ Response Codes Reference Common Gateway Errors※Common Gateway Errorsの更新履歴はページ内に記載しています。 認証・認可 本APIの認証方法につきましては、「RMS WEB SERVICEの認証」を参照してください。 制約事項 利用登録について ItemAPI 2.0 の一部の機能は、利用するために商品一括編集機能のお申込みが必要です。 商品一括編集機能の利用申込みが必要※未申込の場合、AuthErorrとなり利用できません。 ・items.get・items.upsert・items.patch・items.delete・items.bulk.get 商品一括編集機能の利用申込みが不要 ・items.search・items.inventory-related-settings.get・items.inventory-related-settings.update 利用方法について 本APIへのリクエストは下記を目安にアクセスしてください。 機能 秒間最大リクエスト数 ・items.upsert ・items.patch 20 ・items.get ・items.delete ・items.search 5 ・items.inventory-related-settings.get ・items.inventory-related-settings.update ・items.bulk.get 1 ※ トラフィックが集中した場合には、トラフィック制限をかけさせていただく場合がございます。 参考資料 SKU シーケンス図 SKUデータ構造説明 定期購入リニューアル後の仕様 更新履歴"
+  },
+  "title": "RMS WEB SERVICE",
+  "url": "https://webservice.rms.rakuten.co.jp/merchant-portal/view/ja/common/1-1_service_index/itemapi2_0/subscription/",
+  "main_text": "サービス一覧へ戻る / ItemAPI 2.0\n\nItemAPI 2.0 : 定期購入リニューアル後の仕様\n定期購入商品の概要\n\n\n定期購入商品を販売するための設定"
+}

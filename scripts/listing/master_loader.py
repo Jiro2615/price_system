@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterable
 
 from scripts.listing.models import MasterData
+from scripts.listing.prohibited_word_masking import load_allowed_phrase_rules, split_replacement_rules
 
 
 MASTER_FILENAMES = {
@@ -15,6 +16,7 @@ MASTER_FILENAMES = {
     "prohibited_other": "kinsiword_other.txt",
     "listed_asins": "shuppinlist_rakuten.txt",
     "category_map": "catlist_rakuten.txt",
+    "allowed_phrases": "allowed_phrases_rakuten.json",
     "attribute_definitions": "属性定義書.txt",
 }
 
@@ -104,8 +106,9 @@ def load_category_map(path: Path) -> dict[int, int]:
     return result
 
 
-def load_attribute_definitions(path: Path) -> dict[int, list[str]]:
+def load_attribute_definition_records(path: Path) -> tuple[dict[int, list[str]], dict[int, str]]:
     result: dict[int, list[str]] = {}
+    genre_paths: dict[int, str] = {}
     for line in _normalized_lines(read_text_auto(path)):
         parts = _split_tab(line)
         if len(parts) < 3:
@@ -114,8 +117,14 @@ def load_attribute_definitions(path: Path) -> dict[int, list[str]]:
             genre_id = int(parts[0])
         except ValueError:
             continue
+        genre_paths[genre_id] = parts[1]
         attr_names = [part for part in parts[2:] if part]
         result[genre_id] = attr_names
+    return result, genre_paths
+
+
+def load_attribute_definitions(path: Path) -> dict[int, list[str]]:
+    result, _genre_paths = load_attribute_definition_records(path)
     return result
 
 
@@ -142,20 +151,36 @@ def load_master_data(master_dir: Path, allow_missing: bool = False) -> MasterDat
         elif key == "category_map":
             loaded[key] = load_category_map(path)
         elif key == "attribute_definitions":
-            loaded[key] = load_attribute_definitions(path)
+            attr_defs, genre_paths = load_attribute_definition_records(path)
+            loaded[key] = attr_defs
+            loaded["genre_paths"] = genre_paths
+        elif key == "allowed_phrases":
+            loaded[key] = load_allowed_phrase_rules(path)
 
     if missing_files and not allow_missing:
         missing = ", ".join(missing_files)
         raise MissingMasterFileError(f"Missing master files: {missing}")
 
+    prohibited_words_rakuten = loaded.get("prohibited_rakuten", [])
+    cleanup_replacements, legacy_spacing_replacements = split_replacement_rules(
+        loaded.get("replacements", []),
+        prohibited_words_rakuten,
+    )
+
     return MasterData(
         blacklist=loaded.get("blacklist", set()),
         kako_ng=loaded.get("kako_ng", {}),
         replacements=loaded.get("replacements", []),
-        prohibited_words_rakuten=loaded.get("prohibited_rakuten", []),
+        prohibited_words_rakuten=prohibited_words_rakuten,
         prohibited_words_other=loaded.get("prohibited_other", []),
         listed_asins=loaded.get("listed_asins", {}),
         category_map=loaded.get("category_map", {}),
         attribute_definitions=loaded.get("attribute_definitions", {}),
+        genre_paths=loaded.get("genre_paths", {}),
+        cleanup_replacements=cleanup_replacements,
+        legacy_spacing_replacements=legacy_spacing_replacements,
+        allowed_phrase_rules=loaded.get("allowed_phrases", {}).get("rules", {}),
+        allowed_phrase_meta=loaded.get("allowed_phrases", {}).get("meta", {}),
+        allowed_phrase_separate_checks=loaded.get("allowed_phrases", {}).get("separate_checks", {}),
         missing_files=missing_files,
     )
