@@ -130,6 +130,7 @@ def build_child_cmd(
     resolved_settings: dict[str, dict[str, Any]],
     recheck_system_errors: bool = False,
     reason_contains: str = "",
+    asin_file: str = "",
     dry_run: bool = False,
 ) -> list[str]:
     cmd = [
@@ -142,11 +143,13 @@ def build_child_cmd(
         "--page-timeout",
         str(resolved_settings["page_timeout_ms"]["value"]),
     ]
-    cmd.append("--use-stats" if resolved_settings["use_stats"]["value"] else "--no-use-stats")
+    cmd.append("--no-use-stats" if asin_file else "--use-stats" if resolved_settings["use_stats"]["value"] else "--no-use-stats")
     if recheck_system_errors:
         cmd.append("--system-error-only")
     if reason_contains:
         cmd.extend(["--reason-contains", reason_contains])
+    if asin_file:
+        cmd.extend(["--asin-file", asin_file])
     if dry_run:
         cmd.append("--dry-run")
     return cmd
@@ -334,6 +337,7 @@ def main() -> int:
     parser.add_argument("--once", action="store_true", help="run one loop only")
     parser.add_argument("--recheck-system-errors", action="store_true", help="recheck amazon_products.system_error = TRUE only")
     parser.add_argument("--reason-contains", default="", help="filter system error recheck by ng_reason partial match")
+    parser.add_argument("--asin-file", default="", help="explicit ASIN target file for direct checks")
     parser.add_argument("--dry-run", action="store_true", help="show target ASINs only without browser start or DB updates")
     parser.add_argument("--resolve-only", action="store_true", help="resolve settings and print child command without running it")
     args = parser.parse_args()
@@ -366,6 +370,7 @@ def main() -> int:
         resolved_settings,
         recheck_system_errors=args.recheck_system_errors,
         reason_contains=args.reason_contains,
+        asin_file=args.asin_file.strip(),
         dry_run=args.dry_run,
     )
 
@@ -383,6 +388,7 @@ def main() -> int:
         print(f"stop_after_empty   : {args.stop_after_empty}")
         print(f"recheck_system_errors : {args.recheck_system_errors}")
         print(f"reason_contains    : {args.reason_contains}")
+        print(f"asin_file          : {args.asin_file}")
         print(f"dry_run            : {args.dry_run}")
         print(f"resolve_only       : {args.resolve_only}")
         print(f"encoding           : {CONSOLE_ENCODING}")
@@ -415,6 +421,7 @@ def main() -> int:
                 resolved_settings,
                 recheck_system_errors=args.recheck_system_errors,
                 reason_contains=args.reason_contains,
+                asin_file=args.asin_file.strip(),
                 dry_run=args.dry_run,
             )
             loop_index += 1

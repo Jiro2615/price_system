@@ -4,6 +4,8 @@ import builtins
 
 from collections import Counter
 import os
+from pathlib import Path
+import re
 import socket
 import sys
 import time
@@ -39,6 +41,27 @@ def safe_print(*args, **kwargs) -> None:
         encoding = getattr(file, "encoding", None) or "utf-8"
         safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
         builtins.print(safe_text, end=end, file=file, flush=flush)
+
+
+ASIN_SPLIT_RE = re.compile(r"[\s,]+")
+
+
+def load_asins_from_file(path_text: str, max_count: int = 5000) -> list[str]:
+    path = Path(path_text).expanduser()
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
+    asins: list[str] = []
+    seen: set[str] = set()
+
+    for raw_value in ASIN_SPLIT_RE.split(text):
+        asin = raw_value.strip().upper()
+        if not asin or asin in seen:
+            continue
+        seen.add(asin)
+        asins.append(asin)
+        if len(asins) > max_count:
+            raise ValueError(f"asin file has more than {max_count} ASINs")
+
+    return asins
 
 
 configure_output()
@@ -1318,6 +1341,7 @@ async def main() -> int:
     parser.add_argument("--reason-contains", default="", help="system_error再チェック時に ng_reason の部分一致で絞る")
     parser.add_argument("--dry-run", action="store_true", help="対象ASIN一覧だけ表示し、ブラウザ起動やDB更新を行わない")
     parser.add_argument("--worker-id", default="", help="stats方式で使うワーカーID。未指定なら自動生成")
+    parser.add_argument("--asin-file", default="", help="explicit ASIN target file. accepts newline, comma, or whitespace separated values")
     parser.add_argument("--page-timeout", type=int, default=60000, help="page.goto の timeout(ms)")
     args = parser.parse_args()
 
@@ -1335,11 +1359,16 @@ async def main() -> int:
 
         return 2
 
+    if args.asin_file and (args.use_stats or args.system_error_only or args.reason_contains):
+        print("--asin-file cannot be combined with stats/system-error target options")
+        return 2
+
     print(f"limit={args.limit}, hours={args.hours}")
     print(f"use_stats={args.use_stats}")
     print(f"system_error_only={args.system_error_only}")
     print(f"reason_contains={args.reason_contains}")
     print(f"dry_run={args.dry_run}")
+    print(f"asin_file={args.asin_file}")
     print(f"page_timeout={args.page_timeout}")
     worker_id = args.worker_id.strip() or build_worker_id()
     started_at_dt = datetime.now()
@@ -1392,7 +1421,10 @@ async def main() -> int:
 
     claimed_rows: list[dict[str, Any]] = []
 
-    if args.dry_run and args.system_error_only:
+    if args.asin_file:
+        asins = load_asins_from_file(args.asin_file)
+        claimed_rows = [{"asin": asin, "current_ng_reason": "", "old_checked_at": ""} for asin in asins]
+    elif args.dry_run and args.system_error_only:
 
         claimed_rows = preview_system_error_targets(args.limit, args.reason_contains)
 
