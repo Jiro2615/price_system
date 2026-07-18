@@ -11,6 +11,7 @@ if not exist "%SCRIPT%" (
   exit /b 1
 )
 
+echo Launch mode: Amazon check + target recalc (once)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -PopupInput -Once
 
 echo.

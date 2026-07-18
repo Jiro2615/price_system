@@ -10,6 +10,7 @@ from typing import Any, Optional
 from playwright.async_api import async_playwright
 
 from db_config import connect_db
+from db_retry import run_with_db_retry
 
 
 def configure_output() -> None:
@@ -56,6 +57,10 @@ def parse_price(text: str) -> int:
 def extract_asin(url: str) -> str:
     m = re.search(r"/(?:dp|gp/product)/([A-Z0-9]{10})", url, re.I)
     return m.group(1).upper() if m else ""
+
+
+def build_amazon_product_url(asin: str) -> str:
+    return f"https://www.amazon.co.jp/dp/{asin.strip().upper()}?th=1&psc=1"
 
 
 def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
@@ -151,6 +156,306 @@ async def get_first_text(page, selector: str) -> str:
     return ""
 
 
+async def get_page_asin(page) -> str:
+    candidates = [extract_asin(getattr(page, "url", ""))]
+
+    for selector in ("input[name=\"ASIN\"]", "#ASIN", "input[name=\"ASIN.0\"]"):
+        try:
+            loc = page.locator(selector)
+            if await loc.count() == 0:
+                continue
+            value = (await loc.first.get_attribute("value")) or ""
+            if value:
+                candidates.append(value.strip())
+        except Exception:
+            continue
+
+    for candidate in candidates:
+        normalized = (candidate or "").strip().upper()
+        if re.fullmatch(r"[A-Z0-9]{10}", normalized):
+            return normalized
+
+    try:
+        canonical_href = await page.locator('link[rel="canonical"]').first.get_attribute("href")
+        if canonical_href:
+            candidates.append(extract_asin(canonical_href))
+    except Exception:
+        pass
+
+    for selector in ("[data-asin]", "#dp", "[data-defaultasin]", "[data-current-asin]"):
+        try:
+            loc = page.locator(selector)
+            if await loc.count() == 0:
+                continue
+            for attr_name in ("data-asin", "data-defaultasin", "data-current-asin"):
+                value = (await loc.first.get_attribute(attr_name)) or ""
+                normalized = value.strip().upper()
+                if re.fullmatch(r"[A-Z0-9]{10}", normalized):
+                    return normalized
+        except Exception:
+            continue
+
+    return ""
+
+
+async def detect_high_price_warning(page, body_text: str = "") -> bool:
+    targets = [body_text or ""]
+    for selector in (
+        "#fod-cx-message-with-learn-more",
+        "#fod-cx-box",
+        "#fodcx_feature_div",
+    ):
+        text = await get_first_text(page, selector)
+        if text:
+            targets.append(text)
+
+    return any("一般的な価格より高い価格です" in text for text in targets)
+
+
+async def detect_black_curtain_restriction(page, current_url: str, body_text: str = "") -> tuple[str, str]:
+    body_text = body_text or ""
+    warning_text = await get_first_text(page, "#black-curtain-warning")
+    statement_text = await get_first_text(page, "#black-curtain-statement")
+    page_title = ""
+    try:
+        page_title = await page.title()
+    except Exception:
+        page_title = ""
+
+    if (
+        "/black-curtain/black-curtain" in current_url
+        or "年齢確認" in warning_text
+        or "18歳未満" in statement_text
+        or "18歳以上ですか" in body_text
+    ):
+        return ("adult", "閲覧制限（成人向け年齢確認）")
+
+    if (
+        "/black-curtain/medical-black-curtain" in current_url
+        or "専門医療機器" in page_title
+        or "医療従事者のみ" in statement_text
+        or "あなたは医療専門家ですか" in body_text
+    ):
+        return ("medical", "購入資格制限（医療従事者限定）")
+
+    return ("", "")
+
+
+async def detect_404_or_region_restriction(page, current_url: str, body_text: str = "") -> bool:
+    body_text = body_text or ""
+    page_title = ""
+    try:
+        page_title = await page.title()
+    except Exception:
+        page_title = ""
+
+    link_hit = False
+    image_hit = False
+    try:
+        link_hit = await page.locator("a[href*='ref=cs_404_logo'], a[href*='ref=cs_404_link']").count() > 0
+    except Exception:
+        link_hit = False
+    try:
+        image_hit = await page.locator("img[src*='kailey-kitty']").count() > 0
+    except Exception:
+        image_hit = False
+
+    signals = (
+        "何かお探しですか？" in body_text
+        or "入力されたウェブアドレスは当社サイトの有効なページではない" in body_text
+        or "お客様の所在地からは表示されない可能性があります" in body_text
+        or "何かお探しですか？" in page_title
+        or "有効なページではない" in page_title
+        or image_hit
+        or link_hit
+        or "/ref=cs_404_logo" in current_url
+        or "/ref=cs_404_link" in current_url
+    )
+    return signals
+
+
+async def detect_used_only_buybox(page, body_text: str = "") -> tuple[bool, Optional[int]]:
+    body_text = body_text or ""
+    used_section_text = await get_first_text(page, "#usedBuySection")
+    used_buybox_text = await get_first_text(page, "#usedbuyBox")
+    used_merchant_text = await get_first_text(page, "#usedMerchantID")
+    add_to_cart_ubb_text = await get_first_text(page, "#add-to-cart-button-ubb")
+    merchant_info_text = await get_first_text(page, "#merchant-info")
+
+    used_selectors_present = False
+    for selector in ("#usedBuySection", "#usedbuyBox", "#usedMerchantID", "#add-to-cart-button-ubb"):
+        try:
+            if await page.locator(selector).count() > 0:
+                used_selectors_present = True
+                break
+        except Exception:
+            continue
+
+    combined_used_text = "\n".join(
+        filter(
+            None,
+            [
+                body_text,
+                used_section_text,
+                used_buybox_text,
+                used_merchant_text,
+                add_to_cart_ubb_text,
+            ],
+        )
+    )
+    has_used_signal = used_selectors_present or "中古商品:" in combined_used_text or "中古商品" in combined_used_text
+
+    new_add_to_cart_text = await get_first_text(page, "#add-to-cart-button")
+    submit_add_to_cart_text = await get_first_text(page, "input[name=\"submit.add-to-cart\"]")
+
+    try:
+        new_add_to_cart_count = await page.locator("#add-to-cart-button").count()
+    except Exception:
+        new_add_to_cart_count = 0
+    try:
+        submit_add_to_cart_count = await page.locator("input[name=\"submit.add-to-cart\"]").count()
+    except Exception:
+        submit_add_to_cart_count = 0
+    try:
+        buy_now_count = await page.locator("#buy-now-button").count()
+    except Exception:
+        buy_now_count = 0
+
+    has_real_add_to_cart_button = (
+        new_add_to_cart_count > 0
+        and has_actual_purchase_button_text(new_add_to_cart_text)
+    ) or (
+        submit_add_to_cart_count > 0
+        and has_actual_purchase_button_text(submit_add_to_cart_text)
+    )
+    has_new_purchase_button = buy_now_count > 0 or has_real_add_to_cart_button
+    has_new_price_block = await get_price_from_selector(page, "#corePriceDisplay_desktop_feature_div") > 0
+    has_new_offer_signal = bool(merchant_info_text.strip())
+
+    used_price = 0
+    for selector in (
+        "#usedbuyBox .a-offscreen",
+        "#usedbuyBox .a-price-whole",
+        "#usedBuySection .a-offscreen",
+        "#usedBuySection .a-price-whole",
+        "#apex-pricetopay-accessibility-label",
+        ".priceToPay .a-offscreen",
+        ".priceToPay .a-price-whole",
+    ):
+        price = await get_price_from_selector(page, selector) if selector.endswith(".a-offscreen") or selector.endswith(".a-price-whole") else 0
+        if price <= 0:
+            text = await get_first_text(page, selector)
+            price = parse_price(text)
+        if price > 0:
+            used_price = price
+            break
+
+    has_new_buybox = has_new_purchase_button or has_new_price_block or has_new_offer_signal
+    return (has_used_signal and not has_new_buybox, used_price or None)
+
+
+def log_result_summary(
+    requested_asin: str,
+    page_asin: str,
+    current_url: str,
+    result: dict[str, Any],
+) -> None:
+    status = "system_error" if result.get("system_error") else (
+        "business_ng" if result.get("business_ng") else "ok"
+    )
+    print(
+        "amazon_result_summary "
+        f"requested_asin={requested_asin} "
+        f"page_asin={page_asin or '-'} "
+        f"current_url={current_url} "
+        f"status={status} "
+        f"ng_reason={result.get('ng_reason', '')}"
+    )
+
+
+async def detect_page_state(page) -> dict[str, bool]:
+    body_text = await get_first_text(page, "body")
+    availability_text = await get_first_text(page, "#availability")
+    out_of_stock_text = await get_first_text(page, "#outOfStock")
+    buybox_text = await get_first_text(page, "#buybox")
+    desktop_buybox_text = await get_first_text(page, "#desktop_buybox")
+    merchant_info_text = await get_first_text(page, "#merchant-info")
+    add_to_cart_text = await get_first_text(page, "#addToCart")
+
+    price_visible = False
+    for selector in (
+        "#corePriceDisplay_desktop_feature_div .a-price-whole",
+        "#corePriceDisplay_desktop_feature_div .a-offscreen",
+        "#priceToPay .a-price-whole",
+        "#priceToPay .a-offscreen",
+        ".a-price-whole",
+        ".a-offscreen",
+    ):
+        try:
+            loc = page.locator(selector)
+            if await loc.count() > 0:
+                text = await safe_inner_text(loc.first)
+                if parse_price(text) > 0:
+                    price_visible = True
+                    break
+        except Exception:
+            continue
+
+    text_blob = "\n".join(
+        filter(
+            None,
+            [
+                body_text,
+                availability_text,
+                out_of_stock_text,
+                buybox_text,
+                desktop_buybox_text,
+                merchant_info_text,
+                add_to_cart_text,
+            ],
+        )
+    )
+
+    explicit_unavailable = bool(
+        out_of_stock_text.strip()
+        or await detect_buybox_unavailable_reason(page, body_text)
+    )
+    explicit_buybox_missing = "縺吶∋縺ｦ縺ｮ蜃ｺ蜩√ｒ隕九ｋ" in text_blob
+
+    return {
+        "price_visible": price_visible,
+        "explicit_unavailable": explicit_unavailable,
+        "explicit_buybox_missing": explicit_buybox_missing,
+    }
+
+
+async def wait_for_meaningful_page_state(
+    page,
+    timeout_ms: int,
+    poll_ms: int = 250,
+) -> dict[str, bool]:
+    deadline = asyncio.get_running_loop().time() + max(timeout_ms, 0) / 1000.0
+    last_state = {
+        "price_visible": False,
+        "explicit_unavailable": False,
+        "explicit_buybox_missing": False,
+    }
+
+    while True:
+        last_state = await detect_page_state(page)
+        if (
+            last_state["price_visible"]
+            or last_state["explicit_unavailable"]
+            or last_state["explicit_buybox_missing"]
+        ):
+            return last_state
+
+        if asyncio.get_running_loop().time() >= deadline:
+            return last_state
+
+        await page.wait_for_timeout(poll_ms)
+
+
 async def click_force(locator) -> None:
     try:
         await locator.scroll_into_view_if_needed(timeout=5000)
@@ -217,6 +522,8 @@ async def collect_selector_diagnostics(page) -> list[dict[str, Any]]:
         "#outOfStock",
         "#merchant-info",
         "#addToCart",
+        "#add-to-cart-button",
+        "input[name=\"submit.add-to-cart\"]",
         "#buy-now-button",
     )
 
@@ -322,6 +629,24 @@ async def detect_buybox_unavailable_reason(page, body_text: str) -> str:
             return "BuyBoxなし"
 
     return ""
+
+
+def has_actual_purchase_button_text(text: str) -> bool:
+    normalized = re.sub(r"\s+", "", text or "")
+    if not normalized:
+        return False
+
+    labels = (
+        "繧ｫ繝ｼ繝医↓蜈･繧後ｋ",
+        "今すぐ買う",
+        "購入する",
+    )
+    return any(label in normalized for label in labels)
+
+
+def is_generic_availability_text(text: str) -> bool:
+    normalized = re.sub(r"\s+", "", text or "")
+    return normalized in {"在庫状況について", "在庫状況"}
 
 
 async def read_buybox_info(page) -> dict[str, Any]:
@@ -451,9 +776,9 @@ async def check_amazon_one(
             result["title"] = await get_title(page)
 
             out_of_stock_text = await get_first_text(page, "#outOfStock")
-            if "この商品の再入荷予定は立っておりません" in out_of_stock_text:
+            if out_of_stock_text.strip():
                 result["business_ng"] = True
-                result["ng_reason"] = "再入荷予定なし"
+                result["ng_reason"] = "在庫切れ"
                 result["shipping_status"] = "NG"
                 return result
 
@@ -490,13 +815,30 @@ async def check_amazon_one(
                 add_to_cart_count = diagnostics_map.get("#addToCart", {}).get(
                     "count", 0
                 )
+                add_to_cart_button_text = diagnostics_map.get(
+                    "#add-to-cart-button", {}
+                ).get("text", "")
+                add_to_cart_button_count = diagnostics_map.get(
+                    "#add-to-cart-button", {}
+                ).get("count", 0)
+                submit_add_to_cart_text = diagnostics_map.get(
+                    "input[name=\"submit.add-to-cart\"]", {}
+                ).get("text", "")
+                submit_add_to_cart_count = diagnostics_map.get(
+                    "input[name=\"submit.add-to-cart\"]", {}
+                ).get("count", 0)
                 buy_now_count = diagnostics_map.get("#buy-now-button", {}).get(
                     "count", 0
                 )
                 add_to_cart_is_offer_link = "すべての出品を見る" in add_to_cart_text
-                has_purchase_button = buy_now_count > 0 or (
-                    add_to_cart_count > 0 and not add_to_cart_is_offer_link
+                has_real_add_to_cart_button = (
+                    add_to_cart_button_count > 0
+                    and has_actual_purchase_button_text(add_to_cart_button_text)
+                ) or (
+                    submit_add_to_cart_count > 0
+                    and has_actual_purchase_button_text(submit_add_to_cart_text)
                 )
+                has_purchase_button = buy_now_count > 0 or has_real_add_to_cart_button
                 fallback_text = "\n".join(
                     filter(
                         None,
@@ -508,6 +850,8 @@ async def check_amazon_one(
                             buybox_text,
                             desktop_buybox_text,
                             add_to_cart_text,
+                            add_to_cart_button_text,
+                            submit_add_to_cart_text,
                         ],
                     )
                 )
@@ -520,6 +864,9 @@ async def check_amazon_one(
                     )
                 fallback_qty = parse_available_qty(fallback_text)
                 fallback_point = await parse_point(page)
+                availability_has_stock_signal = bool(availability_text) and not is_generic_availability_text(
+                    availability_text
+                )
                 offer_listing_only = (
                     "すべての出品を見る" in buybox_text
                     or "すべての出品を見る" in desktop_buybox_text
@@ -527,7 +874,7 @@ async def check_amazon_one(
                 )
                 missing_core_purchase_info = (
                     fallback_price <= 0
-                    and not availability_text
+                    and not availability_has_stock_signal
                     and not merchant_info_text
                     and buy_now_count <= 0
                 )
@@ -554,7 +901,17 @@ async def check_amazon_one(
                     result["amazon_point"] = fallback_point
                     result["available_qty"] = fallback_qty
                     result["gift_available"] = "ギフト" in fallback_text if fallback_text else None
-                    result["shipping_status"] = availability_text or result["shipping_status"]
+                    if availability_has_stock_signal:
+                        result["shipping_status"] = availability_text or result["shipping_status"]
+                elif result["title"] and fallback_price <= 0 and not has_purchase_button and offer_listing_only:
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "BuyBoxなし"
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = None
+                    result["gift_available"] = False
                 else:
                     result["system_error"] = True
                     result["ng_reason"] = "BuyBox取得失敗"
@@ -603,6 +960,674 @@ async def check_amazon_one(
     finally:
         if own_page:
             await close_amazon_page(playwright, browser, context, page)
+
+
+async def check_amazon_one_v2(
+    asin: str,
+    page=None,
+    page_timeout_ms: int = 60000,
+    settle_timeout_ms: int = 1000,
+    debug_html: bool = False,
+) -> dict[str, Any]:
+    asin = asin.strip().upper()
+
+    result = {
+        "asin": asin,
+        "title": "",
+        "amazon_price": None,
+        "amazon_point": 0,
+        "available_qty": None,
+        "gift_available": None,
+        "shipping_status": "",
+        "business_ng": False,
+        "system_error": False,
+        "ng_reason": "",
+        "checked_at": now_dt(),
+        "page_needs_reset": False,
+    }
+
+    own_page = page is None
+    playwright = None
+    browser = None
+    context = None
+
+    try:
+        if own_page:
+            playwright, browser, context, page = await create_amazon_page()
+
+        try:
+            url = build_amazon_product_url(asin)
+            print(f"amazon_check_start url={url}")
+
+            page_state = None
+            body = ""
+            buy_info = {"in_text": "", "price": 0}
+
+            for attempt in range(2):
+                if attempt > 0:
+                    print(f"amazon_retry asin={asin} attempt={attempt + 1} url={url}")
+
+                await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
+                await page.wait_for_timeout(settle_timeout_ms)
+                page_state = await wait_for_meaningful_page_state(
+                    page,
+                    timeout_ms=min(page_timeout_ms, 5000),
+                )
+                body = await get_first_text(page, "body")
+
+                if "荳九↓陦ｨ遉ｺ縺輔ｌ縺ｦ縺・ｋ譁・ｭ励ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞" in body:
+                    result["system_error"] = True
+                    result["ng_reason"] = "逕ｻ蜒剰ｪ崎ｨｼ"
+                    return result
+
+                page_asin = await get_page_asin(page)
+                if page_asin:
+                    print(f"amazon_page_asin requested={asin} current={page_asin}")
+                if page_asin and page_asin != asin:
+                    result["system_error"] = True
+                    result["ng_reason"] = f"ASIN mismatch current={page_asin}"
+                    return result
+
+                buy_info = await read_buybox_info(page)
+                visible_price = int(buy_info["price"] or 0)
+                if visible_price <= 0:
+                    visible_price = await get_alt_price_from_buybox(page)
+                if visible_price <= 0:
+                    visible_price = await get_price_from_selector(
+                        page, "#corePriceDisplay_desktop_feature_div"
+                    )
+
+                if (
+                    page_state["price_visible"]
+                    or visible_price > 0
+                    or page_state["explicit_unavailable"]
+                    or page_state["explicit_buybox_missing"]
+                ):
+                    break
+
+            result["title"] = await get_title(page)
+
+            out_of_stock_text = await get_first_text(page, "#outOfStock")
+            if out_of_stock_text.strip():
+                result["business_ng"] = True
+                result["ng_reason"] = "out_of_stock"
+                result["shipping_status"] = "NG"
+                return result
+
+            if not buy_info["in_text"]:
+                selector_diagnostics = await collect_selector_diagnostics(page)
+                diagnostics_map = {item["selector"]: item for item in selector_diagnostics}
+                print("buybox_diagnostics_start")
+                for item in selector_diagnostics:
+                    preview = re.sub(r"\s+", " ", item["text"] or "")[:120]
+                    print(f"  {item['selector']}: count={item['count']} text={preview}")
+
+                if debug_html:
+                    debug_path = await save_debug_html(page, asin)
+                    if debug_path is not None:
+                        print(f"debug_html saved: {debug_path}")
+
+                availability_text = diagnostics_map.get("#availability", {}).get("text", "")
+                merchant_info_text = diagnostics_map.get("#merchant-info", {}).get("text", "")
+                buybox_text = diagnostics_map.get("#buybox", {}).get("text", "")
+                desktop_buybox_text = diagnostics_map.get("#desktop_buybox", {}).get("text", "")
+                add_to_cart_text = diagnostics_map.get("#addToCart", {}).get("text", "")
+                add_to_cart_button_text = diagnostics_map.get("#add-to-cart-button", {}).get("text", "")
+                add_to_cart_button_count = diagnostics_map.get("#add-to-cart-button", {}).get("count", 0)
+                submit_add_to_cart_text = diagnostics_map.get("input[name=\"submit.add-to-cart\"]", {}).get("text", "")
+                submit_add_to_cart_count = diagnostics_map.get("input[name=\"submit.add-to-cart\"]", {}).get("count", 0)
+                buy_now_count = diagnostics_map.get("#buy-now-button", {}).get("count", 0)
+
+                add_to_cart_is_offer_link = "縺吶∋縺ｦ縺ｮ蜃ｺ蜩√ｒ隕九ｋ" in add_to_cart_text
+                has_real_add_to_cart_button = (
+                    add_to_cart_button_count > 0
+                    and has_actual_purchase_button_text(add_to_cart_button_text)
+                ) or (
+                    submit_add_to_cart_count > 0
+                    and has_actual_purchase_button_text(submit_add_to_cart_text)
+                )
+                has_purchase_button = buy_now_count > 0 or has_real_add_to_cart_button
+
+                fallback_text = "\n".join(
+                    filter(
+                        None,
+                        [
+                            body,
+                            out_of_stock_text,
+                            availability_text,
+                            merchant_info_text,
+                            buybox_text,
+                            desktop_buybox_text,
+                            add_to_cart_text,
+                            add_to_cart_button_text,
+                            submit_add_to_cart_text,
+                        ],
+                    )
+                )
+                fallback_price = int(buy_info["price"] or 0)
+                if fallback_price <= 0:
+                    fallback_price = await get_alt_price_from_buybox(page)
+                if fallback_price <= 0:
+                    fallback_price = await get_price_from_selector(
+                        page, "#corePriceDisplay_desktop_feature_div"
+                    )
+                fallback_qty = parse_available_qty(fallback_text)
+                fallback_point = await parse_point(page)
+                availability_has_stock_signal = bool(availability_text) and not is_generic_availability_text(
+                    availability_text
+                )
+                offer_listing_only = (
+                    "縺吶∋縺ｦ縺ｮ蜃ｺ蜩√ｒ隕九ｋ" in buybox_text
+                    or "縺吶∋縺ｦ縺ｮ蜃ｺ蜩√ｒ隕九ｋ" in desktop_buybox_text
+                    or add_to_cart_is_offer_link
+                )
+                missing_core_purchase_info = (
+                    fallback_price <= 0
+                    and not availability_has_stock_signal
+                    and not merchant_info_text
+                    and buy_now_count <= 0
+                )
+                unavailable_reason = await detect_buybox_unavailable_reason(page, body)
+
+                if unavailable_reason:
+                    result["business_ng"] = True
+                    result["ng_reason"] = unavailable_reason
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "繧ｮ繝輔ヨ" in fallback_text if fallback_text else None
+                elif (page_state and page_state["explicit_buybox_missing"]) or (
+                    offer_listing_only and missing_core_purchase_info
+                ):
+                    result["business_ng"] = True
+                    result["ng_reason"] = "BuyBox??"
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = None
+                    result["gift_available"] = False
+                elif has_purchase_button or fallback_price > 0:
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "繧ｮ繝輔ヨ" in fallback_text if fallback_text else None
+                    if availability_has_stock_signal:
+                        result["shipping_status"] = availability_text or result["shipping_status"]
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = "BuyBox????"
+                return result
+
+            in_text = buy_info["in_text"]
+            price = int(buy_info["price"] or 0)
+
+            status_error = judge_basic_ng(in_text)
+            if status_error:
+                result["business_ng"] = True
+                result["ng_reason"] = status_error
+
+            qty = parse_available_qty(in_text)
+            shipping_status, shipping_message = parse_shipping_status(in_text)
+
+            if shipping_status != "OK":
+                result["business_ng"] = True
+                result["ng_reason"] = result["ng_reason"] or shipping_message
+
+            point = await parse_point(page)
+
+            alt_price = await get_alt_price_from_buybox(page)
+            if alt_price > 0:
+                price = alt_price
+
+            if price <= 0:
+                unavailable_reason = await detect_buybox_unavailable_reason(page, body)
+                if unavailable_reason:
+                    result["business_ng"] = True
+                    result["ng_reason"] = result["ng_reason"] or unavailable_reason
+                elif page_state and page_state["explicit_buybox_missing"]:
+                    result["business_ng"] = True
+                    result["ng_reason"] = result["ng_reason"] or "BuyBox??"
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = result["ng_reason"] or "??????"
+
+            result["amazon_price"] = price if price > 0 else None
+            result["amazon_point"] = point
+            result["available_qty"] = qty
+            result["gift_available"] = "繧ｮ繝輔ヨ" in in_text
+            result["shipping_status"] = shipping_message
+            return result
+
+        except Exception as e:
+            result["system_error"] = True
+            result["ng_reason"] = str(e)
+            if not own_page:
+                result["page_needs_reset"] = True
+            return result
+
+    finally:
+        if own_page:
+            await close_amazon_page(playwright, browser, context, page)
+
+
+async def detect_page_state_v2(page) -> dict[str, bool]:
+    body_text = await get_first_text(page, "body")
+    availability_text = await get_first_text(page, "#availability")
+    out_of_stock_text = await get_first_text(page, "#outOfStock")
+    buybox_text = await get_first_text(page, "#buybox")
+    desktop_buybox_text = await get_first_text(page, "#desktop_buybox")
+    merchant_info_text = await get_first_text(page, "#merchant-info")
+    add_to_cart_text = await get_first_text(page, "#addToCart")
+    high_price_warning = await detect_high_price_warning(page, body_text)
+
+    price_visible = False
+    for selector in (
+        "#corePriceDisplay_desktop_feature_div .a-price-whole",
+        "#corePriceDisplay_desktop_feature_div .a-offscreen",
+        "#priceToPay .a-price-whole",
+        "#priceToPay .a-offscreen",
+        ".a-price-whole",
+        ".a-offscreen",
+    ):
+        try:
+            loc = page.locator(selector)
+            if await loc.count() == 0:
+                continue
+            text = await safe_inner_text(loc.first)
+            if parse_price(text) > 0:
+                price_visible = True
+                break
+        except Exception:
+            continue
+
+    text_blob = "\n".join(
+        filter(
+            None,
+            [
+                body_text,
+                availability_text,
+                out_of_stock_text,
+                buybox_text,
+                desktop_buybox_text,
+                merchant_info_text,
+                add_to_cart_text,
+            ],
+        )
+    )
+    explicit_unavailable = bool(
+        out_of_stock_text.strip() or await detect_buybox_unavailable_reason(page, body_text)
+    )
+    explicit_buybox_missing = "すべての出品を見る" in text_blob
+
+    return {
+        "price_visible": price_visible,
+        "explicit_unavailable": explicit_unavailable,
+        "explicit_buybox_missing": explicit_buybox_missing,
+        "high_price_warning": high_price_warning,
+    }
+
+
+async def wait_for_meaningful_page_state_v2(page, timeout_ms: int, poll_ms: int = 250) -> dict[str, bool]:
+    deadline = asyncio.get_running_loop().time() + max(timeout_ms, 0) / 1000.0
+    last_state = {
+        "price_visible": False,
+        "explicit_unavailable": False,
+        "explicit_buybox_missing": False,
+        "high_price_warning": False,
+    }
+
+    while True:
+        last_state = await detect_page_state_v2(page)
+        if (
+            last_state["price_visible"]
+            or last_state["explicit_unavailable"]
+            or last_state["explicit_buybox_missing"]
+            or last_state["high_price_warning"]
+        ):
+            return last_state
+        if asyncio.get_running_loop().time() >= deadline:
+            return last_state
+        await page.wait_for_timeout(poll_ms)
+
+
+async def check_amazon_one_v3(
+    asin: str,
+    page=None,
+    page_timeout_ms: int = 60000,
+    settle_timeout_ms: int = 1000,
+    debug_html: bool = False,
+) -> dict[str, Any]:
+    asin = asin.strip().upper()
+    result = {
+        "asin": asin,
+        "title": "",
+        "amazon_price": None,
+        "amazon_point": 0,
+        "available_qty": None,
+        "gift_available": None,
+        "shipping_status": "",
+        "business_ng": False,
+        "system_error": False,
+        "ng_reason": "",
+        "checked_at": now_dt(),
+        "page_needs_reset": False,
+    }
+
+    own_page = page is None
+    playwright = None
+    browser = None
+    context = None
+    page_asin = ""
+    current_url = ""
+
+    try:
+        if own_page:
+            playwright, browser, context, page = await create_amazon_page()
+
+        try:
+            url = build_amazon_product_url(asin)
+            print(f"amazon_check_start url={url}")
+            body = ""
+            page_state = None
+            buy_info = {"in_text": "", "price": 0}
+
+            for attempt in range(2):
+                if attempt > 0:
+                    print(f"amazon_retry asin={asin} attempt={attempt + 1} url={url}")
+
+                await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
+                await page.wait_for_timeout(settle_timeout_ms)
+                page_state = await wait_for_meaningful_page_state_v2(
+                    page,
+                    timeout_ms=min(page_timeout_ms, 5000),
+                )
+                body = await get_first_text(page, "body")
+                current_url = getattr(page, "url", "")
+
+                if "表示されている文字を入力してください" in body:
+                    result["system_error"] = True
+                    result["ng_reason"] = "CAPTCHA"
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
+
+                restriction_type, restriction_reason = await detect_black_curtain_restriction(
+                    page,
+                    current_url,
+                    body,
+                )
+                if restriction_type:
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = restriction_reason
+                    result["amazon_price"] = None
+                    result["available_qty"] = None
+                    print(
+                        "amazon_restriction "
+                        f"requested_asin={asin} "
+                        f"current_url={current_url} "
+                        f"restriction_type={restriction_type} "
+                        f"ng_reason={restriction_reason}"
+                    )
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
+
+                if await detect_404_or_region_restriction(page, current_url, body):
+                    if attempt == 0:
+                        print(
+                            "amazon_retry_condition "
+                            f"requested_asin={asin} "
+                            f"current_url={current_url} "
+                            "detected_condition=404_or_region"
+                        )
+                        continue
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "商品ページなし（404／地域制限）"
+                    result["amazon_price"] = None
+                    result["available_qty"] = None
+                    print(
+                        "amazon_restriction "
+                        f"requested_asin={asin} "
+                        f"current_url={current_url} "
+                        "restriction_type=404_or_region "
+                        f"ng_reason={result['ng_reason']}"
+                    )
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
+
+                page_asin = await get_page_asin(page)
+                print(f"amazon_page_context requested_asin={asin} page_asin={page_asin or '-'} current_url={current_url}")
+
+                if page_asin and page_asin != asin:
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "ASIN不一致（別商品へ遷移）"
+                    result["amazon_price"] = None
+                    result["available_qty"] = None
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
+
+                if page_state["high_price_warning"]:
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "一般的な価格より高い価格"
+                    result["amazon_price"] = None
+                    result["available_qty"] = None
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
+
+                buy_info = await read_buybox_info(page)
+                visible_price = int(buy_info["price"] or 0)
+                if visible_price <= 0:
+                    visible_price = await get_alt_price_from_buybox(page)
+                if visible_price <= 0:
+                    visible_price = await get_price_from_selector(page, "#corePriceDisplay_desktop_feature_div")
+
+                if (
+                    page_state["price_visible"]
+                    or visible_price > 0
+                    or page_state["explicit_unavailable"]
+                    or page_state["explicit_buybox_missing"]
+                ):
+                    break
+
+            result["title"] = await get_title(page)
+
+            out_of_stock_text = await get_first_text(page, "#outOfStock")
+            if out_of_stock_text.strip():
+                result["business_ng"] = True
+                result["ng_reason"] = "在庫切れ"
+                result["shipping_status"] = "NG"
+                log_result_summary(asin, page_asin, current_url, result)
+                return result
+
+            used_only, detected_used_price = await detect_used_only_buybox(page, body)
+            if used_only:
+                result["business_ng"] = True
+                result["system_error"] = False
+                result["ng_reason"] = "新品BuyBoxなし（中古品のみ）"
+                result["amazon_price"] = None
+                result["available_qty"] = None
+                result["gift_available"] = False
+                print(
+                    "amazon_restriction "
+                    f"requested_asin={asin} "
+                    "detected_condition=used "
+                    f"detected_used_price={detected_used_price or 0} "
+                    f"current_url={current_url} "
+                    f"ng_reason={result['ng_reason']}"
+                )
+                log_result_summary(asin, page_asin, current_url, result)
+                return result
+
+            if not buy_info["in_text"]:
+                selector_diagnostics = await collect_selector_diagnostics(page)
+                diagnostics_map = {item["selector"]: item for item in selector_diagnostics}
+                print("buybox_diagnostics_start")
+                for item in selector_diagnostics:
+                    preview = re.sub(r"\s+", " ", item["text"] or "")[:120]
+                    print(f"  {item['selector']}: count={item['count']} text={preview}")
+
+                if debug_html:
+                    debug_path = await save_debug_html(page, asin)
+                    if debug_path is not None:
+                        print(f"debug_html saved: {debug_path}")
+
+                availability_text = diagnostics_map.get("#availability", {}).get("text", "")
+                merchant_info_text = diagnostics_map.get("#merchant-info", {}).get("text", "")
+                buybox_text = diagnostics_map.get("#buybox", {}).get("text", "")
+                desktop_buybox_text = diagnostics_map.get("#desktop_buybox", {}).get("text", "")
+                add_to_cart_text = diagnostics_map.get("#addToCart", {}).get("text", "")
+                add_to_cart_button_text = diagnostics_map.get("#add-to-cart-button", {}).get("text", "")
+                add_to_cart_button_count = diagnostics_map.get("#add-to-cart-button", {}).get("count", 0)
+                submit_add_to_cart_text = diagnostics_map.get("input[name=\"submit.add-to-cart\"]", {}).get("text", "")
+                submit_add_to_cart_count = diagnostics_map.get("input[name=\"submit.add-to-cart\"]", {}).get("count", 0)
+                buy_now_count = diagnostics_map.get("#buy-now-button", {}).get("count", 0)
+
+                add_to_cart_is_offer_link = "すべての出品を見る" in add_to_cart_text
+                has_real_add_to_cart_button = (
+                    add_to_cart_button_count > 0
+                    and has_actual_purchase_button_text(add_to_cart_button_text)
+                ) or (
+                    submit_add_to_cart_count > 0
+                    and has_actual_purchase_button_text(submit_add_to_cart_text)
+                )
+                has_purchase_button = buy_now_count > 0 or has_real_add_to_cart_button
+
+                fallback_text = "\n".join(
+                    filter(
+                        None,
+                        [
+                            body,
+                            out_of_stock_text,
+                            availability_text,
+                            merchant_info_text,
+                            buybox_text,
+                            desktop_buybox_text,
+                            add_to_cart_text,
+                            add_to_cart_button_text,
+                            submit_add_to_cart_text,
+                        ],
+                    )
+                )
+                fallback_price = int(buy_info["price"] or 0)
+                if fallback_price <= 0:
+                    fallback_price = await get_alt_price_from_buybox(page)
+                if fallback_price <= 0:
+                    fallback_price = await get_price_from_selector(page, "#corePriceDisplay_desktop_feature_div")
+                fallback_qty = parse_available_qty(fallback_text)
+                fallback_point = await parse_point(page)
+                availability_has_stock_signal = bool(availability_text) and not is_generic_availability_text(availability_text)
+                offer_listing_only = (
+                    "すべての出品を見る" in buybox_text
+                    or "すべての出品を見る" in desktop_buybox_text
+                    or add_to_cart_is_offer_link
+                )
+                missing_core_purchase_info = (
+                    fallback_price <= 0
+                    and not availability_has_stock_signal
+                    and not merchant_info_text
+                    and buy_now_count <= 0
+                )
+                unavailable_reason = await detect_buybox_unavailable_reason(page, body)
+
+                if await detect_high_price_warning(page, body):
+                    result["business_ng"] = True
+                    result["ng_reason"] = "一般的な価格より高い価格"
+                    result["amazon_price"] = None
+                    result["available_qty"] = None
+                elif unavailable_reason:
+                    result["business_ng"] = True
+                    result["ng_reason"] = unavailable_reason
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "郢ｧ・ｮ郢晁ｼ斐Κ" in fallback_text if fallback_text else None
+                elif (page_state and page_state["explicit_buybox_missing"]) or (offer_listing_only and missing_core_purchase_info):
+                    result["business_ng"] = True
+                    result["ng_reason"] = "BuyBoxなし"
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = None
+                    result["gift_available"] = False
+                elif has_purchase_button or fallback_price > 0:
+                    result["amazon_price"] = fallback_price if fallback_price > 0 else None
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = fallback_qty
+                    result["gift_available"] = "郢ｧ・ｮ郢晁ｼ斐Κ" in fallback_text if fallback_text else None
+                    if availability_has_stock_signal:
+                        result["shipping_status"] = availability_text or result["shipping_status"]
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = "BuyBox取得失敗"
+
+                log_result_summary(asin, page_asin, current_url, result)
+                return result
+
+            in_text = buy_info["in_text"]
+            price = int(buy_info["price"] or 0)
+
+            status_error = judge_basic_ng(in_text)
+            if status_error:
+                result["business_ng"] = True
+                result["ng_reason"] = status_error
+
+            qty = parse_available_qty(in_text)
+            shipping_status, shipping_message = parse_shipping_status(in_text)
+            if shipping_status != "OK":
+                result["business_ng"] = True
+                result["ng_reason"] = result["ng_reason"] or shipping_message
+
+            point = await parse_point(page)
+            alt_price = await get_alt_price_from_buybox(page)
+            if alt_price > 0:
+                price = alt_price
+
+            if await detect_high_price_warning(page, body):
+                result["business_ng"] = True
+                result["system_error"] = False
+                result["ng_reason"] = "一般的な価格より高い価格"
+                result["amazon_price"] = None
+                result["available_qty"] = None
+                log_result_summary(asin, page_asin, current_url, result)
+                return result
+
+            if price <= 0:
+                unavailable_reason = await detect_buybox_unavailable_reason(page, body)
+                if unavailable_reason:
+                    result["business_ng"] = True
+                    result["ng_reason"] = result["ng_reason"] or unavailable_reason
+                elif page_state and page_state["explicit_buybox_missing"]:
+                    result["business_ng"] = True
+                    result["ng_reason"] = result["ng_reason"] or "BuyBoxなし"
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = result["ng_reason"] or "価格取得失敗"
+
+            result["amazon_price"] = price if price > 0 else None
+            result["amazon_point"] = point
+            result["available_qty"] = qty
+            result["gift_available"] = "郢ｧ・ｮ郢晁ｼ斐Κ" in in_text
+            result["shipping_status"] = shipping_message
+            log_result_summary(asin, page_asin, current_url, result)
+            return result
+
+        except Exception as e:
+            result["system_error"] = True
+            result["ng_reason"] = str(e)
+            if not own_page:
+                result["page_needs_reset"] = True
+            log_result_summary(asin, page_asin, current_url, result)
+            return result
+    finally:
+        if own_page:
+            await close_amazon_page(playwright, browser, context, page)
+
+
+check_amazon_one = check_amazon_one_v3
 
 
 def save_to_db(data: dict[str, Any]) -> None:
@@ -661,6 +1686,18 @@ def save_to_db(data: dict[str, Any]) -> None:
 
     finally:
         conn.close()
+
+
+_save_to_db_without_retry = save_to_db
+
+
+def save_to_db(data: dict[str, Any]) -> None:
+
+    run_with_db_retry(
+        lambda: _save_to_db_without_retry(data),
+        description=f"save_to_db asin={data.get('asin')}",
+        logger=print,
+    )
 
 
 async def main() -> int:

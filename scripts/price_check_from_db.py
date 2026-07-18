@@ -1,6 +1,8 @@
 import argparse
 import asyncio
 import builtins
+
+from collections import Counter
 import os
 import socket
 import sys
@@ -8,7 +10,9 @@ import time
 from datetime import datetime, timedelta
 from typing import Any
 
+from calc_store_targets import recalc_targets_for_asins
 from db_config import connect_db
+from db_retry import DB_RETRY_EXIT_CODE, TemporaryDbError, run_with_db_retry
 from price_check_one_asin_db import check_amazon_one, close_amazon_page, create_amazon_page, save_to_db
 
 
@@ -39,6 +43,21 @@ def safe_print(*args, **kwargs) -> None:
 
 configure_output()
 print = safe_print
+
+configure_output()
+
+print = safe_print
+
+_connect_db_without_retry = connect_db
+
+
+def connect_db(**kwargs):
+
+    return run_with_db_retry(
+        lambda: _connect_db_without_retry(**kwargs),
+        description="connect_db",
+        logger=print,
+    )
 
 
 def get_target_asins(limit: int, hours: int) -> list[str]:
@@ -199,6 +218,7 @@ def claim_target_asins_by_stats(
     worker_id: str,
     lock_minutes: int = 30,
     system_error_only: bool = False,
+    reason_contains: str = "",
 ) -> list[dict[str, Any]]:
     """
     due な ASIN をまとめて claim/lock し、この実行で処理する固定リストを返す。
@@ -209,7 +229,9 @@ def claim_target_asins_by_stats(
             SELECT
                 s.asin,
                 s.status AS old_status,
-                s.next_check_at AS old_next_check_at
+                s.next_check_at AS old_next_check_at,
+                ap.ng_reason AS current_ng_reason,
+                ap.checked_at AS old_checked_at
             FROM amazon_check_stats s
             JOIN amazon_products ap ON ap.asin = s.asin
             WHERE
@@ -294,12 +316,404 @@ def print_claimed_asins(claimed_rows: list[dict[str, Any]], max_rows: int = 20) 
             f"asin={row.get('asin')} "
             f"status={row.get('status')} "
             f"old_next_check_at={row.get('old_next_check_at')} "
+            f"ng_reason={row.get('current_ng_reason', '')} "
+            f"checked_at={row.get('old_checked_at', '')} "
             f"worker_id={row.get('worker_id')}"
         )
 
     if len(claimed_rows) > max_rows:
         print(f"... 他 {len(claimed_rows) - max_rows} 件")
     print("")
+
+
+def get_amazon_product_states(asins: list[str]) -> dict[str, dict[str, Any]]:
+
+    if not asins:
+
+        return {}
+
+    sql = """
+
+        SELECT asin, checked_at, system_error, ng_reason
+
+        FROM amazon_products
+
+        WHERE asin = ANY(%s)
+
+    """
+
+    conn = connect_db()
+
+    try:
+
+        with conn.cursor() as cur:
+
+            cur.execute(sql, (asins,))
+
+            rows = cur.fetchall()
+
+        return {
+
+            row[0]: {
+
+                "asin": row[0],
+
+                "checked_at": row[1],
+
+                "system_error": row[2],
+
+                "ng_reason": row[3] or "",
+
+            }
+
+            for row in rows
+
+        }
+
+    finally:
+
+        conn.close()
+
+
+def release_claimed_asins(asins: list[str]) -> int:
+
+    if not asins:
+
+        return 0
+
+    sql = """
+
+        UPDATE amazon_check_stats
+
+        SET
+
+            status = 'done',
+
+            worker_id = NULL,
+
+            locked_at = NULL,
+
+            lock_expires_at = NULL,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE asin = ANY(%s)
+
+    """
+
+    conn = connect_db()
+
+    try:
+
+        with conn.cursor() as cur:
+
+            cur.execute(sql, (asins,))
+
+            released = cur.rowcount
+
+        conn.commit()
+
+        return released
+
+    finally:
+
+        conn.close()
+
+
+def filter_claimed_rows_by_reason(claimed_rows: list[dict[str, Any]], reason_contains: str) -> list[dict[str, Any]]:
+
+    if not claimed_rows:
+
+        return []
+
+    states = get_amazon_product_states([row["asin"] for row in claimed_rows])
+
+    for row in claimed_rows:
+
+        state = states.get(row["asin"], {})
+
+        row["current_ng_reason"] = state.get("ng_reason", "")
+
+        row["old_checked_at"] = state.get("checked_at")
+
+    if not reason_contains:
+
+        return claimed_rows
+
+    needle = reason_contains.casefold()
+
+    matched_rows = [
+
+        row for row in claimed_rows
+
+        if needle in str(row.get("current_ng_reason", "")).casefold()
+
+    ]
+
+    excluded_asins = [
+
+        row["asin"] for row in claimed_rows
+
+        if needle not in str(row.get("current_ng_reason", "")).casefold()
+
+    ]
+
+    if excluded_asins:
+
+        released_count = release_claimed_asins(excluded_asins)
+
+        print(f"reason_filter_release count={released_count} reason_contains={reason_contains}")
+
+    return matched_rows
+
+
+def preview_system_error_targets(limit: int, reason_contains: str = "") -> list[dict[str, Any]]:
+
+    sql = """
+
+        SELECT asin, ng_reason, checked_at
+
+        FROM amazon_products
+
+        WHERE COALESCE(system_error, FALSE) = TRUE
+
+          AND (
+
+              %s = ''
+
+              OR COALESCE(ng_reason, '') ILIKE %s
+
+          )
+
+        ORDER BY checked_at NULLS FIRST, asin
+
+        LIMIT %s
+
+    """
+
+    conn = connect_db()
+
+    try:
+
+        with conn.cursor() as cur:
+
+            cur.execute(sql, (reason_contains, f"%{reason_contains}%", limit))
+
+            rows = cur.fetchall()
+
+        return [
+
+            {
+
+                "asin": row[0],
+
+                "current_ng_reason": row[1] or "",
+
+                "old_checked_at": row[2],
+
+            }
+
+            for row in rows
+
+        ]
+
+    finally:
+
+        conn.close()
+
+
+def claim_target_asins_by_stats_v2(
+
+    limit: int,
+
+    worker_id: str,
+
+    lock_minutes: int = 30,
+
+    system_error_only: bool = False,
+
+    reason_contains: str = "",
+
+) -> list[dict[str, Any]]:
+
+    sql = """
+
+        WITH target_rows AS (
+
+            SELECT
+
+                s.asin,
+
+                s.status AS old_status,
+
+                s.next_check_at AS old_next_check_at,
+
+                ap.ng_reason AS current_ng_reason,
+
+                ap.checked_at AS old_checked_at
+
+            FROM amazon_check_stats s
+
+            JOIN amazon_products ap ON ap.asin = s.asin
+
+            WHERE
+
+                (
+
+                    %(system_error_only)s = TRUE
+
+                    AND COALESCE(ap.system_error, FALSE) = TRUE
+
+                    AND (
+
+                        %(reason_contains)s = ''
+
+                        OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s
+
+                    )
+
+                )
+
+                OR
+
+                (
+
+                    %(system_error_only)s = FALSE
+
+                    AND (
+
+                        s.next_check_at IS NULL
+
+                        OR s.next_check_at <= CURRENT_TIMESTAMP
+
+                    )
+
+                    AND (
+
+                        s.status IN ('pending', 'done')
+
+                        OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)
+
+                    )
+
+                )
+
+            ORDER BY
+
+                ap.checked_at ASC NULLS FIRST,
+
+                s.last_checked_at ASC NULLS FIRST,
+
+                s.next_check_at ASC NULLS FIRST,
+
+                s.priority_score DESC,
+
+                s.asin
+
+            FOR UPDATE OF s SKIP LOCKED
+
+            LIMIT %(limit)s
+
+        )
+
+        UPDATE amazon_check_stats s
+
+        SET
+
+            status = 'processing',
+
+            worker_id = %(worker_id)s,
+
+            locked_at = CURRENT_TIMESTAMP,
+
+            lock_expires_at = CURRENT_TIMESTAMP + (%(lock_minutes)s || ' minutes')::interval,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        FROM target_rows t
+
+        WHERE s.asin = t.asin
+
+        RETURNING
+
+            s.asin,
+
+            s.status,
+
+            t.old_status,
+
+            t.old_next_check_at,
+
+            s.worker_id,
+
+            t.current_ng_reason,
+
+            t.old_checked_at
+
+    """
+
+    conn = connect_db()
+
+    try:
+
+        with conn.cursor() as cur:
+
+            cur.execute(
+
+                sql,
+
+                {
+
+                    "limit": limit,
+
+                    "worker_id": worker_id,
+
+                    "lock_minutes": lock_minutes,
+
+                    "system_error_only": system_error_only,
+
+                    "reason_contains": reason_contains,
+
+                    "reason_pattern": f"%{reason_contains}%",
+
+                },
+
+            )
+
+            rows = cur.fetchall()
+
+        conn.commit()
+
+        return [
+
+            {
+
+                "asin": row[0],
+
+                "status": row[1],
+
+                "old_status": row[2],
+
+                "old_next_check_at": row[3],
+
+                "worker_id": row[4],
+
+                "current_ng_reason": row[5],
+
+                "old_checked_at": row[6],
+
+            }
+
+            for row in rows
+
+        ]
+
+    finally:
+
+        conn.close()
+
+
+claim_target_asins_by_stats = claim_target_asins_by_stats_v2
 
 
 def get_previous_amazon_state(asin: str) -> dict[str, Any] | None:
@@ -642,6 +1056,40 @@ def save_worker_run_summary(metrics: dict[str, Any]) -> None:
         conn.close()
 
 
+def fetch_store_codes_for_asin(asin: str, mall: str = "rakuten") -> list[str]:
+    sql = """
+        SELECT DISTINCT s.store_code
+        FROM store_products sp
+        JOIN stores s ON s.id = sp.store_id
+        WHERE sp.asin = %s
+          AND s.mall = %s
+          AND s.store_code LIKE 'rakuten_%%'
+        ORDER BY s.store_code
+    """
+
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (asin, mall))
+            return [str(row[0]).strip() for row in cur.fetchall() if str(row[0]).strip()]
+    finally:
+        conn.close()
+
+
+def run_target_recalc_for_asin(asin: str, store_code: str) -> dict[str, Any]:
+    conn = connect_db()
+    try:
+        return recalc_targets_for_asins(
+            conn,
+            store_code=store_code,
+            asins=[asin],
+            dry_run=False,
+            verbose=False,
+        )
+    finally:
+        conn.close()
+
+
 def print_db_summary() -> None:
     """
     簡単な件数確認。
@@ -678,13 +1126,197 @@ def print_db_summary() -> None:
         conn.close()
 
 
+_get_target_asins_without_retry = get_target_asins
+_ensure_amazon_check_stats_schema_without_retry = ensure_amazon_check_stats_schema
+_ensure_amazon_check_stats_rows_without_retry = ensure_amazon_check_stats_rows
+_release_expired_processing_locks_without_retry = release_expired_processing_locks
+_ensure_amazon_check_worker_runs_schema_without_retry = ensure_amazon_check_worker_runs_schema
+_get_amazon_product_states_without_retry = get_amazon_product_states
+_release_claimed_asins_without_retry = release_claimed_asins
+_preview_system_error_targets_without_retry = preview_system_error_targets
+_claim_target_asins_by_stats_without_retry = claim_target_asins_by_stats
+_get_previous_amazon_state_without_retry = get_previous_amazon_state
+_get_existing_stats_without_retry = get_existing_stats
+_update_amazon_check_stats_without_retry = update_amazon_check_stats
+_save_worker_run_summary_without_retry = save_worker_run_summary
+_fetch_store_codes_for_asin_without_retry = fetch_store_codes_for_asin
+_run_target_recalc_for_asin_without_retry = run_target_recalc_for_asin
+_print_db_summary_without_retry = print_db_summary
+
+
+def get_target_asins(limit: int, hours: int) -> list[str]:
+
+    return run_with_db_retry(
+        lambda: _get_target_asins_without_retry(limit, hours),
+        description=f"get_target_asins limit={limit} hours={hours}",
+        logger=print,
+    )
+
+
+def ensure_amazon_check_stats_schema() -> None:
+
+    run_with_db_retry(
+        _ensure_amazon_check_stats_schema_without_retry,
+        description="ensure_amazon_check_stats_schema",
+        logger=print,
+    )
+
+
+def ensure_amazon_check_stats_rows() -> None:
+
+    run_with_db_retry(
+        _ensure_amazon_check_stats_rows_without_retry,
+        description="ensure_amazon_check_stats_rows",
+        logger=print,
+    )
+
+
+def release_expired_processing_locks() -> int:
+
+    return run_with_db_retry(
+        _release_expired_processing_locks_without_retry,
+        description="release_expired_processing_locks",
+        logger=print,
+    )
+
+
+def ensure_amazon_check_worker_runs_schema() -> None:
+
+    run_with_db_retry(
+        _ensure_amazon_check_worker_runs_schema_without_retry,
+        description="ensure_amazon_check_worker_runs_schema",
+        logger=print,
+    )
+
+
+def get_amazon_product_states(asins: list[str]) -> dict[str, dict[str, Any]]:
+
+    return run_with_db_retry(
+        lambda: _get_amazon_product_states_without_retry(asins),
+        description=f"get_amazon_product_states count={len(asins)}",
+        logger=print,
+    )
+
+
+def release_claimed_asins(asins: list[str]) -> int:
+
+    return run_with_db_retry(
+        lambda: _release_claimed_asins_without_retry(asins),
+        description=f"release_claimed_asins count={len(asins)}",
+        logger=print,
+    )
+
+
+def preview_system_error_targets(limit: int, reason_contains: str = "") -> list[dict[str, Any]]:
+
+    return run_with_db_retry(
+        lambda: _preview_system_error_targets_without_retry(limit, reason_contains),
+        description=f"preview_system_error_targets limit={limit}",
+        logger=print,
+    )
+
+
+def claim_target_asins_by_stats_v2(
+    limit: int,
+    worker_id: str,
+    lock_minutes: int = 30,
+    system_error_only: bool = False,
+    reason_contains: str = "",
+) -> list[dict[str, Any]]:
+
+    return run_with_db_retry(
+        lambda: _claim_target_asins_by_stats_without_retry(
+            limit,
+            worker_id,
+            lock_minutes=lock_minutes,
+            system_error_only=system_error_only,
+            reason_contains=reason_contains,
+        ),
+        description=f"claim_target_asins_by_stats limit={limit} worker_id={worker_id}",
+        logger=print,
+    )
+
+
+claim_target_asins_by_stats = claim_target_asins_by_stats_v2
+
+
+def get_previous_amazon_state(asin: str) -> dict[str, Any] | None:
+
+    return run_with_db_retry(
+        lambda: _get_previous_amazon_state_without_retry(asin),
+        description=f"get_previous_amazon_state asin={asin}",
+        logger=print,
+    )
+
+
+def get_existing_stats(asin: str) -> dict[str, Any] | None:
+
+    return run_with_db_retry(
+        lambda: _get_existing_stats_without_retry(asin),
+        description=f"get_existing_stats asin={asin}",
+        logger=print,
+    )
+
+
+def update_amazon_check_stats(asin: str, update: dict[str, Any]) -> None:
+
+    run_with_db_retry(
+        lambda: _update_amazon_check_stats_without_retry(asin, update),
+        description=f"update_amazon_check_stats asin={asin}",
+        logger=print,
+    )
+
+
+def save_worker_run_summary(metrics: dict[str, Any]) -> None:
+
+    run_with_db_retry(
+        lambda: _save_worker_run_summary_without_retry(metrics),
+        description=f"save_worker_run_summary worker_id={metrics.get('worker_id')}",
+        logger=print,
+    )
+
+
+def fetch_store_codes_for_asin(asin: str, mall: str = "rakuten") -> list[str]:
+
+    return run_with_db_retry(
+        lambda: _fetch_store_codes_for_asin_without_retry(asin, mall),
+        description=f"fetch_store_codes_for_asin asin={asin} mall={mall}",
+        logger=print,
+    )
+
+
+def run_target_recalc_for_asin(asin: str, store_code: str) -> dict[str, Any]:
+
+    return run_with_db_retry(
+        lambda: _run_target_recalc_for_asin_without_retry(asin, store_code),
+        description=f"run_target_recalc_for_asin asin={asin} store={store_code}",
+        logger=print,
+    )
+
+
+def print_db_summary() -> None:
+
+    run_with_db_retry(
+        _print_db_summary_without_retry,
+        description="print_db_summary",
+        logger=print,
+    )
+
+
 async def main() -> int:
     parser = argparse.ArgumentParser(description="DBからASINを取得してAmazon価格チェックを実行します。")
     parser.add_argument("--limit", type=int, default=10, help="今回チェックする最大件数")
     parser.add_argument("--hours", type=int, default=6, help="何時間以上前のチェック結果を再チェック対象にするか")
     parser.add_argument("--summary", action="store_true", help="実行前後にDB件数サマリを表示する")
-    parser.add_argument("--use-stats", action="store_true", help="amazon_check_stats.next_check_at を使って対象ASINを選ぶ")
+    parser.add_argument(
+        "--use-stats",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="amazon_check_stats.next_check_at ??????ASIN???",
+    )
     parser.add_argument("--system-error-only", action="store_true", help="amazon_products.system_error = TRUE のASINだけを再チェックする")
+    parser.add_argument("--reason-contains", default="", help="system_error再チェック時に ng_reason の部分一致で絞る")
+    parser.add_argument("--dry-run", action="store_true", help="対象ASIN一覧だけ表示し、ブラウザ起動やDB更新を行わない")
     parser.add_argument("--worker-id", default="", help="stats方式で使うワーカーID。未指定なら自動生成")
     parser.add_argument("--page-timeout", type=int, default=60000, help="page.goto の timeout(ms)")
     args = parser.parse_args()
@@ -697,9 +1329,17 @@ async def main() -> int:
         return 2
 
     print("DBから対象ASINを取得します。")
+    if args.reason_contains and not args.system_error_only:
+
+        print("--reason-contains は --system-error-only と一緒に指定してください。")
+
+        return 2
+
     print(f"limit={args.limit}, hours={args.hours}")
     print(f"use_stats={args.use_stats}")
     print(f"system_error_only={args.system_error_only}")
+    print(f"reason_contains={args.reason_contains}")
+    print(f"dry_run={args.dry_run}")
     print(f"page_timeout={args.page_timeout}")
     worker_id = args.worker_id.strip() or build_worker_id()
     started_at_dt = datetime.now()
@@ -726,7 +1366,25 @@ async def main() -> int:
         "started_at_iso": started_at_iso,
         "finished_at_iso": started_at_iso,
     }
-    if args.use_stats:
+    def try_save_run_summary() -> None:
+
+        if not args.use_stats or args.dry_run:
+            return
+
+        try:
+            save_worker_run_summary(metrics)
+        except TemporaryDbError as e:
+            print(f"worker run summary save failed: {e}")
+        except Exception as e:
+            print(f"worker run summary save failed: {e}")
+
+    if args.dry_run and args.system_error_only:
+
+        claimed_rows = preview_system_error_targets(args.limit, args.reason_contains)
+
+        asins = [row["asin"] for row in claimed_rows]
+
+    elif args.use_stats:
         print(f"worker_id={worker_id}")
 
     if args.summary:
@@ -734,7 +1392,13 @@ async def main() -> int:
 
     claimed_rows: list[dict[str, Any]] = []
 
-    if args.use_stats:
+    if args.dry_run and args.system_error_only:
+
+        claimed_rows = preview_system_error_targets(args.limit, args.reason_contains)
+
+        asins = [row["asin"] for row in claimed_rows]
+
+    elif args.use_stats:
         ensure_amazon_check_stats_schema()
         ensure_amazon_check_stats_rows()
         ensure_amazon_check_worker_runs_schema()
@@ -745,6 +1409,7 @@ async def main() -> int:
             args.limit,
             worker_id,
             system_error_only=args.system_error_only,
+            reason_contains=args.reason_contains,
         )
         asins = [row["asin"] for row in claimed_rows]
     else:
@@ -777,7 +1442,7 @@ async def main() -> int:
             print(f"finished_at          : {metrics['finished_at_text']}")
             print(f"returncode           : {metrics['returncode']}")
             print(build_worker_run_summary(metrics | {"started_at": metrics["started_at_iso"], "finished_at": metrics["finished_at_iso"]}))
-            save_worker_run_summary(metrics)
+            try_save_run_summary()
         return 0
 
     if args.summary and args.use_stats:
@@ -787,6 +1452,48 @@ async def main() -> int:
     print("対象ASIN:")
     for asin in asins:
         print(f"  {asin}")
+
+    if args.dry_run:
+
+        reason_counter = Counter(str(row.get("current_ng_reason") or "") for row in claimed_rows)
+
+        print("")
+
+        print("===== Dry Run Targets =====")
+
+        for row in claimed_rows:
+
+            print(
+
+                f"asin={row.get('asin')} "
+
+                f"ng_reason={row.get('current_ng_reason', '')} "
+
+                f"checked_at={row.get('old_checked_at', '')}"
+
+            )
+
+        print("")
+
+        print(f"target_count={len(claimed_rows)}")
+
+        for reason, count in sorted(reason_counter.items(), key=lambda item: (-item[1], item[0])):
+
+            print(f"reason_count[{reason}]={count}")
+
+        finished_at_dt = datetime.now()
+
+        metrics["finished_at"] = finished_at_dt
+
+        metrics["finished_at_text"] = finished_at_dt.strftime("%Y/%m/%d %H:%M:%S")
+
+        metrics["finished_at_iso"] = finished_at_dt.isoformat(timespec="seconds")
+
+        metrics["elapsed_seconds"] = round(time.perf_counter() - started_perf, 3)
+
+        print(f"finished_at    : {metrics['finished_at_text']}")
+
+        return 0
 
     print("")
     print("Amazonチェック開始")
@@ -798,8 +1505,13 @@ async def main() -> int:
     stable_count = 0
     system_error_count = 0
     business_ng_count = 0
+    normalized_count = 0
+    business_ng_changed_count = 0
+    system_error_continued_count = 0
     page_reset_count = 0
     stats_updated_count = 0
+    final_reason_counter: Counter[str] = Counter()
+    result_asins: list[str] = []
 
     playwright = None
     browser = None
@@ -844,6 +1556,31 @@ async def main() -> int:
                 print(f"  ng_reason      : {data.get('ng_reason')}")
 
                 save_to_db(data)
+                print("amazon_products save: OK")
+
+                if data.get("system_error"):
+                    print(f"target recalc skipped: asin={asin} reason=system_error")
+                else:
+                    recalc_store_codes = fetch_store_codes_for_asin(asin)
+                    if not recalc_store_codes:
+                        print(f"target recalc: skip asin={asin} stores=0")
+                    else:
+                        for recalc_store_code in recalc_store_codes:
+                            try:
+                                recalc_result = run_target_recalc_for_asin(asin, recalc_store_code)
+                                print(
+                                    "target recalc: "
+                                    f"store={recalc_store_code} "
+                                    f"asin={asin} "
+                                    f"rows={recalc_result.get('rows', 0)} "
+                                    f"updated={recalc_result.get('updated', 0)} "
+                                    f"errors={recalc_result.get('errors', 0)}"
+                                )
+                            except Exception as recalc_error:
+                                print(
+                                    "target recalc error: "
+                                    f"store={recalc_store_code} asin={asin} error={recalc_error}"
+                                )
 
                 if data.get("business_ng"):
                     business_ng_count += 1
@@ -865,6 +1602,16 @@ async def main() -> int:
                 else:
                     success_count += 1
 
+                if data.get("system_error"):
+                    system_error_continued_count += 1
+                elif data.get("business_ng"):
+                    business_ng_changed_count += 1
+                else:
+                    normalized_count += 1
+
+                final_reason_counter[str(data.get("ng_reason") or "")] += 1
+                result_asins.append(asin)
+
                 print("DB保存OK")
 
                 if data.get("page_needs_reset"):
@@ -874,14 +1621,23 @@ async def main() -> int:
                     playwright, browser, context, shared_page = await create_amazon_page()
                     print("共有Chrome/page再初期化完了")
 
+            except TemporaryDbError as e:
+
+                print(f"temporary DB error: asin={asin} error={e}")
+                return DB_RETRY_EXIT_CODE
+
             except Exception as e:
                 error_count += 1
                 if args.use_stats:
-                    existing_stats = get_existing_stats(asin)
-                    stats_update = build_error_stats_update(existing_stats)
-                    update_amazon_check_stats(asin, stats_update)
-                    system_error_count += 1
-                    stats_updated_count += 1
+                    try:
+                        existing_stats = get_existing_stats(asin)
+                        stats_update = build_error_stats_update(existing_stats)
+                        update_amazon_check_stats(asin, stats_update)
+                        system_error_count += 1
+                        stats_updated_count += 1
+                    except TemporaryDbError as db_error:
+                        print(f"temporary DB error while handling asin={asin}: {db_error}")
+                        return DB_RETRY_EXIT_CODE
                 print(f"エラー: {e}")
 
                 try:
@@ -938,9 +1694,19 @@ async def main() -> int:
         print(f"next_check更新件数: {stats_updated_count}")
         print(f"finished_at    : {metrics['finished_at_text']}")
         print(f"returncode     : {metrics['returncode']}")
+
+        if args.system_error_only:
+            print(f"normalized_count            : {normalized_count}")
+            print(f"business_ng_changed_count   : {business_ng_changed_count}")
+            print(f"system_error_continued_count: {system_error_continued_count}")
+            for reason, count in sorted(final_reason_counter.items(), key=lambda item: (-item[1], item[0])):
+                print(f"reason_count[{reason}]={count}")
+            print("result_asins:")
+            for asin in result_asins:
+                print(f"  {asin}")
         if args.use_stats:
             print(build_worker_run_summary(metrics | {"started_at": metrics["started_at_iso"], "finished_at": metrics["finished_at_iso"]}))
-            save_worker_run_summary(metrics)
+            try_save_run_summary()
     print(f"終了時刻      : {metrics['finished_at_text']}")
 
     if args.summary:
@@ -950,4 +1716,8 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(asyncio.run(main()))
+    try:
+        raise SystemExit(asyncio.run(main()))
+    except TemporaryDbError as e:
+        print(f"temporary DB error: {e}")
+        raise SystemExit(DB_RETRY_EXIT_CODE)

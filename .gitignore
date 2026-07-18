@@ -19,11 +19,20 @@ venv/
 output/
 backup/
 temp/
+tmp/
+logs/
 
 # Local input files and ad-hoc exports
 input/
 update_targets.csv
 config/amazon_worker_launcher.ini
+config/rakuten_worker_launcher.ini
+config/rakuten_worker_launcher.lock.json
+config/rakuten_price_simulator.ini
+config/rakuten_price_simulator.lock.json
+tart_amazon_workers.ps1
+tem `
+tore_settings
 
 # OS / editor
 Thumbs.db

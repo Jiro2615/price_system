@@ -1,5 +1,16 @@
 # 楽天価格・在庫更新・出品管理システム
 
+## ドキュメント案内
+詳細仕様、主要ファイルの役割、APIの使い分け、DBやworker設定、迷ったときの参照先は以下を使う。
+
+- [docs/system_reference_guide.md](/abs/path/C:/price_system/docs/system_reference_guide.md)
+  - 全体の実務向けガイド
+  - ファイルのありか、主要スクリプトの説明、DB/APIの参照先
+- [docs/rakuten_price_system_design.md](/abs/path/C:/price_system/docs/rakuten_price_system_design.md)
+  - 価格・在庫更新ルートの設計方針
+- [docs/settings_inventory.md](/abs/path/C:/price_system/docs/settings_inventory.md)
+  - CLI、DB設定、`.env` の役割分担
+
 ## 目的
 楽天店舗の商品について、Amazonの価格・在庫・発送可否を確認し、楽天側の販売価格・在庫数をDBで管理する。  
 更新は、通常運用ではAPI、全体価格ロジック変更時などの大量更新では楽天CSV一括編集を使う。
@@ -717,3 +728,132 @@ Get-ChildItem C:\price_system\backup\qnap
 
 - 復元先は本番 `price_system` ではなく `price_system_restore_test` を使う
 - 本番DBへ直接 `pg_restore` して動作確認しない
+## Rakuten Update Worker Launcher
+
+The Rakuten update worker launcher files are available under `scripts\`.
+
+- `start_rakuten_update_worker.bat`
+  - starts the execute loop launcher
+- `start_rakuten_update_worker_once.bat`
+  - starts the execute once launcher
+- `start_rakuten_update_worker.ps1`
+  - main launcher script
+
+Default values:
+
+- `store = rakuten_1`
+- `price-limit = 20`
+- `stock-limit = 50`
+- `empty-sleep = 60`
+- `error-sleep = 300`
+
+Behavior:
+
+- opens a separate PowerShell window for `rakuten_update_worker_loop.py`
+- saves the last values to `config/rakuten_worker_launcher.ini`
+- writes logs to `logs\rakuten_update_worker\`
+- prevents duplicate launch when a live lock file is present
+
+Usage:
+
+```powershell
+cd C:\price_system\scripts
+.\start_rakuten_update_worker.bat
+.\start_rakuten_update_worker_once.bat
+```
+
+## Rakuten Price Update Simulator
+
+Use the simulator when you want to measure Rakuten price-update throughput without calling the Rakuten API and without changing `store_products.current_price`, `target_price`, or `target_stock`.
+
+- simulated state is stored in `price_update_sim_state`
+- per-loop metrics are stored in `price_update_sim_runs`
+- candidate detection compares `target_price` with `simulated_current_price`, not with `store_products.current_price`
+- the real Rakuten API is never called
+
+Migration file:
+
+```powershell
+docs\migrations\20260706_price_update_simulation.sql
+```
+
+Direct CLI examples:
+
+```powershell
+cd C:\price_system\scripts
+py rakuten_price_update_simulator.py --store rakuten_1 --resolve-only
+py rakuten_price_update_simulator.py --store rakuten_1 --start-measurement --measurement-label "initial_7days"
+py rakuten_price_update_simulator.py --store rakuten_1 --finish-measurement
+py rakuten_price_update_simulator.py --store rakuten_1 --cancel-measurement
+py rakuten_price_update_simulator.py --store rakuten_1 --limit 5 --once --fast-test
+py rakuten_price_update_simulator.py --store rakuten_1 --limit 5 --once
+py rakuten_price_update_simulator.py --store rakuten_1 --limit 20 --empty-sleep 10
+```
+
+Key options:
+
+- `--store`
+- `--limit`
+- `--once`
+- `--max-loops`
+- `--empty-sleep`
+- `--api-interval`
+- `--simulated-request-seconds`
+- `--resolve-only`
+- `--fast-test`
+- `--start-measurement`
+- `--finish-measurement`
+- `--cancel-measurement`
+- `--measurement-label`
+
+Defaults:
+
+- `limit = 20`
+- `empty_sleep_seconds = 10`
+- `api_interval_seconds = 1.5`
+- `simulated_request_seconds = 0.2`
+
+Loop summary output includes:
+
+- `backlog_start_count`
+- `new_pending_count`
+- `retargeted_count`
+- `processed_count`
+- `backlog_end_count`
+- `queue_delta`
+- `oldest_pending_seconds`
+- `elapsed_seconds`
+- `average_seconds_per_item`
+- `throughput_per_hour`
+- `estimated_drain_seconds`
+
+Launcher files:
+
+- `scripts\start_rakuten_price_update_simulator.ps1`
+- `scripts\start_rakuten_price_update_simulator.bat`
+- `scripts\start_rakuten_price_update_simulator_once.bat`
+
+Launcher behavior:
+
+- stores local settings in `config\rakuten_price_simulator.ini`
+- reuses `Store` and `NodeCode` automatically after first setup
+- writes logs to `logs\rakuten_price_update_simulator\`
+- uses a separate local lock file and a separate PostgreSQL advisory lock from the real Rakuten update worker
+
+Formal measurement flow:
+
+- use `--start-measurement --measurement-label ...` after the initial full Amazon scan has completed
+- the baseline reset aligns `simulated_current_price` to the current `target_price` for the selected store
+- use `--finish-measurement` to close the current formal measurement early
+- use `--cancel-measurement` to stop the current formal measurement without deleting data
+- stopping only the simulator process does not change measurement status; a running measurement can be resumed later
+- pre-measurement simulation history is kept, but formal reports can filter by `measurement_id` or `measurement_label`
+
+Measurement report examples:
+
+```powershell
+cd C:\price_system\scripts
+py report_rakuten_price_simulation.py --store rakuten_1
+py report_rakuten_price_simulation.py --store rakuten_1 --measurement-label initial_7days --json
+py report_rakuten_price_simulation.py --store rakuten_1 --measurement-id 1 --recent-runs 20
+```

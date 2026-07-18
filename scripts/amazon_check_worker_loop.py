@@ -1,22 +1,35 @@
-﻿import argparse
-import locale
+import argparse
+import builtins
+import os
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
-import builtins
-import os
-from typing import Optional
+from typing import Any, Optional
+
+from db_config import connect_db
+from db_retry import DB_RETRY_EXIT_CODE, is_retryable_db_error
+from settings_loader import WORKER_TYPE_AMAZON, load_resolved_worker_settings
 
 
-BASE_DIR = Path(r"C:\price_system")
+BASE_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = BASE_DIR / "scripts"
 CONSOLE_ENCODING = "utf-8"
 EMPTY_MARKER = "対象ASINがありません。"
 SUMMARY_MARKER = "WORKER_RUN_SUMMARY "
 LOG_DIR = BASE_DIR / "output" / "logs" / "amazon_check_worker"
 LOG_STREAM: Optional[object] = None
+DB_RECOVERY_WAIT_SECONDS = 60
+
+CLI_TO_SETTING_KEY = {
+    "limit": "limit",
+    "sleep": "loop_sleep_seconds",
+    "empty_sleep": "empty_sleep_seconds",
+    "page_timeout": "page_timeout_ms",
+    "use_stats": "use_stats",
+    "log_retention_days": "log_retention_days",
+}
 
 
 def configure_output() -> None:
@@ -83,7 +96,7 @@ def cleanup_old_logs(retention_days: int) -> int:
     return removed
 
 
-def open_log_stream(worker_id: str):
+def open_log_stream(worker_id: str) -> tuple[Path, object]:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     date_prefix = datetime.now().strftime("%Y%m%d")
     safe_worker_id = sanitize_worker_id_for_filename(worker_id)
@@ -95,7 +108,7 @@ def open_log_stream(worker_id: str):
 def script_path(name: str) -> Path:
     path = SCRIPTS_DIR / name
     if not path.exists():
-        raise RuntimeError(f"スクリプトが見つかりません: {path}")
+        raise RuntimeError(f"script not found: {path}")
     return path
 
 
@@ -103,18 +116,63 @@ def py_cmd(script_name: str) -> list[str]:
     return [sys.executable, "-u", str(script_path(script_name))]
 
 
-def build_child_cmd(worker_id: str, limit: int, page_timeout: int) -> list[str]:
-    return [
+def build_cli_overrides(args: argparse.Namespace) -> dict[str, Any]:
+    overrides: dict[str, Any] = {}
+    for arg_name, setting_key in CLI_TO_SETTING_KEY.items():
+        value = getattr(args, arg_name)
+        if value is not None:
+            overrides[setting_key] = value
+    return overrides
+
+
+def build_child_cmd(
+    worker_id: str,
+    resolved_settings: dict[str, dict[str, Any]],
+    recheck_system_errors: bool = False,
+    reason_contains: str = "",
+    dry_run: bool = False,
+) -> list[str]:
+    cmd = [
         *py_cmd("price_check_from_db.py"),
         "--limit",
-        str(limit),
+        str(resolved_settings["limit"]["value"]),
         "--summary",
-        "--use-stats",
         "--worker-id",
         worker_id,
         "--page-timeout",
-        str(page_timeout),
+        str(resolved_settings["page_timeout_ms"]["value"]),
     ]
+    cmd.append("--use-stats" if resolved_settings["use_stats"]["value"] else "--no-use-stats")
+    if recheck_system_errors:
+        cmd.append("--system-error-only")
+    if reason_contains:
+        cmd.extend(["--reason-contains", reason_contains])
+    if dry_run:
+        cmd.append("--dry-run")
+    return cmd
+
+
+def print_resolved_config(data: dict[str, Any]) -> None:
+    print("")
+    print("===== Resolved Worker Settings =====")
+    print(f"worker_config_id : {data['worker_config_id']}")
+    print(f"worker_id        : {data['worker_id']}")
+    print(f"node_code        : {data['node_code']}")
+    print(f"hostname         : {data['hostname']}")
+    print(f"worker_number    : {data['worker_number']}")
+    print(f"revision         : {data['revision']}")
+    print(f"enabled          : {data['enabled']}")
+    print(f"desired_state    : {data['desired_state']}")
+    print("resolved_settings:")
+    for key, item in data["resolved_settings"].items():
+        print(f"  {key}: value={item['value']} source={item['source']}")
+    print("")
+
+
+def print_generated_command(cmd: list[str]) -> None:
+    print("generated_command:")
+    print(f"  {' '.join(cmd)}")
+    print("")
 
 
 def parse_worker_run_summary(output_lines: list[str]) -> dict[str, str]:
@@ -134,22 +192,62 @@ def parse_worker_run_summary(output_lines: list[str]) -> dict[str, str]:
     return {}
 
 
-def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, dict[str, str]]:
+def get_last_error_line(output_lines: list[str]) -> str:
+    for line in reversed(output_lines):
+        text = line.strip()
+        if not text:
+            continue
+        if "error" in text.casefold():
+            return text
+    return output_lines[-1].strip() if output_lines else ""
+
+
+def check_db_connection_once() -> None:
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1")
+    finally:
+        conn.close()
+
+
+def wait_for_db_recovery(wait_seconds: int = DB_RECOVERY_WAIT_SECONDS) -> None:
+    while True:
+        try:
+            check_db_connection_once()
+            print("DB connection check: OK")
+            return
+        except Exception as error:
+            if not is_retryable_db_error(error):
+                raise
+            print(
+                "DB connection check failed: "
+                f"wait_seconds={wait_seconds} error={error.__class__.__name__}: {error}"
+            )
+            time.sleep(wait_seconds)
+
+
+def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, dict[str, str], str]:
     started = time.perf_counter()
     started_at = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     print("")
     print("============================================================")
-    print(f"LOOP {loop_index} 開始")
-    print(f"開始時刻 : {started_at}")
-    print("コマンド:", " ".join(cmd))
+    print(f"LOOP {loop_index} START")
+    print(f"started_at : {started_at}")
+    print("command    :", " ".join(cmd))
     print("============================================================")
     print("")
 
     proc = subprocess.Popen(
         cmd,
         cwd=str(SCRIPTS_DIR),
-        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+        env={
+            **os.environ,
+            "PYTHONIOENCODING": "utf-8",
+            "PYTHONUTF8": "1",
+            "PYTHONUNBUFFERED": "1",
+        },
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -162,7 +260,7 @@ def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, d
 
     assert proc.stdout is not None
     for line in proc.stdout:
-        print(line, end="")
+        print(line, end="", flush=True)
         output_lines.append(line)
 
     proc.wait()
@@ -175,119 +273,200 @@ def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, d
 
     print("")
     print("------------------------------------------------------------")
-    print(f"LOOP {loop_index} 終了")
-    print(f"終了時刻 : {finished_at}")
-    print(f"returncode: {returncode}")
-    print(f"所要秒数  : {elapsed:.1f}s")
-    print(f"対象0件   : {'YES' if empty_result else 'NO'}")
+    print(f"LOOP {loop_index} END")
+    print(f"finished_at: {finished_at}")
+    print(f"returncode : {returncode}")
+    print(f"elapsed    : {elapsed:.1f}s")
+    print(f"empty_run  : {'YES' if empty_result else 'NO'}")
     if worker_summary:
-        print("worker summary:")
-        print(f"  worker_id           : {worker_summary.get('worker_id', '')}")
-        print(f"  claimed_count       : {worker_summary.get('claimed_count', '')}")
-        print(f"  checked_count       : {worker_summary.get('checked_count', '')}")
-        print(f"  success_count       : {worker_summary.get('success_count', '')}")
-        print(f"  system_error_count  : {worker_summary.get('system_error_count', '')}")
-        print(f"  business_ng_count   : {worker_summary.get('business_ng_count', '')}")
-        print(f"  changed_count       : {worker_summary.get('changed_count', '')}")
-        print(f"  stable_count        : {worker_summary.get('stable_count', '')}")
-        print(f"  page_reset_count    : {worker_summary.get('page_reset_count', '')}")
-        print(f"  elapsed_seconds     : {worker_summary.get('elapsed_seconds', '')}")
-        print(f"  avg_seconds_per_item: {worker_summary.get('avg_seconds_per_item', '')}")
-        print(f"  started_at          : {worker_summary.get('started_at', '')}")
-        print(f"  finished_at         : {worker_summary.get('finished_at', '')}")
-        print(f"  returncode          : {worker_summary.get('returncode', '')}")
-    print(f"結果      : {'SUCCESS' if returncode == 0 else 'FAILED'}")
+        print("worker_summary:")
+        for key in [
+            "worker_id",
+            "claimed_count",
+            "checked_count",
+            "success_count",
+            "system_error_count",
+            "business_ng_count",
+            "changed_count",
+            "stable_count",
+            "page_reset_count",
+            "elapsed_seconds",
+            "avg_seconds_per_item",
+            "started_at",
+            "finished_at",
+            "returncode",
+        ]:
+            print(f"  {key}: {worker_summary.get(key, '')}")
+    print(f"result     : {'SUCCESS' if returncode == 0 else 'FAILED'}")
     print("------------------------------------------------------------")
 
-    return returncode, elapsed, empty_result, worker_summary
+    return returncode, elapsed, empty_result, worker_summary, get_last_error_line(output_lines)
+
+
+def add_bool_override(
+    parser: argparse.ArgumentParser,
+    name: str,
+    dest: str,
+    help_true: str,
+    help_false: str,
+) -> None:
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(name, dest=dest, action="store_true", help=help_true)
+    group.add_argument(f"--no-{name[2:]}", dest=dest, action="store_false", help=help_false)
+    parser.set_defaults(**{dest: None})
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="price_check_from_db.py --use-stats を一定間隔で繰り返し呼ぶ Amazon チェックワーカーループ"
+        description="Amazon check worker loop using DB-managed worker configuration."
     )
-    parser.add_argument("--worker-id", required=True, help="ワーカーID")
-    parser.add_argument("--limit", type=int, default=300, help="1ループあたりの最大チェック件数")
-    parser.add_argument("--sleep", type=int, default=10, help="通常時の待機秒数")
-    parser.add_argument("--page-timeout", type=int, default=60000, help="price_check_from_db.py に渡す page.goto timeout(ms)")
-    parser.add_argument("--max-loops", type=int, default=0, help="最大ループ回数。0なら無制限")
-    parser.add_argument("--stop-after-empty", action="store_true", help="対象0件ならその場で終了する")
-    parser.add_argument("--empty-sleep", type=int, default=60, help="対象0件だった時の待機秒数")
-    parser.add_argument("--once", action="store_true", help="1回だけ実行して終了する")
-    parser.add_argument("--log-retention-days", type=int, default=14, help="保持日数を過ぎた古いログを起動時に削除する")
+    parser.add_argument("--worker-number", type=int, required=True, help="worker_configs.worker_number")
+    parser.add_argument("--node-code", default="", help="override worker_nodes.node_code for config lookup")
+    parser.add_argument("--worker-id", default="", help="optional explicit worker_id override")
+    parser.add_argument("--limit", type=int, default=None, help="override limit")
+    parser.add_argument("--sleep", type=int, default=None, help="override loop_sleep_seconds")
+    parser.add_argument("--empty-sleep", type=int, default=None, help="override empty_sleep_seconds")
+    parser.add_argument("--page-timeout", type=int, default=None, help="override page_timeout_ms")
+    add_bool_override(parser, "--use-stats", "use_stats", "override use_stats", "override no use_stats")
+    parser.add_argument("--log-retention-days", type=int, default=None, help="override log_retention_days")
+    parser.add_argument("--max-loops", type=int, default=0, help="maximum loop count. 0 means unlimited")
+    parser.add_argument("--stop-after-empty", action="store_true", help="stop when the child reports no target ASINs")
+    parser.add_argument("--once", action="store_true", help="run one loop only")
+    parser.add_argument("--recheck-system-errors", action="store_true", help="recheck amazon_products.system_error = TRUE only")
+    parser.add_argument("--reason-contains", default="", help="filter system error recheck by ng_reason partial match")
+    parser.add_argument("--dry-run", action="store_true", help="show target ASINs only without browser start or DB updates")
+    parser.add_argument("--resolve-only", action="store_true", help="resolve settings and print child command without running it")
     args = parser.parse_args()
 
-    if args.limit <= 0:
-        raise RuntimeError("--limit は 1 以上にしてください。")
-    if args.sleep < 0:
-        raise RuntimeError("--sleep は 0 以上にしてください。")
-    if args.page_timeout <= 0:
-        raise RuntimeError("--page-timeout は 1 以上にしてください。")
-    if args.empty_sleep < 0:
-        raise RuntimeError("--empty-sleep は 0 以上にしてください。")
+    if args.worker_number <= 0:
+        raise RuntimeError("--worker-number must be 1 or greater")
     if args.max_loops < 0:
-        raise RuntimeError("--max-loops は 0 以上にしてください。")
-    if args.log_retention_days < 0:
-        raise RuntimeError("--log-retention-days は 0 以上にしてください。")
+        raise RuntimeError("--max-loops must be 0 or greater")
+    if args.reason_contains and not args.recheck_system_errors:
+        raise RuntimeError("--reason-contains requires --recheck-system-errors")
 
-    removed_logs = cleanup_old_logs(args.log_retention_days)
+    cli_overrides = build_cli_overrides(args)
+
+    def resolve_worker() -> dict[str, Any]:
+        return load_resolved_worker_settings(
+            worker_type=WORKER_TYPE_AMAZON,
+            worker_number=args.worker_number,
+            node_code=args.node_code.strip() or None,
+            explicit_worker_id=args.worker_id.strip() or None,
+            cli_overrides=cli_overrides,
+        )
+
+    resolved_worker = resolve_worker()
+    resolved_settings = resolved_worker["resolved_settings"]
+    loop_sleep_seconds = int(resolved_settings["loop_sleep_seconds"]["value"])
+    empty_sleep_seconds = int(resolved_settings["empty_sleep_seconds"]["value"])
+    log_retention_days = int(resolved_settings["log_retention_days"]["value"])
+    child_cmd = build_child_cmd(
+        resolved_worker["worker_id"],
+        resolved_settings,
+        recheck_system_errors=args.recheck_system_errors,
+        reason_contains=args.reason_contains,
+        dry_run=args.dry_run,
+    )
+
+    removed_logs = cleanup_old_logs(log_retention_days)
 
     global LOG_STREAM
-    log_path, LOG_STREAM = open_log_stream(args.worker_id)
+    log_path, LOG_STREAM = open_log_stream(resolved_worker["worker_id"])
 
     try:
         print("")
-        print("===== Amazonチェックワーカーループ開始 =====")
-        print(f"worker_id         : {args.worker_id}")
-        print(f"limit             : {args.limit}")
-        print(f"sleep             : {args.sleep}")
-        print(f"page_timeout      : {args.page_timeout}")
-        print(f"empty_sleep       : {args.empty_sleep}")
-        print(f"max_loops         : {args.max_loops}")
-        print(f"stop_after_empty  : {args.stop_after_empty}")
-        print(f"once              : {args.once}")
-        print(f"encoding          : {CONSOLE_ENCODING}")
-        print(f"log_path          : {log_path}")
-        print(f"log_retention_days: {args.log_retention_days}")
-        print(f"removed_old_logs  : {removed_logs}")
+        print("===== Amazon Check Worker Loop =====")
+        print(f"worker_number      : {args.worker_number}")
+        print(f"once               : {args.once}")
+        print(f"max_loops          : {args.max_loops}")
+        print(f"stop_after_empty   : {args.stop_after_empty}")
+        print(f"recheck_system_errors : {args.recheck_system_errors}")
+        print(f"reason_contains    : {args.reason_contains}")
+        print(f"dry_run            : {args.dry_run}")
+        print(f"resolve_only       : {args.resolve_only}")
+        print(f"encoding           : {CONSOLE_ENCODING}")
+        print(f"log_path           : {log_path}")
+        print(f"log_retention_days : {log_retention_days}")
+        print(f"removed_old_logs   : {removed_logs}")
+        print_resolved_config(resolved_worker)
+        print_generated_command(child_cmd)
+
+        if args.resolve_only:
+            print("resolve_only is set. Exiting without starting child worker.")
+            return 0
 
         loop_index = 0
+        consecutive_db_failures = 0
+        last_db_error = ""
 
         while True:
+            resolved_worker = resolve_worker()
+            if str(resolved_worker.get("desired_state", "")).strip().lower() == "stopped":
+                print("")
+                print("desired_state=stopped detected. Exiting worker loop.")
+                return 0
+
+            resolved_settings = resolved_worker["resolved_settings"]
+            loop_sleep_seconds = int(resolved_settings["loop_sleep_seconds"]["value"])
+            empty_sleep_seconds = int(resolved_settings["empty_sleep_seconds"]["value"])
+            child_cmd = build_child_cmd(
+                resolved_worker["worker_id"],
+                resolved_settings,
+                recheck_system_errors=args.recheck_system_errors,
+                reason_contains=args.reason_contains,
+                dry_run=args.dry_run,
+            )
             loop_index += 1
-            cmd = build_child_cmd(args.worker_id, args.limit, args.page_timeout)
-            returncode, _elapsed, empty_result, worker_summary = run_child_once(loop_index, cmd)
+            returncode, _elapsed, empty_result, worker_summary, child_error_line = run_child_once(loop_index, child_cmd)
 
             if returncode != 0:
+                if returncode == DB_RETRY_EXIT_CODE:
+                    consecutive_db_failures += 1
+                    last_db_error = child_error_line or f"child_returncode={returncode}"
+                    print("")
+                    print("===== Amazon Check Worker Loop DB Retry =====")
+                    print(f"failed_loop              : {loop_index}")
+                    print(f"consecutive_db_failures  : {consecutive_db_failures}")
+                    print(f"last_db_error            : {last_db_error}")
+                    wait_for_db_recovery(DB_RECOVERY_WAIT_SECONDS)
+                    consecutive_db_failures = 0
+                    last_db_error = ""
+                    continue
+
                 print("")
-                print("===== Amazonチェックワーカーループ異常終了 =====")
-                print(f"失敗ループ : {loop_index}")
-                print(f"returncode: {returncode}")
+                print("===== Amazon Check Worker Loop Error =====")
+                print(f"failed_loop : {loop_index}")
+                print(f"returncode  : {returncode}")
                 if worker_summary:
-                    print(f"worker_id : {worker_summary.get('worker_id', '')}")
-                    print(f"claimed   : {worker_summary.get('claimed_count', '')}")
-                    print(f"checked   : {worker_summary.get('checked_count', '')}")
+                    print(f"worker_id   : {worker_summary.get('worker_id', '')}")
+                    print(f"claimed     : {worker_summary.get('claimed_count', '')}")
+                    print(f"checked     : {worker_summary.get('checked_count', '')}")
                 return returncode
 
             if args.once:
                 print("")
-                print("once指定のため終了します。")
+                print("once is set. Exiting after one loop.")
                 return 0
 
             if args.max_loops and loop_index >= args.max_loops:
                 print("")
-                print(f"--max-loops={args.max_loops} に達したため終了します。")
+                print(f"--max-loops={args.max_loops} reached. Exiting.")
                 return 0
 
             if empty_result and args.stop_after_empty:
                 print("")
-                print("--stop-after-empty 指定のため、対象0件で終了します。")
+                print("--stop-after-empty is set. Exiting after empty loop.")
                 return 0
 
-            wait_seconds = args.empty_sleep if empty_result else args.sleep
+            wait_seconds = empty_sleep_seconds if empty_result else loop_sleep_seconds
             print("")
-            print(f"次ループまで {wait_seconds} 秒待機します。")
+            print(f"Sleeping {wait_seconds} seconds before next loop.")
             time.sleep(wait_seconds)
+    except KeyboardInterrupt:
+        print("")
+        print("KeyboardInterrupt received. Exiting worker loop.")
+        return 130
     finally:
         if LOG_STREAM is not None:
             try:

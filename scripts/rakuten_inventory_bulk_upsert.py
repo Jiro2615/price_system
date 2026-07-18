@@ -10,6 +10,7 @@ import requests
 from db_config import connect_db
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
+from rakuten_auth import build_rakuten_auth_header, resolve_rakuten_store_code
 
 
 BASE_DIR = Path(r"C:\price_system")
@@ -89,6 +90,7 @@ def fetch_inventory_targets(store_code: str | None, limit: int) -> list[dict[str
         SELECT
             s.id AS store_id,
             s.store_code,
+            s.max_stock,
             sp.id AS store_product_id,
             sp.asin,
             sp.mall_item_code,
@@ -123,6 +125,60 @@ def fetch_inventory_targets(store_code: str | None, limit: int) -> list[dict[str
             return [dict(zip(col_names, row)) for row in rows]
     finally:
         conn.close()
+
+
+def validate_target_stock_for_store(row: dict[str, Any]) -> str | None:
+    store_code = str(row.get("store_code") or "").strip()
+    asin = str(row.get("asin") or "").strip()
+    manage_number = str(row.get("mall_item_code") or "").strip()
+    target_stock = to_int(row.get("target_stock"))
+    max_stock = to_int(row.get("max_stock"))
+
+    if max_stock is None:
+        return (
+            f"SKIP store_code={store_code} ASIN={asin} manageNumber={manage_number} "
+            f"target_stock={target_stock} max_stock={max_stock} "
+            f"skip_reason=max_stock_missing"
+        )
+
+    if max_stock < 0:
+        return (
+            f"SKIP store_code={store_code} ASIN={asin} manageNumber={manage_number} "
+            f"target_stock={target_stock} max_stock={max_stock} "
+            f"skip_reason=max_stock_invalid"
+        )
+
+    if target_stock is None:
+        return (
+            f"SKIP store_code={store_code} ASIN={asin} manageNumber={manage_number} "
+            f"target_stock={target_stock} max_stock={max_stock} "
+            f"skip_reason=target_stock_missing"
+        )
+
+    if target_stock > max_stock:
+        return (
+            f"SKIP store_code={store_code} ASIN={asin} manageNumber={manage_number} "
+            f"target_stock={target_stock} max_stock={max_stock} "
+            f"skip_reason=target_stock_exceeds_max_stock"
+        )
+
+    return None
+
+
+def split_safe_and_skipped_rows(
+    rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[tuple[dict[str, Any], str]]]:
+    safe_rows: list[dict[str, Any]] = []
+    skipped_rows: list[tuple[dict[str, Any], str]] = []
+
+    for row in rows:
+        skip_reason = validate_target_stock_for_store(row)
+        if skip_reason:
+            skipped_rows.append((row, skip_reason))
+        else:
+            safe_rows.append(row)
+
+    return safe_rows, skipped_rows
 
 
 # =========================
@@ -168,8 +224,8 @@ def split_chunks(rows: list[dict[str, Any]], size: int) -> list[list[dict[str, A
 # 楽天API実行
 # =========================
 
-def call_inventory_bulk_upsert(payload: dict[str, Any]) -> dict[str, Any]:
-    headers = load_auth_header()
+def call_inventory_bulk_upsert(payload: dict[str, Any], store_code: str) -> dict[str, Any]:
+    headers = build_rakuten_auth_header(store_code)
 
     print(f"POST {RAKUTEN_INVENTORY_BULK_UPSERT_URL}")
     print(f"inventories={len(payload.get('inventories') or [])}")
@@ -391,6 +447,20 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
         print("")
 
 
+def print_skipped_rows(skipped_rows: list[tuple[dict[str, Any], str]]) -> None:
+    if not skipped_rows:
+        return
+
+    print("")
+    print("===== skipped inventory targets =====")
+    print("")
+
+    for _, skip_reason in skipped_rows:
+        print(skip_reason)
+
+    print("")
+
+
 # =========================
 # main
 # =========================
@@ -420,15 +490,20 @@ def main() -> int:
     dry_run = not args.execute
 
     rows = fetch_inventory_targets(store_code=store_code, limit=args.limit)
-    print_targets(rows)
-    print(f"楽天在庫更新対象件数: {len(rows)}")
+    safe_rows, skipped_rows = split_safe_and_skipped_rows(rows)
 
-    if not rows:
+    print_targets(safe_rows)
+    print_skipped_rows(skipped_rows)
+    print(f"inventory_target_count: {len(safe_rows)}")
+    if skipped_rows:
+        print(f"inventory_skipped_count: {len(skipped_rows)}")
+
+    if not safe_rows:
         return 0
 
     # payload作成時点で target_stock マイナスなどを検出する。
     try:
-        all_payload = build_payload(rows)
+        all_payload = build_payload(safe_rows)
     except Exception as e:
         print(f"送信予定JSON作成エラー: {e}")
         return 1
@@ -455,7 +530,8 @@ def main() -> int:
     result_summary = {
         "request_url": RAKUTEN_INVENTORY_BULK_UPSERT_URL,
         "executed_at": datetime.now().isoformat(timespec="seconds"),
-        "total_targets": len(rows),
+        "total_targets": len(safe_rows),
+        "skipped_count": len(skipped_rows),
         "batch_size": args.batch_size,
         "success_count": 0,
         "failed_count": 0,
@@ -464,14 +540,15 @@ def main() -> int:
 
     conn = connect_db()
     try:
-        chunks = split_chunks(rows, args.batch_size)
+        auth_store_code = resolve_rakuten_store_code(store_code, safe_rows)
+        chunks = split_chunks(safe_rows, args.batch_size)
 
         for index, chunk_rows in enumerate(chunks, start=1):
             print(f"===== batch {index}/{len(chunks)} 件数={len(chunk_rows)} =====")
             request_payload = build_payload(chunk_rows)
 
             try:
-                response_payload = call_inventory_bulk_upsert(request_payload)
+                response_payload = call_inventory_bulk_upsert(request_payload, auth_store_code)
                 mark_rows_success(conn, chunk_rows, request_payload, response_payload)
 
                 result_summary["success_count"] += len(chunk_rows)

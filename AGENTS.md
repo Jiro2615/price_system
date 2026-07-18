@@ -138,3 +138,17 @@ py rakuten_csv_price_update_flow.py --limit 50000 --execute --timeout 7200 --set
 6. Parse Amazon shipment emails.
 7. Parse delivery box notification emails.
 8. Add listing/export/import replacement for current paid listing tool.
+
+## Encoding Rules
+
+- Source files must use UTF-8 without BOM.
+- Python user-facing log messages may contain Japanese.
+- Python identifiers and comments should preferably use English.
+- Batch and PowerShell scripts should avoid Japanese text.
+- CP932 is allowed only for Rakuten CSV input/output files.
+- Always detect the existing encoding before editing.
+- Do not rewrite an entire file solely because text appears garbled.
+- Do not mix encoding normalization with logic changes.
+- Preserve the existing line endings unless the task specifically changes them.
+- After editing Python files, validate them with `ast.parse()`.
+- Never decode with `errors="replace"` when editing source code.

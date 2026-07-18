@@ -5,11 +5,7 @@ from typing import Optional
 from db_config import connect_db
 
 
-# =========================
-# 計算ユーティリティ
-# =========================
 def ceil_to_unit(value: int, unit: int) -> int:
-    """指定単位で切り上げ。unit=10なら1円単位計算後に10円単位へ切り上げ。"""
     if unit <= 1:
         return int(value)
     return int(math.ceil(value / unit) * unit)
@@ -45,19 +41,8 @@ def calc_price(
     fixed_cost: int,
     rounding_unit: int,
 ) -> int:
-    """
-    楽天販売予定価格を計算する。
-
-    profit_mode:
-      amount: Amazon原価 + 固定コスト + 利益額 を、楽天手数料で割り戻す
-      rate  : Amazon原価に利益率を乗せた利益額を足し、楽天手数料で割り戻す
-
-    use_amazon_point:
-      True  : Amazon価格 - Amazonポイント を仕入原価として扱う
-      False : Amazon価格のみを仕入原価として扱う
-    """
     if fee_rate < 0 or fee_rate >= 1:
-        raise ValueError(f"fee_rate が不正です: {fee_rate}")
+        raise ValueError(f"fee_rate is invalid: {fee_rate}")
 
     amazon_cost = amazon_price
     if use_amazon_point:
@@ -68,21 +53,64 @@ def calc_price(
     profit_mode = (profit_mode or "amount").strip().lower()
 
     if profit_mode == "rate":
-        # 旧システム互換を想定し、利益率は「Amazon原価に対する利益率」として扱う。
-        # 例: amazon_cost=3000, profit_rate=0.20 -> 利益額600円
         calculated_profit = math.ceil(amazon_cost * float(profit_rate or 0))
         base_cost = amazon_cost + fixed_cost + calculated_profit
     else:
         base_cost = amazon_cost + fixed_cost + int(profit_amount or 0)
 
     raw_price = base_cost / (1 - fee_rate)
-    return ceil_to_unit(math.ceil(raw_price), rounding_unit)
+    return int(math.ceil(raw_price))
 
 
-# =========================
-# DB処理
-# =========================
-def fetch_calc_targets(conn, store_code: str | None):
+def parse_asin_args(single_asin: str, asin_list: str) -> list[str] | None:
+    asins: list[str] = []
+
+    if single_asin.strip():
+        asins.append(single_asin.strip())
+
+    if asin_list.strip():
+        for asin in asin_list.split(","):
+            value = asin.strip()
+            if value:
+                asins.append(value)
+
+    if not asins:
+        return None
+
+    unique_asins: list[str] = []
+    seen = set()
+    for asin in asins:
+        if asin not in seen:
+            seen.add(asin)
+            unique_asins.append(asin)
+    return unique_asins
+
+
+def has_table_column(conn, table_name: str, column_name: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = %s
+              AND column_name = %s
+            """,
+            (table_name, column_name),
+        )
+        return cur.fetchone() is not None
+
+
+def resolve_store_max_stock(store_code: str, store_max_stock: Optional[int]) -> int:
+    max_stock = to_int(store_max_stock)
+    if max_stock is None:
+        raise ValueError(f"max_stock is not configured: store_code={store_code}")
+    if max_stock < 0:
+        raise ValueError(f"max_stock is invalid: store_code={store_code}, max_stock={max_stock}")
+    return max_stock
+
+
+def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | None = None):
     where = [
         "sp.enabled = TRUE",
         "sp.asin IS NOT NULL",
@@ -93,12 +121,14 @@ def fetch_calc_targets(conn, store_code: str | None):
         where.append("s.store_code = %s")
         params.append(store_code)
 
-    # 価格帯ルールは、商品ごとに必ず1件だけ選ぶ。
-    # default : Amazon価格帯に一致するprice_rulesをpriority順で1件
-    # uniform : price_rulesの先頭1件を一律ルールとして使う
-    #
-    # default時は min_amazon_price IS NOT NULL のルールだけを価格帯ルール扱いする。
-    # これにより、昔の一律ルール(min/max NULL)が混ざっても誤爆しにくくする。
+    if asins:
+        where.append("sp.asin = ANY(%s)")
+        params.append(asins)
+
+    has_store_max_stock = has_table_column(conn, "stores", "max_stock")
+    if not has_store_max_stock:
+        raise RuntimeError("stores.max_stock column is required for safe target_stock calculation")
+
     sql = f"""
         SELECT
             sp.id AS store_product_id,
@@ -110,6 +140,7 @@ def fetch_calc_targets(conn, store_code: str | None):
             s.fee_rate AS store_fee_rate,
             s.rounding_unit AS store_rounding_unit,
             s.fixed_cost AS store_fixed_cost,
+            s.max_stock AS store_max_stock,
             sp.asin,
             sp.mall_item_code,
             sp.sku_code,
@@ -182,167 +213,237 @@ def update_store_product_target(conn, store_product_id: int, target_price: Optio
         )
 
 
-# =========================
-# メイン
-# =========================
+def calc_target_for_row(row) -> dict:
+    (
+        store_product_id,
+        store_code,
+        price_modify_enabled,
+        price_rule_type,
+        profit_mode,
+        use_amazon_point,
+        store_fee_rate,
+        store_rounding_unit,
+        store_fixed_cost,
+        store_max_stock,
+        asin,
+        mall_item_code,
+        sku_code,
+        current_price,
+        current_stock,
+        force_stop,
+        amazon_price,
+        amazon_point,
+        available_qty,
+        business_ng,
+        system_error,
+        ng_reason,
+        checked_at,
+        rule_id,
+        rule_name,
+        rule_priority,
+        min_amazon_price,
+        max_amazon_price,
+        profit_rate,
+        profit_amount,
+        rule_fee_rate,
+        rule_fixed_profit,
+        rule_fixed_cost,
+        rule_rounding_unit,
+    ) = row
+
+    reason = ""
+    target_price: Optional[int] = None
+    target_stock = current_stock if current_stock is not None else 0
+    max_stock = resolve_store_max_stock(store_code, store_max_stock)
+
+    if force_stop:
+        target_stock = 0
+        reason = "force_stop"
+    elif business_ng:
+        target_stock = 0
+        reason = f"business_ng: {ng_reason or ''}"
+    elif system_error:
+        target_price = None
+        target_stock = current_stock if current_stock is not None else 0
+        reason = f"system_error: {ng_reason or ''}: keep current stock"
+    elif amazon_price is None or to_int(amazon_price, 0) <= 0:
+        target_price = None
+        target_stock = current_stock if current_stock is not None else 0
+        reason = "amazon_price missing: keep current stock"
+    else:
+        target_stock = min(int(available_qty or 0), max_stock)
+
+        if not price_modify_enabled:
+            target_price = None
+            reason = "price_modify_enabled=OFF / stock only"
+        elif rule_id is None:
+            target_price = None
+            reason = "no price rule / stock only"
+        else:
+            fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
+            fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
+            rounding_unit = to_int(rule_rounding_unit, to_int(store_rounding_unit, 10)) or 10
+            selected_profit_amount = to_int(profit_amount, to_int(rule_fixed_profit, 0)) or 0
+            selected_profit_rate = to_float(profit_rate, 0.0)
+
+            target_price = calc_price(
+                amazon_price=int(amazon_price),
+                amazon_point=int(amazon_point or 0),
+                use_amazon_point=bool(use_amazon_point),
+                fee_rate=fee_rate,
+                profit_mode=str(profit_mode or "amount"),
+                profit_rate=selected_profit_rate,
+                profit_amount=selected_profit_amount,
+                fixed_cost=fixed_cost,
+                rounding_unit=rounding_unit,
+            )
+
+            reason = (
+                f"OK / rule={rule_name or rule_id} / "
+                f"type={price_rule_type or 'default'} / "
+                f"mode={profit_mode or 'amount'} / "
+                f"point={'ON' if use_amazon_point else 'OFF'}"
+            )
+
+        reason += f" / max_stock={max_stock}"
+
+    return {
+        "store_product_id": store_product_id,
+        "store_code": store_code,
+        "asin": asin,
+        "mall_item_code": mall_item_code,
+        "sku_code": sku_code,
+        "amazon_price": amazon_price,
+        "current_price": current_price,
+        "current_stock": current_stock,
+        "target_price": target_price,
+        "target_stock": int(target_stock or 0),
+        "reason": reason,
+    }
+
+
+def recalc_targets(
+    conn,
+    store_code: str | None = None,
+    asins: list[str] | None = None,
+    dry_run: bool = False,
+    verbose: bool = True,
+) -> dict:
+    rows = fetch_calc_targets(conn, store_code=store_code, asins=asins)
+
+    if not rows:
+        return {
+            "rows": 0,
+            "updated": 0,
+            "skipped": 0,
+            "errors": 0,
+        }
+
+    updated = 0
+    skipped = 0
+    errors = 0
+
+    if verbose:
+        print("calculate target_price / target_stock start")
+        if dry_run:
+            print("dry-run: no DB updates")
+        if asins:
+            print(f"asin filter: {', '.join(asins)}")
+        print("")
+
+    for row in rows:
+        result = None
+        try:
+            result = calc_target_for_row(row)
+            if not dry_run:
+                update_store_product_target(
+                    conn,
+                    result["store_product_id"],
+                    result["target_price"],
+                    result["target_stock"],
+                )
+
+            updated += 1
+
+            if verbose:
+                print(
+                    f"{result['store_code']} / {result['asin']} / "
+                    f"Item={result['mall_item_code'] or ''} / SKU={result['sku_code'] or ''} / "
+                    f"amazon_price={result['amazon_price']} / "
+                    f"target_price={result['target_price']} / "
+                    f"stock={result['current_stock']}->{result['target_stock']} / "
+                    f"{result['reason']}"
+                )
+        except Exception as e:
+            errors += 1
+            skipped += 1
+            if verbose:
+                if result is None:
+                    store_code_value = row[1]
+                    asin_value = row[10]
+                    item_code_value = row[11] or ""
+                    sku_code_value = row[12] or ""
+                else:
+                    store_code_value = result["store_code"]
+                    asin_value = result["asin"]
+                    item_code_value = result["mall_item_code"] or ""
+                    sku_code_value = result["sku_code"] or ""
+                print(
+                    f"ERROR / {store_code_value} / {asin_value} / "
+                    f"Item={item_code_value} / SKU={sku_code_value} / {e}"
+                )
+
+    if dry_run:
+        conn.rollback()
+    else:
+        conn.commit()
+
+    if verbose:
+        print("")
+        print(f"calculation summary: updated={updated}, skipped={skipped}, errors={errors}")
+
+    return {
+        "rows": len(rows),
+        "updated": updated,
+        "skipped": skipped,
+        "errors": errors,
+    }
+
+
+def recalc_targets_for_asins(
+    conn,
+    store_code: str,
+    asins: list[str],
+    dry_run: bool = False,
+    verbose: bool = False,
+) -> dict:
+    return recalc_targets(
+        conn,
+        store_code=store_code,
+        asins=asins,
+        dry_run=dry_run,
+        verbose=verbose,
+    )
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="店舗別 target_price / target_stock を計算します。")
-    parser.add_argument("--store", default="", help="rakuten_1 など。空なら全店舗")
-    parser.add_argument("--dry-run", action="store_true", help="DB更新せず計算結果だけ表示")
+    parser = argparse.ArgumentParser(description="Calculate target_price / target_stock")
+    parser.add_argument("--store", default="", help="Store code such as rakuten_1")
+    parser.add_argument("--asin", default="", help="Recalculate a single ASIN")
+    parser.add_argument("--asin-list", default="", help="Recalculate comma-separated ASINs")
+    parser.add_argument("--dry-run", action="store_true", help="Show result without updating DB")
     args = parser.parse_args()
 
     store_code = args.store.strip() or None
+    asins = parse_asin_args(args.asin, args.asin_list)
 
     conn = connect_db()
 
     try:
-        rows = fetch_calc_targets(conn, store_code)
-
-        if not rows:
-            print("計算対象の store_products がありません。")
+        result = recalc_targets(conn, store_code=store_code, asins=asins, dry_run=args.dry_run, verbose=True)
+        if result["rows"] == 0:
+            print("No store_products found for calculation.")
             return 0
-
-        updated = 0
-        skipped = 0
-        errors = 0
-
-        print("店舗別 target_price / target_stock 計算開始")
-        if args.dry_run:
-            print("dry-run: DB更新しません")
-        print("")
-
-        for row in rows:
-            (
-                store_product_id,
-                store_code,
-                price_modify_enabled,
-                price_rule_type,
-                profit_mode,
-                use_amazon_point,
-                store_fee_rate,
-                store_rounding_unit,
-                store_fixed_cost,
-                asin,
-                mall_item_code,
-                sku_code,
-                current_price,
-                current_stock,
-                force_stop,
-                amazon_price,
-                amazon_point,
-                available_qty,
-                business_ng,
-                system_error,
-                ng_reason,
-                checked_at,
-                rule_id,
-                rule_name,
-                rule_priority,
-                min_amazon_price,
-                max_amazon_price,
-                profit_rate,
-                profit_amount,
-                rule_fee_rate,
-                rule_fixed_profit,
-                rule_fixed_cost,
-                rule_rounding_unit,
-            ) = row
-
-            reason = ""
-            target_price: Optional[int] = None
-            target_stock = current_stock if current_stock is not None else 0
-
-            try:
-                if force_stop:
-                    target_stock = 0
-                    reason = "force_stop"
-
-                elif business_ng:
-                    target_stock = 0
-                    reason = f"business_ng: {ng_reason or ''}"
-
-                elif system_error:
-                    # 一時的な取得失敗で即停止しない。現状維持。
-                    target_price = None
-                    target_stock = current_stock if current_stock is not None else 0
-                    reason = f"system_error: {ng_reason or ''}: 現状維持"
-
-                elif amazon_price is None or to_int(amazon_price, 0) <= 0:
-                    # Amazon価格未取得の商品は、楽天側の在庫を勝手に0にしない。
-                    target_price = None
-                    target_stock = current_stock if current_stock is not None else 0
-                    reason = "amazon_priceなし: 現状維持"
-
-                else:
-                    # Amazon取得OKなら在庫はAmazon取得可能数へ寄せる。
-                    target_stock = int(available_qty or 0)
-
-                    if not price_modify_enabled:
-                        target_price = None
-                        reason = "価格改定OFF / stockのみ"
-
-                    elif rule_id is None:
-                        target_price = None
-                        reason = "価格ルールなし / stockのみ"
-
-                    else:
-                        fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
-                        fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
-                        rounding_unit = to_int(rule_rounding_unit, to_int(store_rounding_unit, 10)) or 10
-
-                        # profit_amountは新カラム優先。未設定なら既存 fixed_profit を互換利用。
-                        selected_profit_amount = to_int(profit_amount, to_int(rule_fixed_profit, 0)) or 0
-                        selected_profit_rate = to_float(profit_rate, 0.0)
-
-                        target_price = calc_price(
-                            amazon_price=int(amazon_price),
-                            amazon_point=int(amazon_point or 0),
-                            use_amazon_point=bool(use_amazon_point),
-                            fee_rate=fee_rate,
-                            profit_mode=str(profit_mode or "amount"),
-                            profit_rate=selected_profit_rate,
-                            profit_amount=selected_profit_amount,
-                            fixed_cost=fixed_cost,
-                            rounding_unit=rounding_unit,
-                        )
-
-                        reason = (
-                            f"OK / rule={rule_name or rule_id} / "
-                            f"type={price_rule_type or 'default'} / "
-                            f"mode={profit_mode or 'amount'} / "
-                            f"point={'ON' if use_amazon_point else 'OFF'}"
-                        )
-
-                if not args.dry_run:
-                    update_store_product_target(conn, store_product_id, target_price, int(target_stock or 0))
-
-                updated += 1
-
-                print(
-                    f"{store_code} / {asin} / "
-                    f"Item={mall_item_code or ''} / SKU={sku_code or ''} / "
-                    f"amazon_price={amazon_price} / "
-                    f"target_price={target_price} / "
-                    f"stock={current_stock}->{target_stock} / "
-                    f"{reason}"
-                )
-
-            except Exception as e:
-                errors += 1
-                skipped += 1
-                print(
-                    f"ERROR / {store_code} / {asin} / "
-                    f"Item={mall_item_code or ''} / SKU={sku_code or ''} / {e}"
-                )
-
-        if args.dry_run:
-            conn.rollback()
-        else:
-            conn.commit()
-
-        print("")
-        print(f"計算完了: updated={updated}, skipped={skipped}, errors={errors}")
-
     finally:
         conn.close()
 

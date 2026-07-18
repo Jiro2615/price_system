@@ -9,6 +9,7 @@ import requests
 from dotenv import load_dotenv
 
 from db_config import connect_db
+from rakuten_auth import build_rakuten_auth_header
 
 BASE_DIR = Path(r"C:\price_system")
 ENV_PATH = BASE_DIR / ".env"
@@ -37,8 +38,8 @@ def load_auth_header() -> dict[str, str]:
     }
 
 
-def call_get(url: str) -> dict:
-    headers = load_auth_header()
+def call_get(url: str, store_code: str) -> dict:
+    headers = build_rakuten_auth_header(store_code)
 
     print(f"GET {url}")
     res = requests.get(url, headers=headers, timeout=60)
@@ -56,20 +57,20 @@ def call_get(url: str) -> dict:
     return data
 
 
-def get_item(manage_number: str) -> tuple[str, dict]:
+def get_item(manage_number: str, store_code: str) -> tuple[str, dict]:
     encoded = quote(manage_number, safe="")
     url = f"https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{encoded}"
-    return url, call_get(url)
+    return url, call_get(url, store_code)
 
 
-def get_inventory_variant(manage_number: str, sku_code: str) -> tuple[str, dict]:
+def get_inventory_variant(manage_number: str, sku_code: str, store_code: str) -> tuple[str, dict]:
     encoded_manage = quote(manage_number, safe="")
     encoded_sku = quote(sku_code, safe="")
     url = (
         "https://api.rms.rakuten.co.jp/es/2.1/"
         f"inventories/manage-numbers/{encoded_manage}/variants/{encoded_sku}"
     )
-    return url, call_get(url)
+    return url, call_get(url, store_code)
 
 
 def get_store_id(cur, store_code: str) -> int:
@@ -240,8 +241,8 @@ def main() -> int:
             store_id = get_store_id(cur, store_code)
 
         try:
-            item_url, item_data = get_item(manage_number)
-            inv_url, inv_data = get_inventory_variant(manage_number, sku_code)
+            item_url, item_data = get_item(manage_number, store_code)
+            inv_url, inv_data = get_inventory_variant(manage_number, sku_code, store_code)
 
             item_path = write_json_file("items_get", manage_number, None, item_data)
             inv_path = write_json_file("inventories_variants_get", manage_number, sku_code, inv_data)

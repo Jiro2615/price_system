@@ -1,5 +1,14 @@
 # docs/rakuten_price_system_design.md
 
+## 関連ドキュメント
+
+- [README.md](/abs/path/C:/price_system/README.md)
+  - 日常運用と基本コマンドの入口
+- [system_reference_guide.md](/abs/path/C:/price_system/docs/system_reference_guide.md)
+  - 主要ファイル、DB、API、参照先を含む総合ガイド
+- [settings_inventory.md](/abs/path/C:/price_system/docs/settings_inventory.md)
+  - worker設定とCLI引数の棚卸し
+
 ## システム概要
 このシステムは、Amazonを仕入れ/参照元、楽天を販売先として、価格・在庫・発送可否を管理する。
 

@@ -1,16 +1,17 @@
-﻿param(
+param(
     [string]$Workers = "",
+    [string]$NodeCode = "",
     [int]$Limit = 300,
     [int]$Sleep = 10,
     [int]$PageTimeout = 15000,
     [int]$EmptySleep = 300,
-    [string]$WorkerPrefix = "",
     [string]$ProjectDir = "C:\price_system",
     [string]$PythonCommand = "py",
     [switch]$Once,
     [switch]$Maximized,
     [switch]$DryRun,
-    [switch]$PopupInput
+    [switch]$PopupInput,
+    [switch]$Configure
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,13 +44,14 @@ function Write-IniFile {
 
     $lines = @(
         "# Amazon worker launcher settings",
+        "# Workers run Amazon check and per-ASIN target recalc",
         "# This file is auto-updated by start_amazon_workers.ps1",
         "LastWorkers=$($Data.LastWorkers)",
+        "NodeCode=$($Data.NodeCode)",
         "Limit=$($Data.Limit)",
         "Sleep=$($Data.Sleep)",
         "PageTimeout=$($Data.PageTimeout)",
         "EmptySleep=$($Data.EmptySleep)",
-        "WorkerPrefix=$($Data.WorkerPrefix)",
         "ProjectDir=$($Data.ProjectDir)",
         "PythonCommand=$($Data.PythonCommand)"
     )
@@ -106,7 +108,7 @@ function Show-WorkerInputBox {
 
     try {
         Add-Type -AssemblyName Microsoft.VisualBasic -ErrorAction Stop
-        $message = "Enter worker numbers.`r`n`r`nExamples:`r`n  1-3 = worker1,2,3`r`n  4-6 = worker4,5,6`r`n  2   = worker2`r`n  1,3 = worker1,3"
+        $message = "Enter worker numbers.`r`n`r`nWorkers run Amazon check + target recalc.`r`n`r`nExamples:`r`n  1-3 = worker1,2,3`r`n  4-6 = worker4,5,6`r`n  2   = worker2`r`n  1,3 = worker1,3"
         $title = "Amazon worker launcher"
         return [Microsoft.VisualBasic.Interaction]::InputBox($message, $title, $DefaultValue)
     } catch {
@@ -115,11 +117,28 @@ function Show-WorkerInputBox {
     }
 }
 
+function Show-NodeCodeInputBox {
+    param([string]$DefaultValue)
+
+    try {
+        Add-Type -AssemblyName Microsoft.VisualBasic -ErrorAction Stop
+        $message = "Enter NodeCode for worker_nodes lookup. Leave empty to use hostname fallback."
+        $title = "Amazon worker launcher"
+        return [Microsoft.VisualBasic.Interaction]::InputBox($message, $title, $DefaultValue)
+    } catch {
+        Write-Host "Popup input failed. Falling back to console input."
+        return (Read-Host "Enter NodeCode. Leave empty to use hostname fallback")
+    }
+}
+
 $iniPath = Join-Path $ProjectDir "config\amazon_worker_launcher.ini"
 $settings = Read-IniFile -Path $iniPath
 
 if ([string]::IsNullOrWhiteSpace($Workers) -and $settings.ContainsKey("LastWorkers")) {
     $Workers = $settings.LastWorkers
+}
+if ([string]::IsNullOrWhiteSpace($NodeCode) -and $settings.ContainsKey("NodeCode")) {
+    $NodeCode = $settings.NodeCode
 }
 if ($settings.ContainsKey("Limit") -and -not $PSBoundParameters.ContainsKey("Limit")) {
     $Limit = [int]$settings.Limit
@@ -133,9 +152,6 @@ if ($settings.ContainsKey("PageTimeout") -and -not $PSBoundParameters.ContainsKe
 if ($settings.ContainsKey("EmptySleep") -and -not $PSBoundParameters.ContainsKey("EmptySleep")) {
     $EmptySleep = [int]$settings.EmptySleep
 }
-if ([string]::IsNullOrWhiteSpace($WorkerPrefix) -and $settings.ContainsKey("WorkerPrefix")) {
-    $WorkerPrefix = $settings.WorkerPrefix
-}
 if ($settings.ContainsKey("ProjectDir") -and -not $PSBoundParameters.ContainsKey("ProjectDir")) {
     $ProjectDir = $settings.ProjectDir
 }
@@ -145,11 +161,9 @@ if ($settings.ContainsKey("PythonCommand") -and -not $PSBoundParameters.Contains
 
 $iniPath = Join-Path $ProjectDir "config\amazon_worker_launcher.ini"
 
-if ([string]::IsNullOrWhiteSpace($WorkerPrefix)) {
-    $WorkerPrefix = $env:COMPUTERNAME
-    if ([string]::IsNullOrWhiteSpace($WorkerPrefix)) {
-        $WorkerPrefix = "PC"
-    }
+$hostName = $env:COMPUTERNAME
+if ([string]::IsNullOrWhiteSpace($hostName)) {
+    $hostName = "PC"
 }
 
 if ($PopupInput) {
@@ -168,6 +182,14 @@ if ($PopupInput) {
     $Workers = $inputValue.Trim()
 }
 
+$shouldPromptNodeCode = $Configure -or [string]::IsNullOrWhiteSpace($NodeCode)
+if ($shouldPromptNodeCode) {
+    $inputNodeCode = Show-NodeCodeInputBox -DefaultValue $NodeCode
+    if ($null -ne $inputNodeCode) {
+        $NodeCode = $inputNodeCode.Trim()
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($Workers)) {
     $Workers = Read-Host "Enter worker numbers. Examples: 1-3 / 4-6 / 2"
 }
@@ -182,11 +204,11 @@ if (-not (Test-Path $workerScript)) {
 
 $newSettings = @{
     LastWorkers = $Workers
+    NodeCode = $NodeCode
     Limit = $Limit
     Sleep = $Sleep
     PageTimeout = $PageTimeout
     EmptySleep = $EmptySleep
-    WorkerPrefix = $WorkerPrefix
     ProjectDir = $ProjectDir
     PythonCommand = $PythonCommand
 }
@@ -194,40 +216,55 @@ Write-IniFile -Path $iniPath -Data $newSettings
 
 Write-Host ""
 Write-Host "===== Amazon workers launcher ====="
+Write-Host "mode         : Amazon check + target recalc"
 Write-Host "workers      : $Workers"
 Write-Host "worker nums  : $($workerNumbers -join ', ')"
-Write-Host "workerPrefix : $WorkerPrefix"
-Write-Host "limit        : $Limit"
-Write-Host "sleep        : $Sleep"
-Write-Host "pageTimeout  : $PageTimeout"
-Write-Host "emptySleep   : $EmptySleep"
+Write-Host "hostname     : $hostName"
+Write-Host "nodeCode     : $(if ([string]::IsNullOrWhiteSpace($NodeCode)) { '<hostname fallback>' } else { $NodeCode })"
+Write-Host "configure    : $Configure"
+Write-Host "dbSettings   : worker_configs/settings_json"
 Write-Host "projectDir   : $ProjectDir"
 Write-Host "ini          : $iniPath"
 Write-Host ""
 
 foreach ($num in $workerNumbers) {
-    $workerId = "$WorkerPrefix-worker$num"
-
-    $command = "& " + (Q $PythonCommand) + " " + (Q $workerScript) +
-        " --worker-id " + (Q $workerId) +
-        " --limit $Limit" +
-        " --sleep $Sleep" +
-        " --page-timeout $PageTimeout" +
-        " --empty-sleep $EmptySleep"
+    $workerId = "$hostName-amazon-$num"
+    $workerArgs = @(
+        "--worker-number", [string]$num
+    )
 
     if ($Once) {
-        $command += " --once"
+        $workerArgs += "--once"
     }
 
+    $workerArgsLiteral = ($workerArgs | ForEach-Object { Q ([string]$_) }) -join ", "
+
     $inner = @"
-Set-Location '$($scriptsDir.Replace("'", "''"))'
-Write-Host '===== $workerId ====='
-Write-Host 'Command: $command'
+`$ErrorActionPreference = 'Stop'
+`$env:PYTHONIOENCODING = 'utf-8'
+`$env:PYTHONUTF8 = '1'
+`$env:PYTHONUNBUFFERED = '1'
+`$env:PRICE_SYSTEM_NODE_CODE = '$(($NodeCode).Replace("'", "''"))'
+`$utf8NoBom = [System.Text.UTF8Encoding]::new(`$false)
+[Console]::InputEncoding = `$utf8NoBom
+[Console]::OutputEncoding = `$utf8NoBom
+`$OutputEncoding = `$utf8NoBom
+`$pythonCommand = '$(($PythonCommand).Replace("'", "''"))'
+`$workerScript = '$(($workerScript).Replace("'", "''"))'
+`$workerArgs = @($workerArgsLiteral)
+Set-Location '$(($scriptsDir).Replace("'", "''"))'
+`$commandDisplay = `$pythonCommand + ' -u ' + `$workerScript + ' ' + (`$workerArgs -join ' ')
+Write-Host '===== $(($workerId).Replace("'", "''")) ====='
+Write-Host 'NodeCode:' '$(($NodeCode).Replace("'", "''"))'
+Write-Host 'Command:' `$commandDisplay
 Write-Host ''
-$command
+& `$pythonCommand '-u' `$workerScript @workerArgs
+`$exitCode = if (`$LASTEXITCODE -ne `$null) { [int]`$LASTEXITCODE } else { 0 }
 Write-Host ''
-Write-Host '===== $workerId stopped. Press Enter to close. ====='
+Write-Host 'ExitCode:' `$exitCode
+Write-Host '===== $(($workerId).Replace("'", "''")) stopped. Press Enter to close. ====='
 Read-Host
+exit `$exitCode
 "@
 
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($inner))
