@@ -1,19 +1,16 @@
 import argparse
-import base64
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import requests
 from db_config import connect_db
-from dotenv import load_dotenv
+from scripts.listing.rakuten_transport import build_rakuten_auth_headers
 from psycopg.types.json import Jsonb
 
 
-BASE_DIR = Path(r"C:\price_system")
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_INVENTORY_BULK_UPSERT_URL = (
@@ -38,26 +35,9 @@ def to_int(value: Any, default: int | None = None) -> int | None:
         return default
 
 
-def load_auth_header() -> dict[str, str]:
-    load_dotenv(ENV_PATH)
+def load_auth_header(store_code: str) -> dict[str, str]:
+    return build_rakuten_auth_headers(store_code=store_code)
 
-    service_secret = os.getenv("RAKUTEN_SERVICE_SECRET", "").strip()
-    license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
-
-    if not service_secret:
-        raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
-
-    if not license_key:
-        raise RuntimeError(f"RAKUTEN_LICENSE_KEY が空です: {ENV_PATH}")
-
-    token_src = f"{service_secret}:{license_key}".encode("utf-8")
-    token = base64.b64encode(token_src).decode("ascii")
-
-    return {
-        "Authorization": f"ESA {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
 
 def write_json_file(prefix: str, data: dict) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -164,12 +144,28 @@ def split_chunks(rows: list[dict[str, Any]], size: int) -> list[list[dict[str, A
     return [rows[i:i + size] for i in range(0, len(rows), size)]
 
 
+def resolve_chunk_store_code(chunk_rows: list[dict[str, Any]], explicit_store_code: str | None) -> str:
+    explicit = str(explicit_store_code or "").strip()
+    if explicit:
+        return explicit
+    row_store_codes = {
+        str(row.get("store_code") or "").strip()
+        for row in chunk_rows
+        if str(row.get("store_code") or "").strip()
+    }
+    if len(row_store_codes) == 1:
+        return next(iter(row_store_codes))
+    if len(row_store_codes) > 1:
+        raise RuntimeError("multiple Rakuten stores found in one inventory batch. Specify --store explicitly")
+    raise RuntimeError("store_code is empty")
+
+
 # =========================
 # 楽天API実行
 # =========================
 
-def call_inventory_bulk_upsert(payload: dict[str, Any]) -> dict[str, Any]:
-    headers = load_auth_header()
+def call_inventory_bulk_upsert(payload: dict[str, Any], store_code: str) -> dict[str, Any]:
+    headers = load_auth_header(store_code)
 
     print(f"POST {RAKUTEN_INVENTORY_BULK_UPSERT_URL}")
     print(f"inventories={len(payload.get('inventories') or [])}")
@@ -471,7 +467,7 @@ def main() -> int:
             request_payload = build_payload(chunk_rows)
 
             try:
-                response_payload = call_inventory_bulk_upsert(request_payload)
+                response_payload = call_inventory_bulk_upsert(request_payload, resolve_chunk_store_code(chunk_rows, store_code))
                 mark_rows_success(conn, chunk_rows, request_payload, response_payload)
 
                 result_summary["success_count"] += len(chunk_rows)

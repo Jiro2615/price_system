@@ -248,6 +248,8 @@ def main() -> int:
         *py_cmd("rakuten_csv_winscp_upload_and_watch.py"),
         "--csv",
         str(output_csv),
+        "--store",
+        args.store,
         "--timeout",
         str(args.timeout),
         "--settle-wait",

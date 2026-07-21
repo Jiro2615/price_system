@@ -1,7 +1,5 @@
 import argparse
-import base64
 import json
-import os
 import time
 from datetime import datetime
 from pathlib import Path
@@ -10,12 +8,11 @@ from urllib.parse import quote
 
 import requests
 from db_config import connect_db
-from dotenv import load_dotenv
+from scripts.listing.rakuten_transport import build_rakuten_auth_headers
 from psycopg.types.json import Jsonb
 
 
-BASE_DIR = Path(r"C:\price_system")
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers"
@@ -38,26 +35,9 @@ def to_int(value: Any, default: int | None = None) -> int | None:
         return default
 
 
-def load_auth_header() -> dict[str, str]:
-    load_dotenv(ENV_PATH)
+def load_auth_header(store_code: str) -> dict[str, str]:
+    return build_rakuten_auth_headers(store_code=store_code)
 
-    service_secret = os.getenv("RAKUTEN_SERVICE_SECRET", "").strip()
-    license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
-
-    if not service_secret:
-        raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
-
-    if not license_key:
-        raise RuntimeError(f"RAKUTEN_LICENSE_KEY が空です: {ENV_PATH}")
-
-    token_src = f"{service_secret}:{license_key}".encode("utf-8")
-    token = base64.b64encode(token_src).decode("ascii")
-
-    return {
-        "Authorization": f"ESA {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
 
 def write_json_file(prefix: str, data: dict) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -270,12 +250,13 @@ def call_rakuten_api_with_retry(
     method: str,
     url: str,
     *,
+    store_code: str,
     payload: dict[str, Any] | None = None,
     api_label: str,
     max_retries: int,
     retry_wait: float,
 ) -> tuple[int, dict[str, Any]]:
-    headers = load_auth_header()
+    headers = load_auth_header(store_code)
     retry_statuses = {429, 500, 502, 503, 504}
 
     for attempt in range(1, max_retries + 2):
@@ -310,6 +291,7 @@ def call_rakuten_api_with_retry(
 def call_item_patch(
     manage_number: str,
     payload: dict[str, Any],
+    store_code: str,
     max_retries: int,
     retry_wait: float,
 ) -> dict[str, Any]:
@@ -317,6 +299,7 @@ def call_item_patch(
     status_code, data = call_rakuten_api_with_retry(
         "PATCH",
         url,
+        store_code=store_code,
         payload=payload,
         api_label="楽天価格更新API",
         max_retries=max_retries,
@@ -331,6 +314,7 @@ def call_item_patch(
 
 def call_item_get(
     manage_number: str,
+    store_code: str,
     max_retries: int,
     retry_wait: float,
 ) -> dict[str, Any]:
@@ -338,6 +322,7 @@ def call_item_get(
     _status_code, data = call_rakuten_api_with_retry(
         "GET",
         url,
+        store_code=store_code,
         api_label="楽天items.get",
         max_retries=max_retries,
         retry_wait=retry_wait,
@@ -675,6 +660,7 @@ def main() -> int:
                 patch_response = call_item_patch(
                     manage,
                     request_payload,
+                    store_code=str(row.get("store_code") or store_code or ""),
                     max_retries=args.retry_count,
                     retry_wait=args.retry_wait,
                 )
@@ -689,6 +675,7 @@ def main() -> int:
 
                     verify_response = call_item_get(
                         manage,
+                        store_code=str(row.get("store_code") or store_code or ""),
                         max_retries=args.retry_count,
                         retry_wait=args.retry_wait,
                     )
