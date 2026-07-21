@@ -13,6 +13,7 @@ from scripts.listing.rakuten_transport import build_rakuten_auth_headers, create
 class RakutenImageUploadRequest:
     local_path: str
     filename: str
+    store_code: str = ""
     timeout_seconds: float = 30.0
     headers: dict[str, str] | None = None
     metadata: dict[str, Any] | None = None
@@ -33,6 +34,7 @@ def build_image_request_summary(request: RakutenImageUploadRequest) -> dict[str,
         {
             "local_path": request.local_path,
             "filename": request.filename,
+            "store_code": request.store_code,
             "timeout_seconds": request.timeout_seconds,
             "headers": request.headers or {},
             "metadata": request.metadata or {},
@@ -54,10 +56,11 @@ class RakutenImageClient:
         return self._uploader(request)
 
 
-def build_upload_request_from_validation(item: Any, *, headers: dict[str, str] | None = None) -> RakutenImageUploadRequest:
+def build_upload_request_from_validation(item: Any, *, store_code: str = "", headers: dict[str, str] | None = None) -> RakutenImageUploadRequest:
     return RakutenImageUploadRequest(
         local_path=str(getattr(item, "local_path", "")),
         filename=Path(str(getattr(item, "local_path", ""))).name,
+        store_code=store_code,
         headers=dict(headers or {}),
         metadata={
             "order": getattr(item, "order", None),
@@ -142,7 +145,7 @@ def upload_image_via_requests(request: RakutenImageUploadRequest) -> RakutenImag
         file_path=file_path,
         overwrite=True,
     )
-    headers = build_rakuten_auth_headers(accept="text/xml", content_type=None, extra_headers=request.headers or {})
+    headers = build_rakuten_auth_headers(store_code=request.store_code, accept="text/xml", content_type=None, extra_headers=request.headers or {})
     data: dict[str, str] = {"xml": xml_body}
 
     with local_path.open("rb") as fh:

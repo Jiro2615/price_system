@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,23 @@ LICENSE_ENV_NAMES = (
 )
 
 
+def _normalize_store_env_prefix(store_code: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]+", "_", str(store_code or "").strip()).strip("_").upper()
+
+
+def _store_scoped_names(store_code: str, base_names: tuple[str, ...]) -> tuple[str, ...]:
+    prefix = _normalize_store_env_prefix(store_code)
+    if not prefix:
+        return base_names
+    scoped: list[str] = []
+    for name in base_names:
+        if name.startswith("RAKUTEN_"):
+            scoped.append(f"{prefix}_{name.removeprefix('RAKUTEN_')}")
+    if prefix == "RAKUTEN_1":
+        scoped.extend(base_names)
+    return tuple(dict.fromkeys(scoped))
+
+
 def _load_env_once() -> None:
     load_dotenv(ENV_PATH)
 
@@ -43,6 +61,22 @@ def _first_env(names: tuple[str, ...]) -> str:
     return ""
 
 
+def rakuten_auth_env_status(store_code: str = "") -> dict[str, Any]:
+    service_names = _store_scoped_names(store_code, SECRET_ENV_NAMES)
+    license_names = _store_scoped_names(store_code, LICENSE_ENV_NAMES)
+    service_configured = bool(_first_env(service_names))
+    license_configured = bool(_first_env(license_names))
+    return {
+        "store_code": store_code,
+        "service_names": service_names,
+        "license_names": license_names,
+        "service_configured": service_configured,
+        "license_configured": license_configured,
+        "configured": service_configured and license_configured,
+        "missing_keys": ([] if service_configured else list(service_names)) + ([] if license_configured else list(license_names)),
+    }
+
+
 def build_authorization_header(service_secret: str, license_key: str) -> str:
     token_src = f"{service_secret}:{license_key}".encode("utf-8")
     token = base64.b64encode(token_src).decode("ascii")
@@ -51,16 +85,21 @@ def build_authorization_header(service_secret: str, license_key: str) -> str:
 
 def build_rakuten_auth_headers(
     *,
+    store_code: str = "",
     accept: str = "application/json",
     content_type: str | None = "application/json",
     extra_headers: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    service_secret = _first_env(SECRET_ENV_NAMES)
-    license_key = _first_env(LICENSE_ENV_NAMES)
+    service_names = _store_scoped_names(store_code, SECRET_ENV_NAMES)
+    license_names = _store_scoped_names(store_code, LICENSE_ENV_NAMES)
+    service_secret = _first_env(service_names)
+    license_key = _first_env(license_names)
     if not service_secret:
-        raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
+        expected = " / ".join(service_names)
+        raise RuntimeError(f"Rakuten service secret is empty for store_code={store_code or 'default'}: {ENV_PATH} (set one of {expected})")
     if not license_key:
-        raise RuntimeError(f"RAKUTEN_LICENSE_KEY が空です: {ENV_PATH}")
+        expected = " / ".join(license_names)
+        raise RuntimeError(f"Rakuten license key is empty for store_code={store_code or 'default'}: {ENV_PATH} (set one of {expected})")
 
     headers = {
         "Authorization": build_authorization_header(service_secret, license_key),

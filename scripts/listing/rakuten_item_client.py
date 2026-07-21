@@ -14,6 +14,7 @@ class RakutenItemRequest:
     management_number: str
     payload: dict[str, Any]
     headers: dict[str, str]
+    store_code: str = ""
     timeout_seconds: float = 30.0
     url: str = ""
 
@@ -112,12 +113,13 @@ def sanitize_item_payload_for_api(payload: dict[str, Any], *, management_number:
     return sanitized
 
 
-def build_item_request(management_number: str, payload: dict[str, Any], headers: dict[str, str], *, timeout_seconds: float = 30.0) -> RakutenItemRequest:
+def build_item_request(management_number: str, payload: dict[str, Any], headers: dict[str, str], *, store_code: str = "", timeout_seconds: float = 30.0) -> RakutenItemRequest:
     sanitized_payload = sanitize_item_payload_for_api(payload, management_number=management_number)
     return RakutenItemRequest(
         management_number=management_number,
         payload=sanitized_payload,
         headers=dict(headers),
+        store_code=store_code,
         timeout_seconds=timeout_seconds,
         url=f"https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers/{management_number}",
     )
@@ -127,6 +129,7 @@ def build_item_request_summary(request: RakutenItemRequest) -> dict[str, Any]:
     return sanitize_for_output(
         {
             "management_number": request.management_number,
+            "store_code": request.store_code,
             "url": request.url,
             "timeout_seconds": request.timeout_seconds,
             "headers": request.headers,
@@ -153,7 +156,7 @@ class RakutenItemClient:
 
 def send_item_via_requests(request: RakutenItemRequest) -> RakutenItemResult:
     session = create_requests_session()
-    headers = build_rakuten_auth_headers(accept="application/json", content_type="application/json", extra_headers=request.headers)
+    headers = build_rakuten_auth_headers(store_code=request.store_code, accept="application/json", content_type="application/json", extra_headers=request.headers)
     response = session.put(request.url, headers=headers, json=request.payload, timeout=request.timeout_seconds)
     success = 200 <= int(response.status_code) < 300
     return RakutenItemResult(

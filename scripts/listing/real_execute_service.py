@@ -133,7 +133,7 @@ def _build_base_result(request: RealExecuteRequest) -> dict[str, Any]:
     }
 
 
-def _build_transport_ready_summary() -> dict[str, Any]:
+def _build_transport_ready_summary(store_code: str = "") -> dict[str, Any]:
     try:
         __import__("requests")
         requests_available = True
@@ -143,7 +143,7 @@ def _build_transport_ready_summary() -> dict[str, Any]:
         requests_reason = str(exc)
 
     try:
-        build_rakuten_auth_headers()
+        build_rakuten_auth_headers(store_code=store_code)
         auth_configured = True
         auth_reason = None
     except Exception as exc:
@@ -304,7 +304,7 @@ def build_real_execute_result(
         result["final_status"] = "blocked"
         return result
 
-    transport_ready = _build_transport_ready_summary()
+    transport_ready = _build_transport_ready_summary(request.store)
     result["transport_dry_check"]["transport_ready"] = bool(transport_ready.get("ready"))
     result["transport_dry_check"]["reason"] = transport_ready.get("reason")
     if not transport_ready.get("ready"):

@@ -1,48 +1,19 @@
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
-
 from scripts.listing.models import to_jsonable
 from scripts.listing.preflight_service import ensure_output_parent, load_json
 from scripts.listing.rakuten_api_spec_loader import build_confirmed_specifications, build_unresolved_specifications, load_rakuten_api_spec
+from scripts.listing.rakuten_transport import rakuten_auth_env_status
 from scripts.listing.store_config import get_store_cabinet_config
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
 HISTORY_DIR = BASE_DIR / "output" / "listing" / "execution_history"
-ITEM_AUTH_NAMES = ("RAKUTEN_SERVICE_SECRET", "RAKUTEN_LICENSE_KEY")
-INVENTORY_AUTH_NAMES = ("RAKUTEN_SERVICE_SECRET", "RAKUTEN_LICENSE_KEY")
-IMAGE_AUTH_NAMES = ("RAKUTEN_SERVICE_SECRET", "RAKUTEN_LICENSE_KEY")
-
-
-def _load_env_once() -> None:
-    load_dotenv(ENV_PATH)
-
-
-def _has_env_value(*names: str) -> bool:
-    _load_env_once()
-    for name in names:
-        value = os.getenv(name)
-        if value is not None and str(value).strip():
-            return True
-    return False
-
-
-def _missing_env_names(*names: str) -> list[str]:
-    _load_env_once()
-    missing: list[str] = []
-    for name in names:
-        value = os.getenv(name)
-        if value is None or not str(value).strip():
-            missing.append(name)
-    return missing
 
 
 def _history_path(management_number: str) -> Path:
@@ -83,22 +54,22 @@ def _build_duplicate_execution_guard(management_number: str) -> dict[str, Any]:
 
 
 def _build_auth_configuration_summary(store_code: str) -> dict[str, Any]:
-    item_configured = _has_env_value(*ITEM_AUTH_NAMES)
-    inventory_configured = _has_env_value(*INVENTORY_AUTH_NAMES)
-    image_configured = _has_env_value(*IMAGE_AUTH_NAMES)
+    auth_status = rakuten_auth_env_status(store_code)
+    configured = bool(auth_status.get("configured"))
+    missing_keys = list(auth_status.get("missing_keys") or [])
     return {
         "store_code": store_code,
         "item_api": {
-            "configured": item_configured,
-            "missing_keys": [] if item_configured else _missing_env_names(*ITEM_AUTH_NAMES),
+            "configured": configured,
+            "missing_keys": [] if configured else missing_keys,
         },
         "inventory_api": {
-            "configured": inventory_configured,
-            "missing_keys": [] if inventory_configured else _missing_env_names(*INVENTORY_AUTH_NAMES),
+            "configured": configured,
+            "missing_keys": [] if configured else missing_keys,
         },
         "image_api": {
-            "configured": image_configured,
-            "missing_keys": [] if image_configured else list(IMAGE_AUTH_NAMES),
+            "configured": configured,
+            "missing_keys": [] if configured else missing_keys,
         },
     }
 

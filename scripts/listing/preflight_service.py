@@ -1,21 +1,18 @@
 from __future__ import annotations
 
 import json
-import os
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from dotenv import load_dotenv
-
 from scripts.listing.models import to_jsonable
 from scripts.listing.rakuten_inventory_client import build_inventory_request
 from scripts.listing.rakuten_item_client import build_item_request
+from scripts.listing.rakuten_transport import rakuten_auth_env_status
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
 REPRESENTATIVE_COLOR = "代表カラー"
 
 
@@ -242,7 +239,8 @@ def _build_item_payload_summary(dry_run_result: dict[str, Any]) -> dict[str, Any
     if not isinstance(item_payload, dict):
         return {}
     management_number = str(dry_run_result.get("management_number") or item_payload.get("itemNumber") or "").strip()
-    request = build_item_request(management_number, item_payload, {})
+    store_code = str(dry_run_result.get("store_code") or "").strip()
+    request = build_item_request(management_number, item_payload, {}, store_code=store_code)
     variant_key, variant_payload = _first_variant(item_payload)
     return {
         "itemNumber": request.payload.get("itemNumber"),
@@ -262,7 +260,8 @@ def _build_inventory_payload_summary(dry_run_result: dict[str, Any]) -> dict[str
     management_number = str(dry_run_result.get("management_number") or "").strip()
     if not isinstance(inventory_payload, dict) or not management_number:
         return {}
-    request = build_inventory_request(management_number, inventory_payload, {})
+    store_code = str(dry_run_result.get("store_code") or "").strip()
+    request = build_inventory_request(management_number, inventory_payload, {}, store_code=store_code)
     return {
         "quantity": request.payload.get("quantity"),
         "variantPath": inventory_payload.get("variantPath"),
@@ -274,30 +273,19 @@ def _build_inventory_payload_summary(dry_run_result: dict[str, Any]) -> dict[str
     }
 
 
-def _load_env_once() -> None:
-    load_dotenv(ENV_PATH)
-
-
-def _has_env_value(*names: str) -> bool:
-    _load_env_once()
-    for name in names:
-        value = os.getenv(name)
-        if value is not None and str(value).strip():
-            return True
-    return False
-
-
 def _build_auth_configuration_summary(store_code: str) -> dict[str, Any]:
-    shared_auth = _has_env_value("RAKUTEN_SERVICE_SECRET") and _has_env_value("RAKUTEN_LICENSE_KEY")
+    auth_status = rakuten_auth_env_status(store_code)
+    configured = bool(auth_status.get("configured"))
     return {
         "store_code": store_code,
         "store_specific_config_present": bool(store_code),
-        "shared_rakuten_api_auth_configured": shared_auth,
-        "item_api_auth_configured": shared_auth,
-        "inventory_api_auth_configured": shared_auth,
-        "image_api_auth_configured": shared_auth,
+        "shared_rakuten_api_auth_configured": configured,
+        "item_api_auth_configured": configured,
+        "inventory_api_auth_configured": configured,
+        "image_api_auth_configured": configured,
+        "missing_keys": [] if configured else list(auth_status.get("missing_keys") or []),
         "notes": [
-            "item / inventory / image transport all use shared ESA credentials in this phase",
+            "item / inventory / image transport use store-scoped ESA credentials when store_code is present",
             "real execute still requires cabinet_folder_id / cabinet_folder_path / shop_url runtime config",
         ],
     }

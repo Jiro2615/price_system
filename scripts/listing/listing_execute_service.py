@@ -218,6 +218,7 @@ def execute_listing(
     result = _base_result(request, dry_run_result)
 
     asin = str(dry_run_result.get("asin") or "").strip().upper()
+    store_code = str(dry_run_result.get("store_code") or "").strip()
     management_number = str(dry_run_result.get("management_number") or "").strip()
     item_payload = dry_run_result.get("item_payload")
     inventory_payload = dry_run_result.get("inventory_payload")
@@ -300,7 +301,7 @@ def execute_listing(
         image_client = image_client or RakutenImageClient()
         upload_results = []
         for index, item in enumerate(validated_items):
-            upload_request = build_upload_request_from_validation(item, headers=request.image_headers)
+            upload_request = build_upload_request_from_validation(item, store_code=store_code, headers=request.image_headers)
             metadata = dict(upload_request.metadata or {})
             metadata.update(_build_upload_metadata(dry_run_result, item))
             upload_request.metadata = metadata
@@ -322,7 +323,7 @@ def execute_listing(
             return _fail(result, status="image_failed", message="rakuten image URLs were not returned", final_state="partial_failure")
 
     executed_item_payload = _copy_item_payload_with_image_urls(item_payload, rakuten_image_urls)
-    item_request = build_item_request(management_number, executed_item_payload, request.item_headers or {})
+    item_request = build_item_request(management_number, executed_item_payload, request.item_headers or {}, store_code=store_code)
     executed_item_payload = item_request.payload
     result["rakuten_image_urls_after"] = rakuten_image_urls
     result["executed_item_payload"] = sanitize_for_output(to_jsonable(executed_item_payload))
@@ -351,7 +352,7 @@ def execute_listing(
     result["execute_status"] = "item_succeeded"
 
     inventory_client = inventory_client or RakutenInventoryClient()
-    inventory_request = build_inventory_request(management_number, inventory_payload, request.inventory_headers or {})
+    inventory_request = build_inventory_request(management_number, inventory_payload, request.inventory_headers or {}, store_code=store_code)
     inventory_result = inventory_client.put_inventory(inventory_request)
     result["inventory_result"] = sanitize_for_output(to_jsonable(inventory_result))
     if not inventory_result.success:
