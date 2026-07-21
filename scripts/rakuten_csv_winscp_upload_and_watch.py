@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import subprocess
 import sys
 import time
@@ -46,17 +47,33 @@ SUCCESS_KEYWORDS = [
 ]
 
 
-def load_settings() -> dict:
+def normalize_store_env_prefix(store_code: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]+", "_", str(store_code or "").strip()).strip("_").upper()
+
+
+def first_store_env(store_code: str, suffix: str, default: str = "") -> str:
+    prefix = normalize_store_env_prefix(store_code)
+    names = [f"{prefix}_{suffix}"] if prefix else []
+    if prefix in {"", "RAKUTEN_1"}:
+        names.append(f"RAKUTEN_{suffix}")
+    for name in names:
+        value = os.getenv(name)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return default
+
+
+def load_settings(store_code: str = "") -> dict:
     if load_dotenv is not None:
         load_dotenv(ENV_PATH)
 
-    host = os.getenv("RAKUTEN_SFTP_HOST", DEFAULT_HOST).strip()
-    port = int(os.getenv("RAKUTEN_SFTP_PORT", str(DEFAULT_PORT)).strip() or DEFAULT_PORT)
-    user = os.getenv("RAKUTEN_SFTP_USER", "").strip()
-    password = os.getenv("RAKUTEN_SFTP_PASSWORD", "").strip()
-    batch_dir = os.getenv("RAKUTEN_SFTP_BATCH_DIR", DEFAULT_BATCH_DIR).strip() or DEFAULT_BATCH_DIR
-    log_dir = os.getenv("RAKUTEN_SFTP_LOG_DIR", DEFAULT_LOG_DIR).strip() or DEFAULT_LOG_DIR
-    hostkey = os.getenv("RAKUTEN_SFTP_HOSTKEY", "*").strip() or "*"
+    host = first_store_env(store_code, "SFTP_HOST", DEFAULT_HOST)
+    port = int(first_store_env(store_code, "SFTP_PORT", str(DEFAULT_PORT)) or DEFAULT_PORT)
+    user = first_store_env(store_code, "SFTP_USER")
+    password = first_store_env(store_code, "SFTP_PASSWORD")
+    batch_dir = first_store_env(store_code, "SFTP_BATCH_DIR", DEFAULT_BATCH_DIR) or DEFAULT_BATCH_DIR
+    log_dir = first_store_env(store_code, "SFTP_LOG_DIR", DEFAULT_LOG_DIR) or DEFAULT_LOG_DIR
+    hostkey = first_store_env(store_code, "SFTP_HOSTKEY", "*") or "*"
     winscp_com = os.getenv("WINSCP_COM", "").strip()
 
     if not user:
@@ -339,8 +356,9 @@ def upload_and_watch(
     apply_db: bool,
     include_stock: bool,
     dry_run: bool,
+    store_code: str = "",
 ) -> int:
-    settings = load_settings()
+    settings = load_settings(store_code)
 
     if not local_csv.exists():
         raise RuntimeError(f"CSVが見つかりません: {local_csv}")
@@ -500,6 +518,7 @@ def main() -> int:
     parser.add_argument("--apply-db", action="store_true", help="成功判定後にDBへ current_price/current_stock を反映する")
     parser.add_argument("--include-stock", action="store_true", help="DB反映時にCSVの在庫数も current_stock へ反映する")
     parser.add_argument("--dry-run", action="store_true", help="SFTP接続やアップロードをせず内容確認のみ")
+    parser.add_argument("--store", default="", help="stores.store_code. Uses store-scoped RAKUTEN_2_SFTP_* keys when provided.")
     args = parser.parse_args()
 
     return upload_and_watch(
@@ -513,6 +532,7 @@ def main() -> int:
         apply_db=args.apply_db,
         include_stock=args.include_stock,
         dry_run=args.dry_run,
+        store_code=args.store,
     )
 
 
