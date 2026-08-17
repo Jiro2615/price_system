@@ -11,6 +11,7 @@ import requests
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 import rakuten_inventory_reconcile as reconcile  # noqa: E402
+import rakuten_price_patch as price_patch  # noqa: E402
 
 
 def response(status: int, body: bytes, headers: dict[str, str] | None = None) -> requests.Response:
@@ -58,6 +59,25 @@ class InventoryReconcileRetryTests(unittest.TestCase):
         cursor = Cursor()
         reconcile.save_error(cursor, 1, "429")
         self.assertNotIn("rms_inventory_checked_at", cursor.query)
+
+    def test_price_retry_state_passes_a_typed_timestamp_not_untyped_interval(self) -> None:
+        class Cursor:
+            params = ()
+
+            def execute(self, _query, params):
+                self.params = params
+
+            def fetchone(self):
+                return None
+
+        cursor = Cursor()
+        result = price_patch.record_retry_state(
+            cursor,
+            {"store_product_id": 1, "store_code": "rakuten_2", "target_price": 1000},
+            "429 Too Many Requests",
+        )
+        self.assertEqual("retry_scheduled", result["state"])
+        self.assertIsNotNone(cursor.params[6])
 
 
 if __name__ == "__main__":

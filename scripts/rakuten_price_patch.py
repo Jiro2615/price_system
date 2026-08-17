@@ -5,7 +5,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -644,6 +644,11 @@ def record_retry_state(cur, row: dict[str, Any], error_message: str) -> dict[str
         previous_kind, previous_attempts = "", 0
     failure_kind, state, retry_delay = classify_retry_failure(error_message, int(previous_attempts or 0), str(previous_kind or ""))
     attempts = int(previous_attempts or 0) + 1
+    next_retry_at = (
+        datetime.now(timezone.utc) + timedelta(seconds=retry_delay)
+        if retry_delay is not None
+        else None
+    )
     cur.execute(
         f"""
         INSERT INTO {RETRY_STATE_TABLE} (
@@ -651,12 +656,7 @@ def record_retry_state(cur, row: dict[str, Any], error_message: str) -> dict[str
             attempt_count, next_retry_at, last_error, last_attempt_at, updated_at
         )
         VALUES (
-            %s, %s, %s, %s, %s, %s,
-            CASE
-                WHEN %s::integer IS NULL THEN NULL
-                ELSE CURRENT_TIMESTAMP + (%s::integer * INTERVAL '1 second')
-            END,
-            %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         )
         ON CONFLICT (store_product_id) DO UPDATE SET
             store_code = EXCLUDED.store_code,
@@ -671,7 +671,7 @@ def record_retry_state(cur, row: dict[str, Any], error_message: str) -> dict[str
         """,
         (
             row["store_product_id"], str(row.get("store_code") or ""), target_price,
-            state, failure_kind, attempts, retry_delay, retry_delay,
+            state, failure_kind, attempts, next_retry_at,
             str(error_message or "")[:2000],
         ),
     )
