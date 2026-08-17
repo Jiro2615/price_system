@@ -107,6 +107,8 @@ def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
 def judge_basic_ng(in_text: str, page_text: str = "") -> str:
     if "在庫切れ" in in_text:
         return "在庫切れ"
+    if is_amazon_delivery_origin_offer_text(in_text):
+        return "配送元Amazonは対象外（出荷元Amazonのみ採用）"
     if "ギフト" not in in_text and not is_amazon_official_offer_text(in_text) and not is_amazon_official_offer_text(page_text):
         return "ギフト不可（Amazon.co.jp直販例外の未確認: 出荷元・販売元 Amazon.co.jp）"
     return ""
@@ -125,6 +127,12 @@ def is_amazon_fulfilled_offer_text(in_text: str) -> bool:
     """Return whether Amazon, rather than the seller, will ship the offer."""
     normalized = re.sub(r"\s+", "", in_text or "")
     return bool(re.search(r"出荷元\s*Amazon(?:\.co\.jp)?", normalized, re.I))
+
+
+def is_amazon_delivery_origin_offer_text(in_text: str) -> bool:
+    """Reject BuyBox labels that are not the explicit ``出荷元`` field."""
+    normalized = re.sub(r"\s+", "", in_text or "")
+    return bool(re.search(r"(?:配送元|発送元)[\s:：]*Amazon(?:\.co\.jp)?", normalized, re.I))
 
 
 _NON_NEW_CONDITION_MARKERS = ("中古", "整備済み", "再生品", "アウトレット", "展示品", "コレクター")
@@ -149,6 +157,8 @@ def is_explicit_new_offer_text(in_text: str) -> bool:
 
 
 def is_gift_or_amazon_official(in_text: str, page_text: str = "") -> bool:
+    if is_amazon_delivery_origin_offer_text(in_text):
+        return False
     return "ギフト" in (in_text or "") or is_amazon_official_offer_text(in_text) or is_amazon_official_offer_text(page_text)
 
 
@@ -581,6 +591,8 @@ async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optiona
         offer = offers.nth(position)
         try:
             ships_from = re.sub(r"\s+", " ", await safe_inner_text(offer.locator("#aod-offer-shipsFrom").first)).strip()
+            if is_amazon_delivery_origin_offer_text(ships_from) or not re.match(r"^出荷元\s*", ships_from):
+                continue
             ships_from = re.sub(r"^出荷元\s*", "", ships_from)
             if ships_from not in {"Amazon", "Amazon.co.jp"}:
                 continue
