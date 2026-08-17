@@ -54,6 +54,7 @@ class RakutenApiTransportPayloadTests(unittest.TestCase):
                     "attributes": [
                         {"name": "ブランド名", "value": "ビバリー(BEVERLY)"},
                         {"name": "代表カラー", "values": ["ブルー"]},
+                        {"name": "原産国／製造国", "values": ["日本"]},
                     ],
                 }
             },
@@ -71,6 +72,7 @@ class RakutenApiTransportPayloadTests(unittest.TestCase):
             [
                 {"name": "ブランド名", "values": ["ビバリー(BEVERLY)"]},
                 {"name": "代表カラー", "values": ["ブルー"]},
+                {"name": "原産国／製造国", "values": ["日本"]},
             ],
         )
 
