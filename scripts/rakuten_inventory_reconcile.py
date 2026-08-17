@@ -9,6 +9,7 @@ sent back to RMS.
 from __future__ import annotations
 
 import argparse
+import time
 from urllib.parse import quote
 
 import requests
@@ -41,21 +42,69 @@ def fetch_targets(cur, store_code: str, limit: int) -> list[dict]:
     return [dict(zip(columns, row)) for row in cur.fetchall()]
 
 
-def fetch_rms_quantity(headers: dict[str, str], manage_number: str, sku_code: str) -> int:
+def retry_wait_seconds(response: requests.Response | None, fallback_seconds: float, attempt: int) -> float:
+    """Prefer the server-provided rate-limit wait, then use capped backoff."""
+    retry_after = ""
+    if response is not None:
+        retry_after = str(response.headers.get("Retry-After") or "").strip()
+    if retry_after:
+        try:
+            return max(0.0, float(retry_after))
+        except ValueError:
+            pass
+    return min(60.0, max(0.0, fallback_seconds) * (2 ** attempt))
+
+
+def fetch_rms_quantity(
+    headers: dict[str, str],
+    manage_number: str,
+    sku_code: str,
+    *,
+    retry_count: int,
+    retry_wait: float,
+    timeout: float,
+) -> int:
     url = (
         "https://api.rms.rakuten.co.jp/es/2.1/"
         f"inventories/manage-numbers/{quote(manage_number, safe='')}/variants/{quote(sku_code, safe='')}"
     )
-    response = requests.get(url, headers=headers, timeout=60)
-    try:
-        payload = response.json()
-    except ValueError:
-        payload = {"raw": response.text[:500]}
-    response.raise_for_status()
-    value = payload.get("quantity")
-    if value is None or value == "":
-        raise ValueError("RMS inventory response did not contain quantity")
-    return int(float(str(value)))
+    for attempt in range(retry_count + 1):
+        response: requests.Response | None = None
+        try:
+            response = requests.get(url, headers=headers, timeout=timeout)
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {"raw": response.text[:500]}
+
+            retryable_status = response.status_code == 429 or 500 <= response.status_code < 600
+            if retryable_status and attempt < retry_count:
+                wait_seconds = retry_wait_seconds(response, retry_wait, attempt)
+                print(
+                    f"[inventory-reconcile] RMS status={response.status_code}; "
+                    f"retry {attempt + 1}/{retry_count} after {wait_seconds:g}s",
+                    flush=True,
+                )
+                time.sleep(wait_seconds)
+                continue
+
+            response.raise_for_status()
+            value = payload.get("quantity")
+            if value is None or value == "":
+                raise ValueError("RMS inventory response did not contain quantity")
+            return int(float(str(value)))
+        except requests.RequestException as exc:
+            if attempt >= retry_count:
+                raise
+            wait_seconds = retry_wait_seconds(response, retry_wait, attempt)
+            print(
+                f"[inventory-reconcile] RMS request error={exc}; "
+                f"retry {attempt + 1}/{retry_count} after {wait_seconds:g}s",
+                flush=True,
+            )
+            time.sleep(wait_seconds)
+
+    raise RuntimeError("RMS inventory retry loop ended unexpectedly")
 
 
 def save_success(cur, product_id: int, quantity: int) -> None:
@@ -77,8 +126,7 @@ def save_error(cur, product_id: int, message: str) -> None:
     cur.execute(
         """
         UPDATE store_products
-        SET rms_inventory_checked_at = CURRENT_TIMESTAMP,
-            rms_inventory_last_error = %s,
+        SET rms_inventory_last_error = %s,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = %s
         """,
@@ -91,6 +139,9 @@ def main() -> int:
     parser.add_argument("--store", default="rakuten_2")
     parser.add_argument("--limit", type=int, default=200)
     parser.add_argument("--execute", action="store_true", help="persist the fetched RMS quantities to DB")
+    parser.add_argument("--api-interval", type=float, default=0.5, help="RMS inventory GET間の待機秒数")
+    parser.add_argument("--retry-count", type=int, default=5, help="429/一時エラー時の再試行回数")
+    parser.add_argument("--retry-wait", type=float, default=5.0, help="429/一時エラー時の基本待機秒数")
     args = parser.parse_args()
 
     store_code = args.store.strip().lower()
@@ -98,6 +149,12 @@ def main() -> int:
         raise SystemExit("store is required")
     if not 1 <= args.limit <= 400:
         raise SystemExit("limit must be between 1 and 400")
+    if args.api_interval < 0:
+        raise SystemExit("api-interval must be >= 0")
+    if args.retry_count < 0:
+        raise SystemExit("retry-count must be >= 0")
+    if args.retry_wait < 0:
+        raise SystemExit("retry-wait must be >= 0")
 
     conn = connect_db()
     checked = 0
@@ -107,10 +164,17 @@ def main() -> int:
         with conn.cursor() as cur:
             targets = fetch_targets(cur, store_code, args.limit)
         headers = build_rakuten_auth_header(store_code)
-        for product in targets:
+        for index, product in enumerate(targets, start=1):
             checked += 1
             try:
-                rms_quantity = fetch_rms_quantity(headers, product["mall_item_code"], product["sku_code"])
+                rms_quantity = fetch_rms_quantity(
+                    headers,
+                    product["mall_item_code"],
+                    product["sku_code"],
+                    retry_count=args.retry_count,
+                    retry_wait=args.retry_wait,
+                    timeout=60,
+                )
                 is_changed = product["current_stock"] != rms_quantity
                 changed += 1 if is_changed else 0
                 print(
@@ -122,6 +186,8 @@ def main() -> int:
                     with conn.cursor() as cur:
                         save_success(cur, int(product["id"]), rms_quantity)
                     conn.commit()
+                if index < len(targets) and args.api_interval:
+                    time.sleep(args.api_interval)
             except Exception as exc:
                 failed += 1
                 print(f"[inventory-reconcile] id={product['id']} failed: {exc}", flush=True)

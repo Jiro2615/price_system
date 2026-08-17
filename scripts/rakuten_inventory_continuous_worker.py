@@ -49,6 +49,9 @@ def main() -> int:
     parser.add_argument("--cycle-wait", type=int, default=300)
     parser.add_argument("--reconcile-interval", type=int, default=3600)
     parser.add_argument("--reconcile-limit", type=int, default=200)
+    parser.add_argument("--reconcile-api-interval", type=float, default=0.5)
+    parser.add_argument("--reconcile-retry-count", type=int, default=5)
+    parser.add_argument("--reconcile-retry-wait", type=float, default=5.0)
     args = parser.parse_args()
 
     if args.store.strip().lower() != "rakuten_2":
@@ -65,6 +68,12 @@ def main() -> int:
         raise SystemExit("reconcile-interval must be 0 or at least 300")
     if not 1 <= args.reconcile_limit <= 400:
         raise SystemExit("reconcile-limit must be between 1 and 400")
+    if args.reconcile_api_interval < 0:
+        raise SystemExit("reconcile-api-interval must be >= 0")
+    if args.reconcile_retry_count < 0:
+        raise SystemExit("reconcile-retry-count must be >= 0")
+    if args.reconcile_retry_wait < 0:
+        raise SystemExit("reconcile-retry-wait must be >= 0")
 
     cycle = 0
     last_reconciliation_at = 0.0
@@ -103,6 +112,12 @@ def main() -> int:
                 "rakuten_2",
                 "--limit",
                 str(args.reconcile_limit),
+                "--api-interval",
+                str(args.reconcile_api_interval),
+                "--retry-count",
+                str(args.reconcile_retry_count),
+                "--retry-wait",
+                str(args.reconcile_retry_wait),
             ]
             print(
                 f"[continuous-inventory] reconcile start limit={args.reconcile_limit}",
