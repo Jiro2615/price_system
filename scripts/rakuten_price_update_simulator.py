@@ -86,7 +86,11 @@ def resolve_hostname() -> str:
 
 
 def resolve_node_code(explicit_node_code: str | None = None) -> str:
-    env_value = str(os.environ.get("PRICE_SYSTEM_NODE_CODE") or "").strip()
+    env_value = str(
+        os.environ.get("PRICE_SYSTEM_NODE_CODE")
+        or os.environ.get("WEB_ORCHESTRATOR_NODE_CODE")
+        or ""
+    ).strip()
     if env_value:
         return env_value
     explicit = str(explicit_node_code or "").strip()

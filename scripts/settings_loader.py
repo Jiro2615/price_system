@@ -93,7 +93,14 @@ def _normalize_worker_type(worker_type: str) -> str:
 
 
 def _node_lookup_strategy(explicit_node_code: str | None = None) -> tuple[str, str]:
-    env_node_code = str(os.getenv("PRICE_SYSTEM_NODE_CODE") or "").strip()
+    # PRICE_SYSTEM_NODE_CODE remains the explicit override for standalone
+    # workers. Web Orchestrator worker PCs normally set only the shared node
+    # identity, so use it as a compatible fallback before hostname lookup.
+    env_node_code = str(
+        os.getenv("PRICE_SYSTEM_NODE_CODE")
+        or os.getenv("WEB_ORCHESTRATOR_NODE_CODE")
+        or ""
+    ).strip()
     if env_node_code:
         return "env", env_node_code
 
