@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 from scripts.listing.image_downloader import download_image_plan, requests_http_get
 from scripts.listing.image_validator import validate_downloaded_images
+from scripts.listing.cabinet_rotation import CabinetRotationError, resolve_cabinet_upload_folder
 from scripts.listing.listing_execute_service import ExecuteListingRequest, execute_listing
 from scripts.listing.preflight_service import load_json
 from scripts.listing.rakuten_image_client import RakutenImageClient
@@ -264,6 +265,7 @@ def build_real_execute_result(
     image_client: RakutenImageClient | None = None,
     item_client: RakutenItemClient | None = None,
     inventory_client: RakutenInventoryClient | None = None,
+    cabinet_folder_resolver: Callable[..., dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     readiness_result = load_json(request.readiness_json)
     dry_run_result = load_json(request.dry_run_json)
@@ -332,6 +334,27 @@ def build_real_execute_result(
         result["final_status"] = "blocked"
         return result
 
+    # The saved setting remains the root Cabinet folder. Resolve the actual
+    # upload destination only for a live listing, so dry-run/preflight never
+    # create folders or make Cabinet API calls.
+    saved_cabinet_destination: dict[str, Any] = {}
+    if history_path and history_path.exists() and (request.resume_after_image_upload or request.resume_after_item_upsert):
+        history = load_json(history_path)
+        saved_cabinet_destination = dict((history.get("response_summaries") or {}).get("cabinet_destination") or {})
+    try:
+        resolved_cabinet = saved_cabinet_destination or (cabinet_folder_resolver or resolve_cabinet_upload_folder)(
+            merged_cabinet,
+            store_code=request.store,
+            planned_image_count=_expected_image_count(dry_run_result),
+        )
+    except CabinetRotationError as exc:
+        result["blocking_reasons"] = [f"R-Cabinet upload folder resolution failed: {exc}"]
+        result["final_status"] = "blocked"
+        return result
+    result["cabinet_destination"] = resolved_cabinet
+    store_settings["cabinet"] = resolved_cabinet
+    dry_run_result["store_settings"] = store_settings
+
     image_downloader = image_downloader or download_image_plan
     image_validator = image_validator or validate_downloaded_images
     image_client = image_client or RakutenImageClient()
@@ -350,7 +373,7 @@ def build_real_execute_result(
         cleanup_completed=False,
         manual_image_cleanup_completed=request.manual_image_cleanup_completed,
         request_hashes={},
-        response_summaries={},
+        response_summaries={"cabinet_destination": resolved_cabinet},
     )
     result["execution_history"]["written"] = True
     result["execution_history"]["history_path"] = str(history_path)
@@ -398,6 +421,7 @@ def build_real_execute_result(
             "executed_item_payload_hash": raw_execute_result.get("executed_item_payload_hash"),
         },
         response_summaries={
+            "cabinet_destination": resolved_cabinet,
             "item_result": item_result,
             "inventory_result": inventory_result,
         },
