@@ -24,6 +24,7 @@ class AmazonCheckResult:
     title: str = ""
     amazon_price: Optional[int] = None
     available_qty: Optional[int] = None
+    minimum_order_quantity: Optional[int] = None
     gift_available: Optional[bool] = None
     shipping_status: str = ""
     business_ng: bool = False
@@ -107,6 +108,7 @@ class EvaluationResult:
     matched_separate_check_phrases: list[dict[str, Any]] = field(default_factory=list)
     legacy_spacing_reviews: list[dict[str, Any]] = field(default_factory=list)
     provisional_genre_candidate: dict[str, Any] = field(default_factory=dict)
+    compliance_evidence: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -146,6 +148,7 @@ class StoreSettings:
     normal_delivery_time_id: int
     back_order_delivery_time_id: int
     ship_from_ids: list[str]
+    shipping_method_group: str = ""
     cabinet: dict[str, Any] = field(default_factory=dict)
     management_suffix: str = "187"
     min_avg90_new_offer_count: Optional[float] = None

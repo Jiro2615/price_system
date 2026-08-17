@@ -342,7 +342,7 @@ class ListingAttributeResolverTests(unittest.TestCase):
         self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].value, "-")
         self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].resolution_action, "use_legacy_dash")
 
-    def test_series_name_requires_explicit_phrase_and_does_not_use_chapter65_directly(self) -> None:
+    def test_series_name_uses_legacy_dash_when_no_explicit_phrase_exists(self) -> None:
         keepa = KeepaProductData(
             **{
                 **self.keepa.__dict__,
@@ -365,8 +365,8 @@ class ListingAttributeResolverTests(unittest.TestCase):
             amazon_result=self.amazon,
             asin=keepa.asin,
         )
-        self.assertIsNone(resolved_attributes["\u30b7\u30ea\u30fc\u30ba\u540d"].value)
-        self.assertEqual(resolved_attributes["\u30b7\u30ea\u30fc\u30ba\u540d"].resolution_action, "needs_review")
+        self.assertEqual(resolved_attributes["\u30b7\u30ea\u30fc\u30ba\u540d"].value, "-")
+        self.assertEqual(resolved_attributes["\u30b7\u30ea\u30fc\u30ba\u540d"].resolution_action, "use_legacy_dash")
 
     def test_country_of_origin_requires_exact_nihonsei(self) -> None:
         amazon = AmazonCheckResult(**{**self.amazon.__dict__, "title": "Amazon \u65e5\u672c\u5411\u3051 \u30c6\u30b9\u30c8"})
@@ -391,10 +391,10 @@ class ListingAttributeResolverTests(unittest.TestCase):
             amazon_result=amazon,
             asin=keepa.asin,
         )
-        self.assertIsNone(resolved_attributes["\u539f\u7523\u56fd\uff0f\u88fd\u9020\u56fd"].value)
-        self.assertEqual(resolved_attributes["\u539f\u7523\u56fd\uff0f\u88fd\u9020\u56fd"].resolution_action, "needs_review")
+        self.assertEqual(resolved_attributes["\u539f\u7523\u56fd\uff0f\u88fd\u9020\u56fd"].value, "-")
+        self.assertEqual(resolved_attributes["\u539f\u7523\u56fd\uff0f\u88fd\u9020\u56fd"].resolution_action, "use_legacy_dash")
 
-    def test_legacy_dash_does_not_leak_to_other_genres(self) -> None:
+    def test_legacy_dash_fills_unresolved_attributes_for_other_genres(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "model": "", "part_number": ""})
         resolved_fields = build_resolved_fields(
             amazon_result=self.amazon,
@@ -409,8 +409,8 @@ class ListingAttributeResolverTests(unittest.TestCase):
             amazon_result=self.amazon,
             asin=keepa.asin,
         )
-        self.assertIsNone(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].value)
-        self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].resolution_action, "needs_review")
+        self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].value, "-")
+        self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].resolution_action, "use_legacy_dash")
 
     def test_genre_213661_representative_color_reuses_keepa_color(self) -> None:
         master = MasterData(

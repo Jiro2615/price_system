@@ -13,6 +13,16 @@ CUSTOMIZATION_OPTION_AMAZON_MCF_NOTICE = (
     "ご了承いただけますでしょうか？"
 )
 CUSTOMIZATION_OPTION_ACCEPT_VALUE = "了承の上購入する"
+CUSTOMIZATION_OPTION_DELIVERY_PREFERENCE = "配送指示のご希望"
+CUSTOMIZATION_OPTION_DELIVERY_PREFERENCE_VALUES = (
+    "置配or郵便受けOK",
+    "宅配ボックス希望",
+    "手渡し希望",
+)
+CUSTOMIZATION_OPTION_DELIVERY_NOTICE = (
+    "【配送指示に関するご注意】ご指定いただいても、配送状況や配送先の環境により、"
+    "必ずしもご希望の配送方法でお届けできるとは限りません。最終的な配送方法は配送員の判断により変更となる場合があります。"
+)
 
 REPRESENTATIVE_COLOR_ALLOWED_VALUES = {
     "-",
@@ -45,6 +55,11 @@ REPRESENTATIVE_COLOR_API_MAPPING = {
 CATALOG_ID_EXEMPTION_REASON_NO_APPLICABLE_PRODUCT_CODE = 5
 
 
+def ceil_to_unit(value: int, unit: int) -> int:
+    unit = max(1, int(unit or 1))
+    return int(math.ceil(int(value) / unit) * unit)
+
+
 def calc_listing_price(
     *,
     amazon_price: int,
@@ -66,11 +81,9 @@ def calc_listing_price(
 
     base_cost = amazon_cost + int(store_settings.fixed_cost or 0) + calculated_profit
     raw_price = base_cost / (1 - float(store_settings.fee_rate))
-    rounded = int(math.ceil(raw_price))
-    unit = max(1, int(store_settings.rounding_unit or 1))
-    if unit > 1:
-        rounded = int(math.ceil(rounded / unit) * unit)
-    return rounded
+    # 価格在庫チェックと同じく、必要額を1円単位で切り上げた後、
+    # 店舗／価格帯ルールの端数単位へ切り上げる。
+    return ceil_to_unit(int(math.ceil(raw_price)), store_settings.rounding_unit)
 
 
 def build_customization_options() -> list[dict[str, object]]:
@@ -84,7 +97,26 @@ def build_customization_options() -> list[dict[str, object]]:
                     "displayValue": CUSTOMIZATION_OPTION_ACCEPT_VALUE,
                 }
             ],
-        }
+        },
+        {
+            "displayName": CUSTOMIZATION_OPTION_DELIVERY_PREFERENCE,
+            "inputType": "SINGLE_SELECTION",
+            "required": True,
+            "selections": [
+                {"displayValue": value}
+                for value in CUSTOMIZATION_OPTION_DELIVERY_PREFERENCE_VALUES
+            ],
+        },
+        {
+            "displayName": CUSTOMIZATION_OPTION_DELIVERY_NOTICE,
+            "inputType": "MULTIPLE_SELECTION",
+            "required": True,
+            "selections": [
+                {
+                    "displayValue": CUSTOMIZATION_OPTION_ACCEPT_VALUE,
+                }
+            ],
+        },
     ]
 
 
@@ -123,13 +155,18 @@ def build_item_payload(
         store_settings=store_settings,
     )
 
+    shipping: dict[str, object] = {
+        "postageIncluded": True,
+    }
+    shipping_method_group = str(store_settings.shipping_method_group or "").strip()
+    if shipping_method_group:
+        shipping["shippingMethodGroup"] = shipping_method_group
+
     variant = {
         "standardPrice": str(standard_price),
         "normalDeliveryDateId": int(store_settings.normal_delivery_date_id),
         "backOrderDeliveryDateId": int(store_settings.back_order_delivery_date_id),
-        "shipping": {
-            "postageIncluded": True,
-        },
+        "shipping": shipping,
         "articleNumber": {
             "exemptionReason": CATALOG_ID_EXEMPTION_REASON_NO_APPLICABLE_PRODUCT_CODE,
         },

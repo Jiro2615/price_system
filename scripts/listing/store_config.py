@@ -12,7 +12,7 @@ from scripts.listing.models import StoreSettings
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 DEFAULT_LISTING_IMAGE_LIMIT = 1
 
 
@@ -78,13 +78,33 @@ def _default_cabinet_config(store_code: str) -> dict[str, object]:
     return {}
 
 
+def _get_store_cabinet_settings(store_code: str) -> dict[str, object]:
+    """Return Cabinet values explicitly saved in the Store Settings screen."""
+    with connect_db() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COALESCE(ss.order_fulfillment_settings_json, '{}'::jsonb)
+            FROM stores s
+            LEFT JOIN store_settings ss ON ss.store_id = s.id
+            WHERE s.store_code = %s
+            """,
+            (store_code,),
+        )
+        row = cur.fetchone()
+    return dict(row[0] or {}) if row else {}
+
+
 def get_store_cabinet_config(store_code: str) -> dict[str, object]:
     defaults = _default_cabinet_config(store_code)
-    folder_id_raw = _get_env(store_code, "CABINET_FOLDER_ID", str(defaults.get("folder_id", "")))
-    folder_name = _get_env(store_code, "CABINET_FOLDER_NAME", str(defaults.get("folder_name", "")))
-    folder_path = _normalize_folder_path(_get_env(store_code, "CABINET_FOLDER_PATH", str(defaults.get("folder_path", ""))))
-    shop_url = _get_env(store_code, "CABINET_SHOP_URL", str(defaults.get("shop_url", "")))
-    folder_node_raw = _get_env(store_code, "CABINET_FOLDER_NODE", str(defaults.get("folder_node", "")))
+    saved = _get_store_cabinet_settings(store_code)
+
+    # Store Settings is the primary source.  The environment remains a fallback
+    # for old installations and command-line-only deployments.
+    folder_id_raw = str(saved.get("rakuten_cabinet_folder_id") or _get_env(store_code, "CABINET_FOLDER_ID", str(defaults.get("folder_id", ""))))
+    folder_name = str(saved.get("rakuten_cabinet_folder_name") or _get_env(store_code, "CABINET_FOLDER_NAME", str(defaults.get("folder_name", ""))))
+    folder_path = _normalize_folder_path(str(saved.get("rakuten_cabinet_folder_path") or saved.get("rakuten_cabinet_folder") or _get_env(store_code, "CABINET_FOLDER_PATH", str(defaults.get("folder_path", "")))))
+    shop_url = str(saved.get("rakuten_shop_url") or _get_env(store_code, "CABINET_SHOP_URL", str(defaults.get("shop_url", ""))))
+    folder_node_raw = str(saved.get("rakuten_cabinet_folder_node") or _get_env(store_code, "CABINET_FOLDER_NODE", str(defaults.get("folder_node", ""))))
     result = {
         "folder_id": _to_int(folder_id_raw, 0) if str(folder_id_raw).strip() else None,
         "folder_name": str(folder_name or "").strip(),
@@ -105,7 +125,7 @@ def _decimal_to_float(value, default: float) -> float:
     return float(value)
 
 
-def get_store_settings(store_code: str) -> StoreSettings:
+def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> StoreSettings:
     with connect_db() as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -120,7 +140,7 @@ def get_store_settings(store_code: str) -> StoreSettings:
                 s.fixed_cost,
                 s.rounding_unit,
                 pr.profit_rate,
-                COALESCE(pr.profit_amount, pr.fixed_profit, 0) AS profit_amount,
+                COALESCE(pr.profit_amount, 0) AS profit_amount,
                 pr.fee_rate AS rule_fee_rate,
                 pr.fixed_cost AS rule_fixed_cost,
                 pr.rounding_unit AS rule_rounding_unit
@@ -130,12 +150,19 @@ def get_store_settings(store_code: str) -> StoreSettings:
                 FROM price_rules pr
                 WHERE pr.store_id = s.id
                   AND pr.enabled = TRUE
+                  AND (
+                      %s::NUMERIC IS NULL
+                      OR (
+                          (pr.min_amazon_price IS NULL OR pr.min_amazon_price <= %s)
+                          AND (pr.max_amazon_price IS NULL OR pr.max_amazon_price >= %s)
+                      )
+                  )
                 ORDER BY pr.priority, pr.id
                 LIMIT 1
             ) pr ON TRUE
             WHERE s.store_code = %s
             """,
-            (store_code,),
+            (amazon_price, amazon_price, amazon_price, store_code),
         )
         row = cur.fetchone()
 
@@ -162,11 +189,15 @@ def get_store_settings(store_code: str) -> StoreSettings:
     if max_stock is None or int(max_stock) < 0:
         raise RuntimeError(f"max_stock is not configured safely: store_code={store_code}, max_stock={max_stock}")
 
-    effective_fee_rate = _to_float(_get_env(store_code, "FEE_RATE", ""), _decimal_to_float(rule_fee_rate, _decimal_to_float(fee_rate, 0.15)))
-    effective_fixed_cost = _to_int(_get_env(store_code, "FIXED_COST", ""), int(rule_fixed_cost or fixed_cost or 0))
-    effective_rounding_unit = _to_int(_get_env(store_code, "ROUNDING_UNIT", ""), int(rule_rounding_unit or rounding_unit or 1))
-    effective_profit_rate = _to_float(_get_env(store_code, "PROFIT_RATE", ""), float(profit_rate or 0.0))
-    effective_profit_amount = _to_int(_get_env(store_code, "PROFIT_AMOUNT", ""), int(profit_amount or 300))
+    # Price calculations have one source of truth: the DB price rule selected
+    # for this Amazon cost, with the store value only as its fallback.  Do not
+    # let a legacy .env value silently diverge listing prices from the web UI
+    # or the price/stock checker.
+    effective_fee_rate = _decimal_to_float(rule_fee_rate, _decimal_to_float(fee_rate, 0.15))
+    effective_fixed_cost = int(rule_fixed_cost if rule_fixed_cost is not None else (fixed_cost or 0))
+    effective_rounding_unit = int(rule_rounding_unit if rule_rounding_unit is not None else (rounding_unit or 1))
+    effective_profit_rate = float(profit_rate or 0.0)
+    effective_profit_amount = int(profit_amount or 0)
     ship_from_ids = _to_list(_get_env(store_code, "SHIP_FROM_IDS", "1"))
     if not ship_from_ids:
         raise RuntimeError(f"ship_from_ids is empty: store_code={store_code}")
@@ -188,6 +219,7 @@ def get_store_settings(store_code: str) -> StoreSettings:
         normal_delivery_time_id=_to_int(_get_env(store_code, "NORMAL_DELIVERY_TIME_ID", "1"), 1),
         back_order_delivery_time_id=_to_int(_get_env(store_code, "BACK_ORDER_DELIVERY_TIME_ID", "1"), 1),
         ship_from_ids=ship_from_ids,
+        shipping_method_group=_get_env(store_code, "SHIPPING_METHOD_GROUP", ""),
         cabinet=get_store_cabinet_config(store_code),
         management_suffix=_get_env(store_code, "MANAGEMENT_SUFFIX", "187") or "187",
         send_inventory_delivery_ids=_to_bool(_get_env(store_code, "SEND_INVENTORY_DELIVERY_IDS", ""), False),

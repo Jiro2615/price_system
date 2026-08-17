@@ -8,6 +8,24 @@ from scripts.listing.prohibited_word_masking import analyze_prohibited_word_issu
 from scripts.listing.provisional_genre import suggest_provisional_genre
 
 
+# These effectiveness/sexual-function expressions remain non-overridable even
+# if the same JAN is already listed on Rakuten.  Product-category terms such as
+# "医薬部外品" are intentionally not included here.
+MANDATORY_COMPLIANCE_FORBIDDEN_WORDS = (
+    "治癒", "治す", "予防", "防ぐ", "改善", "効能", "効果", "疲労回復", "老化防止",
+    "血液サラサラ", "バストアップ", "デトックス", "脂肪燃焼", "代謝促進", "精力剤", "性的機能",
+)
+
+# These are not generally permitted words.  They can only be used when the
+# same JAN has been confirmed as a Japanese quasi-drug and the mandatory
+# disclosure block is appended below.
+QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS = {
+    "医薬", "医薬部外品", "部外品", "薬用", "ニキビケア", "ニキビ ケア",
+    "美白", "殺菌", "消炎", "予防", "防ぐ", "効果", "効能",
+}
+COSMETICS_CONDITIONALLY_ALLOWED_WORDS = {"化粧品"}
+
+
 def apply_cleanup_replacements(text: str, replacements: list[tuple[str, str]]) -> tuple[str, list[MatchedRule]]:
     result = text
     matched: list[MatchedRule] = []
@@ -75,6 +93,49 @@ def _build_descriptions(title: str, keepa_result: KeepaProductData | None) -> tu
     return final_text, final_text
 
 
+def build_regulated_product_disclosure(evidence: dict[str, object]) -> str:
+    """Build the mandatory factual disclosure without any other shop's copy."""
+    lines = [
+        f"広告文責: {evidence['advertiser_name']}",
+        f"電話番号: {evidence['advertiser_phone']}",
+        f"メーカー名または販売業者名: {evidence['manufacturer']}",
+        "原産国: 日本",
+        f"商品区分: {evidence['product_category']}",
+    ]
+    return "<br />".join(lines)
+
+
+def append_regulated_product_disclosure(description: str, evidence: dict[str, object]) -> str:
+    """Append the disclosure once, preserving the existing product description."""
+    disclosure = build_regulated_product_disclosure(evidence)
+    text = str(description or "").strip()
+    if not text:
+        return disclosure
+    if disclosure in text:
+        return text
+    return f"{text}<br /><br />{disclosure}"
+
+
+def _build_quasi_drug_descriptions(title: str, keepa_result: KeepaProductData, evidence: dict[str, object]) -> tuple[str, str]:
+    """Keep product facts, then append only the mandatory disclosure."""
+    base_pc, base_sp = _build_descriptions(title, keepa_result)
+    if not base_pc:
+        base_pc = f"商品名: {title}"
+    if not base_sp:
+        base_sp = f"商品名: {title}"
+    return (
+        append_regulated_product_disclosure(base_pc, evidence),
+        append_regulated_product_disclosure(base_sp, evidence),
+    )
+
+
+def _is_quasi_drug_allowed_match(item: dict[str, object], evidence: dict[str, object]) -> bool:
+    if not evidence:
+        return False
+    allowed = QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS if evidence.get("product_category") == "医薬部外品" else COSMETICS_CONDITIONALLY_ALLOWED_WORDS
+    return str(item.get("word") or "") in allowed
+
+
 def evaluate_listing(
     *,
     asin: str,
@@ -85,6 +146,7 @@ def evaluate_listing(
     management_number: str,
     resolved_fields: dict[str, object] | None = None,
     common_settings: ListingCommonSettings | None = None,
+    quasi_drug_evidence: dict[str, object] | None = None,
 ) -> EvaluationResult:
     asin = asin.strip().upper()
     matched_rules: list[MatchedRule] = []
@@ -115,19 +177,6 @@ def evaluate_listing(
         return EvaluationResult(
             "business_ng",
             "\u30d6\u30e9\u30c3\u30af\u30ea\u30b9\u30c8",
-            matched_rules,
-            warnings,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-        )
-
-    if asin in master_data.listed_asins:
-        management = master_data.listed_asins.get(asin, "")
-        matched_rules.append(MatchedRule("shuppinlist", asin, management or "already listed"))
-        return EvaluationResult(
-            "already_listed",
-            f"\u65e2\u306b\u51fa\u54c1\u6e08\u307f: {management}",
             matched_rules,
             warnings,
             allowed_phrase_matches=allowed_phrase_matches,
@@ -234,6 +283,7 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
+    quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)
     description_pc_original, description_sp_original = _build_descriptions(title_original, keepa_result)
 
@@ -243,6 +293,10 @@ def evaluate_listing(
     matched_rules.extend(replacement_hits)
     matched_rules.extend(replacement_hits_pc)
     matched_rules.extend(replacement_hits_sp)
+    if quasi_drug_evidence:
+        # The mandatory disclosure labels are compliance text, not product copy.
+        # Do not let legacy product-word cleanup rules alter them.
+        description_pc, description_sp = _build_quasi_drug_descriptions(title, keepa_result, quasi_drug_evidence)
 
     prohibited_analysis = analyze_prohibited_word_issues(
         {
@@ -250,33 +304,47 @@ def evaluate_listing(
             "description_pc": description_pc,
             "description_sp": description_sp,
         },
-        list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other),
+        list(dict.fromkeys(list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other) + list(MANDATORY_COMPLIANCE_FORBIDDEN_WORDS))),
         master_data.allowed_phrase_rules,
         separate_check_rules=master_data.allowed_phrase_separate_checks,
     )
     allowed_phrase_matches.extend(prohibited_analysis["allowed_phrase_matches"])
     matched_forbidden_words.extend(prohibited_analysis["matched_forbidden_words"])
+    if quasi_drug_evidence:
+        matched_forbidden_words = [
+            item for item in matched_forbidden_words
+            if not _is_quasi_drug_allowed_match(item, quasi_drug_evidence)
+        ]
     for check in prohibited_analysis["required_separate_checks"]:
         if check not in required_separate_checks:
             required_separate_checks.append(check)
     matched_separate_check_phrases.extend(prohibited_analysis["matched_separate_check_phrases"])
     if matched_forbidden_words:
-        word = str(matched_forbidden_words[0]["word"])
-        matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-        return EvaluationResult(
-            "business_ng",
-            f"prohibited word matched: {word}",
-            matched_rules,
-            warnings,
-            title=title,
-            description_pc=description_pc,
-            description_sp=description_sp,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            required_separate_checks=required_separate_checks,
-            matched_separate_check_phrases=matched_separate_check_phrases,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-        )
+        from scripts.listing.rakuten_marketplace_policy import has_sensitive_forbidden_word, is_cosmetics_category, rakuten_listing_exists_for_jan
+
+        jan_code = str(keepa_result.ean or "").strip()
+        cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
+        if not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category) and rakuten_listing_exists_for_jan(jan_code):
+            warnings.append("Rakuten Ichiba listing found for the same JAN; permitted prohibited words accepted")
+            matched_forbidden_words = []
+        else:
+            word = str(matched_forbidden_words[0]["word"])
+            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+            return EvaluationResult(
+                "business_ng",
+                f"prohibited word matched: {word}",
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+                compliance_evidence=quasi_drug_evidence,
+            )
 
     if keepa_result.category_id is None:
         return EvaluationResult(
@@ -370,9 +438,16 @@ def evaluate_listing(
                 required_separate_checks.append(check)
         matched_separate_check_phrases.extend(attribute_analysis["matched_separate_check_phrases"])
         if matched_forbidden_words:
-            word = str(matched_forbidden_words[0]["word"])
-            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-            return EvaluationResult(
+            from scripts.listing.rakuten_marketplace_policy import has_sensitive_forbidden_word, is_cosmetics_category, rakuten_listing_exists_for_jan
+            jan_code = str(keepa_result.ean or "").strip()
+            cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
+            if not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category) and rakuten_listing_exists_for_jan(jan_code):
+                warnings.append("Rakuten Ichiba listing found for the same JAN; permitted prohibited words accepted")
+                matched_forbidden_words = []
+            else:
+                word = str(matched_forbidden_words[0]["word"])
+                matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+                return EvaluationResult(
                 "business_ng",
                 f"prohibited word matched: {word}",
                 matched_rules,
@@ -412,6 +487,25 @@ def evaluate_listing(
         common_settings, common_setting_warnings = load_listing_common_settings(store_settings)
         warnings.extend(common_setting_warnings)
 
+    if keepa_result.avg90_new_offer_count is None:
+        return EvaluationResult(
+            "business_ng",
+            "過去90日の新品出品者数平均が未取得のため出品不可",
+            matched_rules,
+            warnings,
+            title=title,
+            description_pc=description_pc,
+            description_sp=description_sp,
+            genre_id=genre_id,
+            resolved_attributes=resolved_attributes,
+            allowed_phrase_matches=allowed_phrase_matches,
+            matched_forbidden_words=matched_forbidden_words,
+            required_separate_checks=required_separate_checks,
+            matched_separate_check_phrases=matched_separate_check_phrases,
+            legacy_spacing_reviews=legacy_spacing_reviews,
+            provisional_genre_candidate=provisional_genre_candidate,
+        )
+
     seller_count_evaluation = build_seller_count_evaluation(
         actual_value=keepa_result.avg90_new_offer_count,
         minimum_value=common_settings.min_avg90_new_offer_count,
@@ -434,8 +528,8 @@ def evaluate_listing(
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
-            provisional_genre_candidate=provisional_genre_candidate,
-        )
+                    provisional_genre_candidate=provisional_genre_candidate,
+                )
 
     attributes: list[dict[str, str]] = []
     missing_attrs: list[str] = []
@@ -517,4 +611,5 @@ def evaluate_listing(
         matched_separate_check_phrases=matched_separate_check_phrases,
         legacy_spacing_reviews=legacy_spacing_reviews,
         provisional_genre_candidate=provisional_genre_candidate,
+        compliance_evidence=quasi_drug_evidence,
     )

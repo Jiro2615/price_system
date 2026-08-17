@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from scripts.listing.models import to_jsonable
 from scripts.listing.preflight_service import ensure_output_parent, load_json
@@ -88,9 +89,17 @@ def _normalize_cabinet_folder_path(path: str | None) -> str:
     return str(path or "").replace("\\", "/").strip().strip("/")
 
 
+def _normalize_shop_url(shop_url: str | None) -> str:
+    value = str(shop_url or "").strip().strip("/")
+    if not value:
+        return ""
+    parsed = urlparse(value if "://" in value else f"https://{value}")
+    return parsed.path.strip("/") if parsed.netloc else value
+
+
 def _build_cabinet_examples(cabinet_config: dict[str, Any]) -> dict[str, str | None]:
     folder_path = _normalize_cabinet_folder_path(str(cabinet_config.get("folder_path") or ""))
-    shop_url = str(cabinet_config.get("shop_url") or "").strip()
+    shop_url = _normalize_shop_url(str(cabinet_config.get("shop_url") or ""))
     example_file = "b0cn39x1fc_01.jpg"
     if not folder_path:
         return {
@@ -159,15 +168,15 @@ def _build_checks(
         _check("title_spacing", "ok" if "ク リア" not in title else "blocked", "ク リア" in title, False),
         _check(
             "representative_color_value",
-            "ok" if (not representative_color_required or representative_color == "ブルー") else "blocked",
+            "ok" if (not representative_color_required or representative_color in {"ブルー", "-"}) else "blocked",
             representative_color,
-            "ブルー" if representative_color_required else "not required",
+            "ブルー or -" if representative_color_required else "not required",
         ),
         _check(
             "original_representative_color",
-            "ok" if (not representative_color_required or original_representative_color == "クリアブルーラメ") else "warning",
+            "ok" if (not representative_color_required or representative_color == "-" or original_representative_color == "クリアブルーラメ") else "warning",
             original_representative_color,
-            "クリアブルーラメ" if representative_color_required else "not required",
+            "クリアブルーラメ (or -)" if representative_color_required else "not required",
         ),
         _check("confirmed_specifications", "ok" if confirmed_specifications else "warning", [item.get("name") for item in confirmed_specifications], "confirmed specification entries"),
         _check("unresolved_specifications", "warning" if unresolved_specifications else "ok", [item.get("name") for item in unresolved_specifications], []),
@@ -251,6 +260,23 @@ def _load_cabinet_config(store: str, api_spec: dict[str, Any]) -> dict[str, Any]
     return dict((api_spec.get("image_api") or {}).get("cabinet_destination") or {})
 
 
+def _has_runtime_cabinet_destination(cabinet_config: dict[str, Any]) -> bool:
+    return bool(
+        cabinet_config.get("folder_id")
+        and _normalize_cabinet_folder_path(str(cabinet_config.get("folder_path") or ""))
+        and str(cabinet_config.get("shop_url") or "").strip()
+    )
+
+
+def _resolve_runtime_specifications(
+    unresolved_specifications: list[dict[str, Any]], cabinet_config: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Treat the per-store Cabinet setting as the runtime confirmation source."""
+    if not _has_runtime_cabinet_destination(cabinet_config):
+        return unresolved_specifications
+    return [item for item in unresolved_specifications if item.get("name") != "cabinet_destination"]
+
+
 def _build_blocking_reasons(checks: list[dict[str, Any]]) -> list[str]:
     return [f"{check.get('key')}: {check.get('note') or check.get('expected')}" for check in checks if check.get("status") == "blocked"]
 
@@ -295,7 +321,21 @@ def build_real_readiness_result(
 
     genre_id = (mock_result.get("item_request_summary") or {}).get("genreId") or ((dry_run_result.get("item_payload") or {}).get("genreId"))
     confirmed_specifications = build_confirmed_specifications(api_spec, genre_id=genre_id)
-    unresolved_specifications = build_unresolved_specifications(api_spec, genre_id=genre_id)
+    if _has_runtime_cabinet_destination(cabinet_config):
+        confirmed_specifications = [
+            item for item in confirmed_specifications if item.get("scope") != "image_api.cabinet_destination"
+        ]
+    unresolved_specifications = _resolve_runtime_specifications(
+        build_unresolved_specifications(api_spec, genre_id=genre_id), cabinet_config
+    )
+    if _has_runtime_cabinet_destination(cabinet_config):
+        confirmed_specifications.append(
+            {
+                "scope": "image_api.cabinet_destination",
+                "name": "cabinet_destination",
+                "details": cabinet_config,
+            }
+        )
     auth_summary = _build_auth_configuration_summary(store)
     duplicate_guard = _build_duplicate_execution_guard(management_number)
     checks = _build_checks(
@@ -314,7 +354,10 @@ def build_real_readiness_result(
     readiness_status = _derive_readiness_status(checks)
     spec_ready = not unresolved_specifications
     auth_ready = all(bool((auth_summary.get(name) or {}).get("configured")) for name in ("item_api", "inventory_api", "image_api"))
-    ready_for_real_execute = readiness_status == "ready" and spec_ready and auth_ready and not duplicate_guard.get("duplicate_blocked")
+    # Dry-run-only checks (for example image upload verification) remain
+    # warnings. They should be visible to the operator but must not conflict
+    # with the preflight contract that permits a real execute on warning.
+    ready_for_real_execute = readiness_status in {"ready", "warning"} and spec_ready and auth_ready and not duplicate_guard.get("duplicate_blocked")
 
     return {
         "asin": asin,

@@ -13,8 +13,8 @@ from scripts.listing.rakuten_transport import build_rakuten_auth_headers, rakute
 class RakutenApiTransportPayloadTests(unittest.TestCase):
     def test_store_scoped_auth_prefers_rakuten_2_keys(self) -> None:
         env = {
-            "RAKUTEN_SERVICE_SECRET": "store1-secret",
-            "RAKUTEN_LICENSE_KEY": "store1-license",
+            "RAKUTEN_1_SERVICE_SECRET": "store1-secret",
+            "RAKUTEN_1_LICENSE_KEY": "store1-license",
             "RAKUTEN_2_SERVICE_SECRET": "store2-secret",
             "RAKUTEN_2_LICENSE_KEY": "store2-license",
         }
@@ -27,10 +27,10 @@ class RakutenApiTransportPayloadTests(unittest.TestCase):
         self.assertTrue(status["configured"])
         self.assertEqual(status["missing_keys"], [])
 
-    def test_rakuten_2_auth_does_not_fallback_to_shared_keys(self) -> None:
+    def test_rakuten_2_auth_does_not_fallback_to_rakuten_1_keys(self) -> None:
         env = {
-            "RAKUTEN_SERVICE_SECRET": "store1-secret",
-            "RAKUTEN_LICENSE_KEY": "store1-license",
+            "RAKUTEN_1_SERVICE_SECRET": "store1-secret",
+            "RAKUTEN_1_LICENSE_KEY": "store1-license",
         }
 
         with mock.patch.dict("os.environ", env, clear=True):
@@ -73,6 +73,19 @@ class RakutenApiTransportPayloadTests(unittest.TestCase):
                 {"name": "代表カラー", "values": ["ブルー"]},
             ],
         )
+
+    def test_build_item_request_replaces_rms_machine_dependent_text(self) -> None:
+        payload = {
+            "itemNumber": "machine-dependent-test",
+            "title": "ローション Ⅱ É",
+            "productDescription": {"pc": "耐荷重: 80㎏ / 面積: 1c㎡ / EDTA-2Nａ", "sp": "重量: 1.1㎏"},
+        }
+
+        request = build_item_request("machine-dependent-test", payload, {})
+
+        self.assertEqual(request.payload["title"], "ローション II E")
+        self.assertEqual(request.payload["productDescription"]["pc"], "耐荷重: 80kg / 面積: 1cm2 / EDTA-2Na")
+        self.assertEqual(request.payload["productDescription"]["sp"], "重量: 1.1kg")
 
     def test_build_inventory_request_uses_variant_path_and_omits_internal_fields(self) -> None:
         payload = {

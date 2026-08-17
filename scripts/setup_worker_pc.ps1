@@ -12,8 +12,7 @@ function Get-RepoRoot {
 $repoRoot = Get-RepoRoot
 $venvPath = Join-Path $repoRoot $VenvDir
 $requirementsPath = Join-Path $repoRoot "requirements.txt"
-$envExamplePath = Join-Path $repoRoot ".env.example"
-$envPath = Join-Path $repoRoot ".env"
+$envPath = Join-Path (Split-Path -Parent $repoRoot) ".env"
 
 if (-not (Test-Path -LiteralPath $requirementsPath)) {
     throw "requirements.txt not found: $requirementsPath"
@@ -34,13 +33,13 @@ Write-Host "python -m pip install -r requirements.txt"
 Write-Host "playwright install chromium"
 Write-Host ""
 
-if (-not (Test-Path -LiteralPath $envPath) -and (Test-Path -LiteralPath $envExamplePath)) {
-    Write-Host "Create .env from .env.example:"
-    Write-Host "Copy-Item .env.example .env"
+if (-not (Test-Path -LiteralPath $envPath)) {
+    Write-Host "Create the shared configuration file:"
+    Write-Host "New-Item -ItemType File -Path $envPath"
     Write-Host ""
 }
 
-Write-Host "Then edit .env and set at least:"
+Write-Host "Then edit $envPath and set at least:"
 Write-Host "  PRICE_SYSTEM_DB_HOST"
 Write-Host "  PRICE_SYSTEM_DB_PORT"
 Write-Host "  PRICE_SYSTEM_DB_NAME"

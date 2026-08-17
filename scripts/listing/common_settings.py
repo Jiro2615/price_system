@@ -12,7 +12,7 @@ from scripts.listing.models import ListingCommonSettings
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 
 DEFAULT_MIN_AVG90_NEW_OFFER_COUNT = 3.5
 ENV_MIN_AVG90_NEW_OFFER_COUNT = "RAKUTEN_LISTING_MIN_AVG90_NEW_OFFER_COUNT"

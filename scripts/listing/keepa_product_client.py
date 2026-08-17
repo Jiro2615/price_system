@@ -14,7 +14,7 @@ from scripts.listing.models import KeepaProductData
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 KEEPA_API_ENDPOINT = "https://api.keepa.com/product"
 
 
@@ -299,18 +299,28 @@ class KeepaClient:
         if self.session is None:
             self.session = requests.Session()
 
-    def build_product_request_params(self, asin: str) -> dict[str, Any]:
-        return {
+    def build_product_request_params(
+        self,
+        asin: str,
+        *,
+        offer_count: int | None = 20,
+    ) -> dict[str, Any]:
+        params: dict[str, Any] = {
             "key": self.api_key,
             "domain": self.domain,
             "asin": asin,
             "stats": 90,
             "history": 0,
-            "offers": 20,
         }
+        # Offer details are substantially more token-expensive than ordinary
+        # product metadata.  The listing precheck only needs title/category,
+        # images, and stats.avg90[11], so it deliberately omits this option.
+        if offer_count is not None and offer_count > 0:
+            params["offers"] = int(offer_count)
+        return params
 
-    def fetch_product_raw(self, asin: str) -> dict[str, Any]:
-        params = self.build_product_request_params(asin)
+    def fetch_product_raw(self, asin: str, *, offer_count: int | None = 20) -> dict[str, Any]:
+        params = self.build_product_request_params(asin, offer_count=offer_count)
 
         attempt = 0
         total_waited = 0.0
@@ -344,7 +354,7 @@ class KeepaClient:
                 raise RuntimeError(f"Keepa returned no products for ASIN: {asin}")
             return data
 
-    def fetch_product(self, asin: str) -> KeepaProductData:
-        data = self.fetch_product_raw(asin)
+    def fetch_product(self, asin: str, *, offer_count: int | None = 20) -> KeepaProductData:
+        data = self.fetch_product_raw(asin, offer_count=offer_count)
         products = data.get("products") or []
         return parse_keepa_product(asin, products[0])

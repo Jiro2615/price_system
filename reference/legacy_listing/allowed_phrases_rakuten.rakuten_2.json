@@ -1,0 +1,289 @@
+{
+  "meta": {
+    "scope": "rakuten_2",
+    "note": "rakuten_2 only: curated ingredient or neutral exact phrases. Do not add brands, medical or efficacy claims, adult terms, regulated goods, or shipping/sales expressions."
+  },
+  "rules": [
+    {
+      "forbidden_word": "イラ",
+      "allowed_phrases": [
+        "アイライン",
+        "アイライナー",
+        "アイラッシュ",
+        "アイラッシュカーラー",
+        "アイラッシュグルー",
+        "アイラッシュセラム",
+        "アイラッシュブラシ",
+        "アイラッシュ美容液",
+        "イランイラン",
+        "カラーアイライナー",
+        "ジェルアイライナー",
+        "ペンシルアイライナー",
+        "ライラック",
+        "ライナー",
+        "リキッドアイライナー",
+        "イラストレーター"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "マカ",
+      "allowed_phrases": [
+        "マカデミア",
+        "ローマカミツレ花油"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "コル",
+      "allowed_phrases": [
+        "アスコルビル",
+        "アスコルビン酸",
+        "コラーゲン",
+        "コルネオサイト"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "セラ",
+      "allowed_phrases": [
+        "ミセラー",
+        "セラミド",
+        "セラム"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "スキン",
+      "allowed_phrases": [
+        "スキンケア",
+        "スキンタイプ",
+        "スキントーン",
+        "スキンプロテクト",
+        "スキンコンディショナー",
+        "スキンローション"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "アルギニン",
+      "allowed_phrases": [
+        "アルギニン",
+        "ココイルアルギニン",
+        "アルギニンエチルPCA"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "アップル",
+      "allowed_phrases": [
+        "アップル味",
+        "フルーツミントアップル味"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "オキシ",
+      "allowed_phrases": [
+        "ポリオキシエチレン",
+        "ポリオキシプロピレン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "グルコース",
+      "allowed_phrases": [
+        "PPG-10メチルグルコース",
+        "PPG－10メチルグルコース"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "クロエ",
+      "allowed_phrases": [
+        "ザクロエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "コッカス",
+      "allowed_phrases": [
+        "ヘマトコッカスプルビアリスエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "コレス",
+      "allowed_phrases": [
+        "コレステリル",
+        "コレステロール"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ソシア",
+      "allowed_phrases": [
+        "イソシアネート"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ソト",
+      "allowed_phrases": [
+        "イソノナン酸イソトリデシル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "タカミ",
+      "allowed_phrases": [
+        "セイタカミロバラン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ダミエ",
+      "allowed_phrases": [
+        "ドクダミエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ナッツ",
+      "allowed_phrases": [
+        "ピーナッツ油",
+        "マカデミアナッツ脂肪酸フィトステリル"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ポリス",
+      "allowed_phrases": [
+        "クロスポリマー",
+        "プロポリス",
+        "ポリスチレン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "リコー",
+      "allowed_phrases": [
+        "プロピレングリコール",
+        "シリコーンフリー"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "レノ",
+      "allowed_phrases": [
+        "ユビデカレノン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ロイシン",
+      "allowed_phrases": [
+        "イソロイシン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "CICA",
+      "allowed_phrases": [
+        "CICA"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "カワラヨモギエキス",
+      "allowed_phrases": [
+        "カワラヨモギエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "クレアチン",
+      "allowed_phrases": [
+        "クレアチン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "シトルリン",
+      "allowed_phrases": [
+        "シトルリン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ビーツ",
+      "allowed_phrases": [
+        "ビーツ"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "プラセンタ",
+      "allowed_phrases": [
+        "プラセンタ"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "プロリン",
+      "allowed_phrases": [
+        "プロリン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "クリス",
+      "allowed_phrases": [
+        "ヘリクリスムイタリクムエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ナプラ",
+      "allowed_phrases": [
+        "スピルリナプラテンシスエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ティア",
+      "allowed_phrases": [
+        "オプンティアストレプタカンサエキス"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ロエベ",
+      "allowed_phrases": [
+        "アロエベラ液汁"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "ホスファチジルコリン",
+      "allowed_phrases": [
+        "水添ホスファチジルコリン"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "モンモリロナイト",
+      "allowed_phrases": [
+        "モンモリロナイト"
+      ],
+      "separate_check_phrases": []
+    },
+    {
+      "forbidden_word": "マヌカハニー",
+      "allowed_phrases": [
+        "マヌカハニー"
+      ],
+      "separate_check_phrases": []
+    }
+  ]
+}

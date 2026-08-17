@@ -19,6 +19,8 @@ venv/
 output/
 backup/
 temp/
+tmp/
+tmp*/
 
 # Local input files and ad-hoc exports
 input/

@@ -10,16 +10,16 @@ from dotenv import load_dotenv
 
 from db_config import connect_db
 
-BASE_DIR = Path(r"C:\price_system")
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR = Path(__file__).resolve().parents[1]
+ENV_PATH = BASE_DIR.parent / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 
 def load_auth_header() -> dict[str, str]:
     load_dotenv(ENV_PATH)
 
-    service_secret = os.getenv("RAKUTEN_SERVICE_SECRET", "").strip()
-    license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
+    service_secret = os.getenv("RAKUTEN_1_SERVICE_SECRET", "").strip()
+    license_key = os.getenv("RAKUTEN_1_LICENSE_KEY", "").strip()
 
     if not service_secret:
         raise RuntimeError(f"RAKUTEN_SERVICE_SECRET 驍ｵ・ｺ隶呵ｶ｣・ｽ・ｩ繝ｻ・ｺ驍ｵ・ｺ繝ｻ・ｧ驍ｵ・ｺ郢晢ｽｻ {ENV_PATH}")

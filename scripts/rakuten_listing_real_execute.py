@@ -13,6 +13,7 @@ if __package__ in (None, ""):
 from scripts.listing.preflight_service import ensure_output_parent
 from scripts.listing.real_execute_service import RealExecuteRequest, build_real_execute_result
 from scripts.listing.real_execute_plan_service import build_real_execute_plan_result
+from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -92,6 +93,16 @@ def main(argv: list[str] | None = None) -> int:
     except PermissionError as exc:
         print(f"output write error: {exc}", file=sys.stderr)
         return 1
+    if args.execute and result.get("final_status") == "completed":
+        try:
+            db_sync = sync_listing_result_to_db(ListingDbSyncRequest(result_json=output_path, dry_run_json=Path(args.dry_run_json), store=args.store, execute=True))
+            result["db_sync"] = db_sync
+            if not db_sync.get("external_db_writes_performed"):
+                result["final_status"] = "db_sync_failed"
+        except Exception as exc:
+            result["db_sync"] = {"external_db_writes_performed": False, "error": str(exc)}
+            result["final_status"] = "db_sync_failed"
+        output_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\r\n", encoding="utf-8")
     return 0
 
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Any
 
 from scripts.listing.image_downloader import DownloadedImageResult
@@ -21,6 +20,7 @@ ITEM_FAILED = "item_failed"
 INVENTORY_FAILED = "inventory_failed"
 VALIDATION_FAILED = "validation_failed"
 COMPLETED = "completed"
+MOCK_TEMP_ROOT = Path(__file__).resolve().parents[2] / "output" / "listing" / "mock_tmp"
 
 
 def _planned_upload_url(asin: str, role: str, order: int) -> str:
@@ -502,22 +502,24 @@ def build_mock_execute_result(
     if validation_errors:
         return base
 
-    with TemporaryDirectory(dir=str(Path(__file__).resolve().parents[2])) as temp_dir:
-        execute_result = execute_listing(
-            ExecuteListingRequest(
-                dry_run_result=dry_run_result,
-                execute=True,
-                approved=True,
-                asin=asin,
-                management_number=management_number,
-                output_root=Path(temp_dir),
-            ),
-            image_downloader=_mock_download_result_factory(fail_step),
-            image_validator=_mock_validation_result_factory(fail_step),
-            image_client=_mock_image_client(asin, fail_step),
-            item_client=_mock_item_client(fail_step),
-            inventory_client=_mock_inventory_client(fail_step),
-        )
+    MOCK_TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+    execute_result = execute_listing(
+        ExecuteListingRequest(
+            dry_run_result=dry_run_result,
+            execute=True,
+            approved=True,
+            asin=asin,
+            management_number=management_number,
+            # Mock downloaders return metadata only, so a stable workspace path
+            # is sufficient and avoids creating temporary directories on Windows.
+            output_root=MOCK_TEMP_ROOT,
+        ),
+        image_downloader=_mock_download_result_factory(fail_step),
+        image_validator=_mock_validation_result_factory(fail_step),
+        image_client=_mock_image_client(asin, fail_step),
+        item_client=_mock_item_client(fail_step),
+        inventory_client=_mock_inventory_client(fail_step),
+    )
 
     jsonable = sanitize_for_output(to_jsonable(execute_result))
     base["image_results"] = _build_image_results(jsonable)

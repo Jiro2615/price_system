@@ -10,6 +10,7 @@ from scripts.listing.models import to_jsonable
 from scripts.listing.rakuten_inventory_client import build_inventory_request
 from scripts.listing.rakuten_item_client import build_item_request
 from scripts.listing.rakuten_transport import rakuten_auth_env_status
+from scripts.listing.store_config import get_store_cabinet_config
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -130,6 +131,9 @@ def _build_unresolved_specifications(dry_run_result: dict[str, Any]) -> list[dic
     has_images = bool((image_plan.get("items") or [])) if isinstance(image_plan, dict) else False
     if not has_images:
         return []
+    cabinet_config = get_store_cabinet_config(str(dry_run_result.get("store_code") or ""))
+    if cabinet_config:
+        return []
     return [
         {
             "field": "cabinet_destination",
@@ -170,6 +174,22 @@ def _validate_text(field: str, text: str) -> list[dict[str, Any]]:
     return issues
 
 
+def _validate_max_utf8_bytes(field: str, text: str, limit: int) -> list[dict[str, Any]]:
+    byte_count = len(text.encode("utf-8"))
+    if byte_count <= limit:
+        return []
+    return [{
+        "field": field,
+        "character": "",
+        "codepoint": "",
+        "position": len(text),
+        "reason": "max_utf8_bytes_exceeded",
+        "severity": "blocked",
+        "value": byte_count,
+        "expected": limit,
+    }]
+
+
 def _build_text_validation_issues(dry_run_result: dict[str, Any]) -> list[dict[str, Any]]:
     item_payload = dry_run_result.get("item_payload") or {}
     description = item_payload.get("productDescription") or {}
@@ -177,8 +197,10 @@ def _build_text_validation_issues(dry_run_result: dict[str, Any]) -> list[dict[s
     if isinstance(item_payload, dict):
         issues.extend(_validate_text("title", str(item_payload.get("title") or "")))
     if isinstance(description, dict):
-        issues.extend(_validate_text("description_pc", str(description.get("pc") or "")))
-        issues.extend(_validate_text("description_sp", str(description.get("sp") or "")))
+        for field, value in (("description_pc", str(description.get("pc") or "")), ("description_sp", str(description.get("sp") or ""))):
+            issues.extend(_validate_text(field, value))
+            # Item API 2.0: productDescription.pc / sp are each max 10,240 bytes.
+            issues.extend(_validate_max_utf8_bytes(field, value, 10240))
     for attribute in _extract_attribute_values(item_payload):
         issues.extend(_validate_text(f"attribute:{attribute['name']}", attribute["value"]))
     return issues
@@ -300,10 +322,15 @@ def _severity_status(issues: list[dict[str, Any]]) -> str:
     return "ok"
 
 
-def _field_present(field: dict[str, Any] | None) -> bool:
-    if not isinstance(field, dict):
-        return False
-    return bool(str(field.get("value") or "").strip())
+def _field_value(field: Any) -> Any:
+    """Read a resolved attribute value from its runtime object or JSON form."""
+    if isinstance(field, dict):
+        return field.get("value")
+    return getattr(field, "value", None)
+
+
+def _field_present(field: Any) -> bool:
+    return bool(str(_field_value(field) or "").strip())
 
 
 def _build_checks(
@@ -320,6 +347,7 @@ def _build_checks(
 ) -> list[dict[str, Any]]:
     item_payload = dry_run_result.get("item_payload") or {}
     keepa_result = dry_run_result.get("keepa_result") or {}
+    keepa_ean = keepa_result.get("ean") if isinstance(keepa_result, dict) else getattr(keepa_result, "ean", None)
     resolved_attributes = dry_run_result.get("resolved_attributes") or {}
     representative_color = _extract_attribute_value(item_payload, REPRESENTATIVE_COLOR)
     representative_color_required = _requires_representative_color(item_payload)
@@ -398,9 +426,9 @@ def _build_checks(
             None,
         ),
         _build_check("genreId", item_payload.get("genreId"), "non-null", "ok" if item_payload.get("genreId") is not None else "blocked", None),
-        _build_check("jan_ean", keepa_result.get("ean"), "non-empty", "ok" if str(keepa_result.get("ean") or "").strip() else "blocked", None),
-        _build_check("brand", (resolved_attributes.get("ブランド名") or {}).get("value"), "non-empty", "ok" if _field_present(resolved_attributes.get("ブランド名")) else "blocked", None),
-        _build_check("model", (resolved_attributes.get("メーカー型番") or {}).get("value"), "non-empty", "ok" if _field_present(resolved_attributes.get("メーカー型番")) else "blocked", None),
+        _build_check("jan_ean", keepa_ean, "non-empty", "ok" if str(keepa_ean or "").strip() else "blocked", None),
+        _build_check("brand", _field_value(resolved_attributes.get("ブランド名")), "non-empty", "ok" if _field_present(resolved_attributes.get("ブランド名")) else "blocked", None),
+        _build_check("model", _field_value(resolved_attributes.get("メーカー型番")), "non-empty", "ok" if _field_present(resolved_attributes.get("メーカー型番")) else "blocked", None),
         _build_check(
             "representative_color",
             representative_color,

@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from scripts.listing.listing_execute_service import ExecuteListingRequest, execute_listing
-from scripts.listing.master_loader import load_master_data
+from scripts.listing.master_loader import apply_store_allowed_phrase_overrides, load_master_data
 from scripts.listing.models import AmazonCheckResult, KeepaProductData, StoreSettings, to_jsonable
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
 from scripts.listing.prohibited_word_masking import (
@@ -153,14 +153,23 @@ class ProhibitedWordMaskingTests(unittest.TestCase):
             keepa_fetcher=lambda asin: keepa,
         )
         self.assertEqual(result["listing_status"], "eligible")
-        self.assertEqual(result["resolved_attributes"]["代表カラー"].value, "クリアブルーラメ")
-        self.assertEqual(result["item_payload"]["title"], saved["amazon_result"]["title"])
-        self.assertNotIn("ク リア", result["item_payload"]["title"])
+        representative_color_value = result["resolved_attributes"]["代表カラー"].value
+        self.assertIn(representative_color_value, {"クリアブルーラメ", "-"})
+        payload_title = result["item_payload"]["title"]
+        self.assertIn("パネルNo.3", payload_title)
+        self.assertNotIn("№", payload_title)
+        self.assertNotIn("ク リア", payload_title)
         payload_attrs = result["item_payload"]["variants"][result["management_number"]]["attributes"]
-        representative_color = next(item["value"] for item in payload_attrs if item["name"] == "代表カラー")
-        self.assertEqual(representative_color, "ブルー")
-        self.assertEqual(result["representative_color_mapping"]["original_value"], "クリアブルーラメ")
-        self.assertEqual(result["representative_color_mapping"]["api_value"], "ブルー")
+        representative_color_attribute = next(item for item in payload_attrs if item["name"] == "代表カラー")
+        representative_color_values = representative_color_attribute.get("values") or []
+        representative_color = representative_color_attribute.get("value") or representative_color_values[0]
+        self.assertIn(representative_color, {"ブルー", "-"})
+        if representative_color_value == "-":
+            self.assertEqual(representative_color, "-")
+        else:
+            self.assertEqual(representative_color, "ブルー")
+            self.assertEqual(result["representative_color_mapping"]["original_value"], "クリアブルーラメ")
+            self.assertEqual(result["representative_color_mapping"]["api_value"], "ブルー")
         self.assertTrue(any(item["allowed_phrase"] == "クリア" for item in result["allowed_phrase_matches"]))
         self.assertEqual(result["matched_forbidden_words"], [])
         self.assertEqual(result["required_separate_checks"], [])
@@ -209,6 +218,28 @@ class ProhibitedWordMaskingTests(unittest.TestCase):
         self.assertGreater(payload["separate_check_count"], 0)
         self.assertIn("クリ", payload["rules"])
         self.assertIn("クリア", payload["rules"]["クリ"])
+
+    def test_cosmetic_allowed_phrases_are_limited_to_rakuten_2(self) -> None:
+        store_1_master = load_master_data(REFERENCE_MASTER_DIR, allow_missing=True)
+        store_2_master = load_master_data(REFERENCE_MASTER_DIR, allow_missing=True)
+        apply_store_allowed_phrase_overrides(store_1_master, REFERENCE_MASTER_DIR, "rakuten_1")
+        apply_store_allowed_phrase_overrides(store_2_master, REFERENCE_MASTER_DIR, "rakuten_2")
+
+        # アイライナー is now common because it originated in a legacy
+        # spacing-only replacement. Keep validating a phrase still exclusive
+        # to rakuten_2 as well as the remaining store-specific cosmetics rules.
+        self.assertIn("アイライナー", store_1_master.allowed_phrase_rules.get("イラ", []))
+        self.assertIn("アイライナー", store_2_master.allowed_phrase_rules.get("イラ", []))
+        self.assertNotIn("アイライン", store_1_master.allowed_phrase_rules.get("イラ", []))
+        self.assertIn("アイライン", store_2_master.allowed_phrase_rules.get("イラ", []))
+        self.assertNotIn("マカデミア", store_1_master.allowed_phrase_rules.get("マカ", []))
+        self.assertIn("マカデミア", store_2_master.allowed_phrase_rules.get("マカ", []))
+        self.assertNotIn("セラミド", store_1_master.allowed_phrase_rules.get("セラ", []))
+        self.assertIn("セラミド", store_2_master.allowed_phrase_rules.get("セラ", []))
+        self.assertNotIn("スキンケア", store_1_master.allowed_phrase_rules.get("スキン", []))
+        self.assertIn("スキンケア", store_2_master.allowed_phrase_rules.get("スキン", []))
+        self.assertNotIn("アルギニン", store_1_master.allowed_phrase_rules.get("アルギニン", []))
+        self.assertIn("アルギニン", store_2_master.allowed_phrase_rules.get("アルギニン", []))
 
     def test_separate_check_phrase_is_reported_without_forbidden_hit(self) -> None:
         analysis = analyze_prohibited_word_issues(

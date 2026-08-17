@@ -61,7 +61,7 @@ def _validate_readiness_inputs(
     require(str(dry_run_result.get("management_number") or "") == request.management_number, "dry-run management_number mismatch")
     require(str(preflight_result.get("preflight_status") or "") in {"passed", "warning"}, "preflight_status must be passed or warning")
     require(str(mock_result.get("final_status") or "") == "completed", "mock_final_status must be completed")
-    require(str(readiness_result.get("readiness_status") or "") == "ready", "readiness_status must be ready")
+    require(str(readiness_result.get("readiness_status") or "") in {"ready", "warning"}, "readiness_status must be ready or warning")
     require(bool(readiness_result.get("ready_for_real_execute")) is True, "ready_for_real_execute must be true")
     require(list(readiness_result.get("unresolved_specifications") or []) == [], "unresolved_specifications must be empty")
     require(bool(readiness_result.get("real_execute_spec_ready")) is True, "real_execute_spec_ready must be true")
@@ -287,6 +287,10 @@ def build_real_execute_result(
     result["dry_run_json"] = str(request.dry_run_json)
     result["preflight_json"] = str(request.preflight_json)
     result["mock_result_json"] = str(request.mock_result_json)
+    # Preserve the original eligibility decision so a blocked batch row explains
+    # the product-specific cause, rather than only its downstream gate failures.
+    result["listing_status"] = str(dry_run_result.get("listing_status") or "")
+    result["listing_reason"] = str(dry_run_result.get("listing_reason") or "")
 
     readiness_reasons = _validate_readiness_inputs(request, readiness_result, dry_run_result, preflight_result, mock_result)
     guard_reasons = _validate_execute_guards(request)

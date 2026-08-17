@@ -91,7 +91,10 @@ Recovered from workbook binary with CP932 decoding:
 2. `【Amazon倉庫から届くことについてご了承いただけますでしょうか？】弊社では一日でも早くお客様に商品をお届けする為、Amazonマルチチャネル(配送代行サービス)と提携しております。その際お荷物にAmazonのロゴや置き配となる場合がございます。`
 3. `【配達時間指定不可】配達時間の指定はできません。置配希望の方はご指定下さい。`
 
-Each option is treated as a required single-selection acknowledgement in Phase 1.
+The current payload contains the original Amazon fulfillment acknowledgement plus:
+
+- Required `SINGLE_SELECTION` delivery preference: `宅配ボックス`, `置き配OK`, or `置き配NG`.
+- Required `MULTIPLE_SELECTION` acknowledgement that the requested delivery method is not guaranteed and may be changed by the delivery driver.
 
 ## Master file formats
 ### `blacklist.txt`

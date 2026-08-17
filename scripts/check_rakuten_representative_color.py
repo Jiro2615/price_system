@@ -8,7 +8,7 @@ from urllib.error import HTTPError, URLError
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-ENV_PATH = PROJECT_DIR / ".env"
+ENV_PATH = PROJECT_DIR.parent / ".env"
 GENRE_ID = "213661"
 TARGET_ATTRIBUTE_NAME = "代表カラー"
 
@@ -69,13 +69,13 @@ def main() -> int:
     load_dotenv(ENV_PATH)
 
     service_secret = get_env_any([
-        "RAKUTEN_SERVICE_SECRET",
+        "RAKUTEN_1_SERVICE_SECRET",
         "RAKUTEN_ITEM_SERVICE_SECRET",
         "RAKUTEN_API_SERVICE_SECRET",
         "RAKUTEN_RMS_SERVICE_SECRET",
     ])
     license_key = get_env_any([
-        "RAKUTEN_LICENSE_KEY",
+        "RAKUTEN_1_LICENSE_KEY",
         "RAKUTEN_ITEM_LICENSE_KEY",
         "RAKUTEN_API_LICENSE_KEY",
         "RAKUTEN_RMS_LICENSE_KEY",
@@ -84,7 +84,7 @@ def main() -> int:
     if not service_secret or not license_key:
         print("ERROR: .env から serviceSecret / licenseKey を取得できませんでした。", file=sys.stderr)
         print("確認候補:", file=sys.stderr)
-        print("  RAKUTEN_SERVICE_SECRET / RAKUTEN_LICENSE_KEY", file=sys.stderr)
+        print("  RAKUTEN_1_SERVICE_SECRET / RAKUTEN_1_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_ITEM_SERVICE_SECRET / RAKUTEN_ITEM_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_API_SERVICE_SECRET / RAKUTEN_API_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_RMS_SERVICE_SECRET / RAKUTEN_RMS_LICENSE_KEY", file=sys.stderr)

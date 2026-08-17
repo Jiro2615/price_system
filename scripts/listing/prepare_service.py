@@ -16,7 +16,8 @@ from scripts.listing.dry_run_summary import (
 from scripts.listing.image_plan import build_image_download_plan
 from scripts.listing.listing_evaluator import evaluate_listing
 from scripts.listing.management_number import build_management_number_bundle_from_selected, generate_management_number_bundle
-from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, StoreSettings
+from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, ResolvedField, StoreSettings
+from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload
 
 
@@ -47,10 +48,18 @@ def fetch_keepa_result_sync(asin: str) -> KeepaProductData:
     return keepa_client.fetch_product(asin)
 
 
-def load_store_settings(store_code: str) -> StoreSettings:
+def fetch_keepa_precheck_result_sync(asin: str) -> KeepaProductData:
+    """Fetch only the low-token Keepa fields needed before Amazon browsing."""
+    from scripts.listing.keepa_product_client import KeepaClient, load_keepa_api_key
+
+    keepa_client = KeepaClient(api_key=load_keepa_api_key())
+    return keepa_client.fetch_product(asin, offer_count=None)
+
+
+def load_store_settings(store_code: str, *, amazon_price: int | None = None) -> StoreSettings:
     from scripts.listing.store_config import get_store_settings
 
-    return get_store_settings(store_code)
+    return get_store_settings(store_code, amazon_price=amazon_price)
 
 
 def load_common_settings(*compatibility_sources: object) -> tuple[ListingCommonSettings, list[str]]:
@@ -63,10 +72,68 @@ def load_master_records(master_dir: Path, allow_missing: bool) -> MasterData:
     return load_master_data(master_dir, allow_missing=allow_missing)
 
 
+def apply_store_master_overrides(master_data: MasterData, master_dir: Path, store_code: str) -> MasterData:
+    from scripts.listing.master_loader import apply_store_allowed_phrase_overrides
+
+    return apply_store_allowed_phrase_overrides(master_data, master_dir, store_code)
+
+
+def apply_asin_master_overrides(master_data: MasterData, store_code: str, asin: str) -> MasterData:
+    from scripts.listing.listing_master_db import apply_asin_allowed_phrase_overrides
+    return apply_asin_allowed_phrase_overrides(master_data, store_code, asin)
+
+
 def fetch_amazon_result_for_listing(asin: str, page_timeout_ms: int) -> AmazonCheckResult:
     from scripts.listing.amazon_bridge import fetch_amazon_result_sync
 
     return fetch_amazon_result_sync(asin, page_timeout_ms=page_timeout_ms)
+
+
+def find_existing_listing_for_store(asin: str, store_code: str) -> dict[str, str] | None:
+    from scripts.listing.listing_duplicate_check import find_existing_listing
+    return find_existing_listing(asin, store_code)
+
+
+def precheck_local_listing_exclusion(
+    request: PrepareListingRequest,
+    *,
+    store_settings_loader: Callable[[str], StoreSettings] = load_store_settings,
+    master_data_loader: Callable[[Path, bool], MasterData] = load_master_records,
+    common_settings_loader: Callable[..., tuple[ListingCommonSettings, list[str]]] = load_common_settings,
+    existing_listing_lookup: Callable[[str, str], dict[str, str] | None] = find_existing_listing_for_store,
+) -> dict[str, object] | None:
+    """Return a local-only exclusion result before opening an Amazon page."""
+    asin = request.asin.strip().upper()
+    mode = "offline" if request.offline else "dry_run"
+    warnings: list[str] = []
+    store_settings = _resolve_store_settings(request, store_settings_loader)
+    common_settings, common_setting_warnings = common_settings_loader(store_settings)
+    warnings.extend(common_setting_warnings)
+    master_data = master_data_loader(Path(request.master_dir), request.allow_missing_master)
+    master_data = apply_store_master_overrides(master_data, Path(request.master_dir), request.store_code)
+    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
+
+    existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
+    if existing_listing:
+        management_number = str(existing_listing.get("management_number") or "")
+        source = str(existing_listing.get("source") or "store_products")
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=None, keepa_result=None,
+            listing_status="already_listed", listing_reason=f"既に出品済み: {management_number}",
+            warnings=warnings + [f"existing listing matched before external checks: {asin} ({source})"],
+            missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+            store_settings=store_settings, common_settings=common_settings,
+            existing_management_number=management_number,
+        )
+    if asin in master_data.blacklist:
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=None, keepa_result=None,
+            listing_status="business_ng", listing_reason="ブラックリスト",
+            warnings=warnings + [f"blacklist matched before external checks: {asin}"],
+            missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+            store_settings=store_settings, common_settings=common_settings,
+        )
+    return None
 
 
 def _load_json_payload(path: Path, label: str) -> dict[str, object]:
@@ -218,6 +285,7 @@ def _base_result(
     existing_management_number: str | None = None,
     representative_color_mapping: dict[str, object] | None = None,
     provisional_genre_candidate: dict[str, object] | None = None,
+    compliance_evidence: dict[str, object] | None = None,
 ) -> dict[str, object]:
     genre_id_value = None
     if item_payload is not None:
@@ -297,6 +365,7 @@ def _base_result(
         "image_candidates": image_candidates or [],
         "representative_color_mapping": representative_color_mapping or {},
         "provisional_genre_candidate": provisional_genre_candidate or {},
+        "compliance_evidence": compliance_evidence or {},
         "warnings": computed_warnings,
         "missing_master_files": missing_master_files,
         "master_dir": str(Path(master_dir).resolve()),
@@ -391,6 +460,7 @@ def prepare_listing(
     image_plan_builder: Callable[..., dict[str, object]] = build_image_download_plan,
     evaluator: Callable[..., EvaluationResult] = evaluate_listing,
     common_settings_loader: Callable[..., tuple[ListingCommonSettings, list[str]]] = load_common_settings,
+    existing_listing_lookup: Callable[[str, str], dict[str, str] | None] = find_existing_listing_for_store,
     management_number_builder: Callable[[str], object] = generate_management_number_bundle,
     item_payload_builder: Callable[..., dict[str, object]] = build_item_payload,
     inventory_payload_builder: Callable[..., dict[str, object]] = build_inventory_payload,
@@ -408,9 +478,17 @@ def prepare_listing(
     common_settings, common_setting_warnings = common_settings_loader(store_settings)
     warnings.extend(common_setting_warnings)
     master_data = master_data_loader(Path(request.master_dir), request.allow_missing_master)
+    master_data = apply_store_master_overrides(
+        master_data,
+        Path(request.master_dir),
+        request.store_code,
+    )
+    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
 
-    existing_management_number = master_data.listed_asins.get(asin, "")
-    if existing_management_number:
+    existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
+    if existing_listing:
+        existing_management_number = str(existing_listing.get("management_number") or "")
+        existing_source = str(existing_listing.get("source") or "store_products")
         return _base_result(
             mode=mode,
             asin=asin,
@@ -418,12 +496,29 @@ def prepare_listing(
             keepa_result=None,
             listing_status="already_listed",
             listing_reason=f"既に出品済み: {existing_management_number}",
-            warnings=warnings + [f"listed ASIN matched before external checks: {asin}"],
+            warnings=warnings + [f"existing listing matched before external checks: {asin} ({existing_source})"],
             missing_master_files=master_data.missing_files,
             master_dir=Path(request.master_dir),
             store_settings=store_settings,
             common_settings=common_settings,
             existing_management_number=existing_management_number,
+        )
+
+    # A blacklist decision is entirely local.  Do not open Amazon or call
+    # Keepa for an ASIN that is already disallowed by the active master.
+    if asin in master_data.blacklist:
+        return _base_result(
+            mode=mode,
+            asin=asin,
+            amazon_result=None,
+            keepa_result=None,
+            listing_status="business_ng",
+            listing_reason="ブラックリスト",
+            warnings=warnings + [f"blacklist matched before external checks: {asin}"],
+            missing_master_files=master_data.missing_files,
+            master_dir=Path(request.master_dir),
+            store_settings=store_settings,
+            common_settings=common_settings,
         )
 
     amazon_result = _resolve_amazon_result(request, asin, amazon_fetcher, warnings)
@@ -442,6 +537,15 @@ def prepare_listing(
             master_dir=Path(request.master_dir),
             store_settings=store_settings,
             common_settings=common_settings,
+        )
+
+    # Price rules are selected by the checked Amazon price.  The initial
+    # settings load is still used for local prechecks; reload only the default
+    # production loader here so injected/offline test settings remain intact.
+    if store_settings_loader is load_store_settings and amazon_result.amazon_price:
+        store_settings = store_settings_loader(
+            request.store_code,
+            amazon_price=int(amazon_result.amazon_price),
         )
 
     try:
@@ -488,6 +592,60 @@ def prepare_listing(
     image_urls = list(keepa_result.image_urls) if keepa_result else []
     image_source = keepa_result.image_source if keepa_result else "none"
 
+    quasi_drug_evidence: dict[str, object] = {}
+    source_text = " ".join((
+        str(getattr(amazon_result, "title", "") or ""),
+        str(getattr(keepa_result, "title", "") or ""),
+        str(getattr(keepa_result, "description", "") or ""),
+    ))
+    # Keepa's cosmetics hierarchy is often named "ビューティー" / "メイクアップ",
+    # not the literal "化粧品".  Use the shared cosmetics classifier so those
+    # products also receive the same-JAN compliance check and disclosure block.
+    category = "医薬部外品" if "医薬部外品" in source_text else ("化粧品" if is_cosmetics_category(keepa_result.category_tree) else "")
+    if category:
+        from scripts.listing.quasi_drug_compliance import lookup_japanese_regulated_product_evidence
+
+        quasi_drug_evidence = lookup_japanese_regulated_product_evidence(
+            jan_code=keepa_result.ean,
+            manufacturer=keepa_result.manufacturer,
+            store_code=store_settings.store_code,
+            category=category,
+            fetch_product_spec=False,
+        ) or {}
+        if not quasi_drug_evidence:
+            warnings.append(f"{category}候補: 楽天同一JANで日本製・メーカー一致を確認できないため出品不可")
+        else:
+            # Exact-JAN Rakuten search captions are factual attribute fallbacks.
+            # Keepa remains authoritative whenever it already has a value.
+            for evidence_key, field_name, transform in (
+                ("brand", "brand", "caption_brand_label"),
+                ("series_name", "style", "product_spec_series_name"),
+                ("color", "color", "product_spec_color"),
+                ("model_number", "model_number", "product_spec_model_number"),
+            ):
+                value = str(quasi_drug_evidence.get(evidence_key) or "").strip()
+                current_value = getattr(resolved_fields.get(field_name), "value", None)
+                if not value or value == "-" or str(current_value or "").strip():
+                    continue
+                resolved_fields[field_name] = ResolvedField(
+                    value=value,
+                    source="rakuten_same_jan_search",
+                    raw_path="Rakuten Ichiba search itemCaption",
+                    transform=transform,
+                    confidence="high",
+                    evidence=f"Rakuten same-JAN search caption confirms {evidence_key}",
+                    resolution_action="use_actual",
+                )
+            resolved_fields["country_of_origin_candidate"] = ResolvedField(
+                value="日本",
+                source="rakuten_same_jan_search",
+                raw_path="IchibaItem.Search.itemCaption",
+                transform="same_jan_japanese_quasi_drug_confirmation",
+                confidence="high",
+                evidence="Rakuten same-JAN listing confirms 日本 origin, product category, and matching manufacturer",
+                resolution_action="use_actual",
+            )
+
     evaluation = evaluator(
         asin=asin,
         amazon_result=amazon_result,
@@ -497,6 +655,7 @@ def prepare_listing(
         management_number=request.management_number.strip() or "",
         resolved_fields=resolved_fields,
         common_settings=common_settings,
+        quasi_drug_evidence=quasi_drug_evidence,
     )
 
     if evaluation.listing_status != "eligible" or amazon_result is None:
@@ -536,6 +695,7 @@ def prepare_listing(
             image_candidates=evaluation.image_candidates,
             representative_color_mapping=_build_representative_color_mapping(evaluation.resolved_attributes, None),
             provisional_genre_candidate=evaluation.provisional_genre_candidate,
+            compliance_evidence=evaluation.compliance_evidence,
         )
 
     requested_management_number = request.management_number.strip()
@@ -600,4 +760,61 @@ def prepare_listing(
         image_candidates=evaluation.image_candidates,
         representative_color_mapping=representative_color_mapping,
         provisional_genre_candidate=evaluation.provisional_genre_candidate,
+        compliance_evidence=evaluation.compliance_evidence,
     )
+
+
+def precheck_keepa_before_amazon(
+    request: PrepareListingRequest,
+    *,
+    keepa_fetcher: Callable[[str], KeepaProductData] = fetch_keepa_precheck_result_sync,
+    prepare_kwargs: dict[str, object] | None = None,
+) -> tuple[dict[str, object] | None, KeepaProductData | None]:
+    """Run local and Keepa-only exclusions before opening an Amazon page.
+
+    The normal evaluator requires a valid Amazon result before it evaluates the
+    Keepa-derived category, policy, and seller-count rules.  This helper uses a
+    deliberately passing placeholder only for that *precheck*.  It never
+    treats the placeholder as a real Amazon result: an eligible or reviewable
+    Keepa result proceeds to the actual Amazon page, where price, stock, and
+    gift availability are still confirmed.
+
+    Only clear business NGs and unrecoverable Keepa failures stop before the
+    page.  Incomplete attributes and unknown categories still open Amazon,
+    because the current Amazon title can supply evidence for those cases.
+    """
+    asin = request.asin.strip().upper()
+    placeholder_amazon = AmazonCheckResult(
+        requested_asin=asin,
+        page_asin=asin,
+        title="",
+        amazon_price=1,
+        available_qty=1,
+        gift_available=True,
+        shipping_status="Keepa precheck only; Amazon confirmation pending",
+    )
+    options = dict(prepare_kwargs or {})
+    options["amazon_fetcher"] = lambda _asin, _timeout: placeholder_amazon
+    options["keepa_fetcher"] = keepa_fetcher
+    precheck = prepare_listing(request, **options)
+    keepa_value = precheck.get("keepa_result")
+    keepa_result = keepa_value if isinstance(keepa_value, KeepaProductData) else None
+    status = str(precheck.get("listing_status") or "")
+    should_skip_amazon = status == "business_ng" or keepa_result is None
+    if not should_skip_amazon:
+        return None, keepa_result
+
+    # Do not expose the pass-through placeholder as an observed Amazon price
+    # or stock quantity in the batch result.
+    precheck["amazon_result"] = None
+    precheck["item_payload"] = None
+    precheck["inventory_payload"] = None
+    precheck["warnings"] = list(precheck.get("warnings") or []) + [
+        "Amazon page skipped after local/Keepa precheck"
+    ]
+    precheck["keepa_precheck"] = {
+        "checked_before_amazon": True,
+        "amazon_page_skipped": True,
+        "reason": str(precheck.get("listing_reason") or status),
+    }
+    return precheck, keepa_result

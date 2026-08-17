@@ -70,7 +70,7 @@ function Read-PasswordIfNeeded {
 }
 
 $repoRoot = Get-RepoRoot
-$envPath = Join-Path $repoRoot ".env"
+$envPath = Join-Path (Split-Path -Parent $repoRoot) ".env"
 $dotEnv = Read-DotEnvFile -Path $envPath
 
 if (-not $DbHost) {

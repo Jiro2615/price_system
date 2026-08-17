@@ -136,8 +136,8 @@ It does not authorize real execution by itself.
 
 ## Auth Review
 
-- `RAKUTEN_SERVICE_SECRET` is present
-- `RAKUTEN_LICENSE_KEY` is present
+- `RAKUTEN_1_SERVICE_SECRET` is present
+- `RAKUTEN_1_LICENSE_KEY` is present
 - Any image API auth keys are present if required by the confirmed specification
 - No secret values are printed in logs or JSON outputs
 

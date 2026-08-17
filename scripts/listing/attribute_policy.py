@@ -15,9 +15,8 @@ ATTR_COUNTRY = "\u539f\u7523\u56fd\uff0f\u88fd\u9020\u56fd"
 
 SERIES_PATTERN = re.compile(r"([A-Za-z0-9]+)[\uff08(]\u9999\u308a[\uff09)](?:\u300d)?\u30b7\u30ea\u30fc\u30ba")
 LEGACY_DASH_EVIDENCE = (
-    'Legacy fallback precedent only: old real Rakuten item JSON "items_get_20251111221917_187.json" '
-    "(manageNumber=20251111221917_187, genreId=210724) used '-' for the same attribute names. "
-    "Different genre from 111120 and not a full API guarantee; confirm with dry-run payload and one pilot item."
+    "User policy: use '-' when a required Rakuten attribute cannot be resolved. "
+    "Legacy item CSV exports also contain '-' placeholders for required attributes."
 )
 
 GENERIC_ATTRIBUTE_FIELD_MAP = {
@@ -67,6 +66,14 @@ def _legacy_dash_field(attr_name: str) -> ResolvedField:
     )
 
 
+def _apply_legacy_dash_fallback(results: dict[str, ResolvedField]) -> dict[str, ResolvedField]:
+    """Keep known values, but make every unresolved required attribute sendable."""
+    for attr_name, field in results.items():
+        if not _text(field.value) or field.resolution_action == "needs_review":
+            results[attr_name] = _legacy_dash_field(attr_name)
+    return results
+
+
 def _clone_if_present(field: ResolvedField | None) -> ResolvedField:
     if field is None:
         return _none_field()
@@ -100,9 +107,9 @@ def _resolve_country(
     resolved_fields: dict[str, ResolvedField],
 ) -> ResolvedField:
     candidate = resolved_fields.get("country_of_origin_candidate")
-    if candidate and _text(candidate.value) == "\u65e5\u672c\u88fd":
+    if candidate and _text(candidate.value) in {"\u65e5\u672c\u88fd", "\u65e5\u672c"}:
         return clone_field(candidate, resolution_action="use_inferred")
-    return _needs_review('Exact text "日本製" was not found in title/description candidates')
+    return _needs_review("Confirmed Japanese origin was not found in the source data")
 
 
 def _resolve_brand(
@@ -192,7 +199,7 @@ def resolve_required_attributes(
                 resolved_fields,
                 asin,
             )
-        return results
+        return _apply_legacy_dash_fallback(results)
 
     if genre_id == 213661:
         special = {
@@ -204,11 +211,11 @@ def resolve_required_attributes(
                 resolved_fields,
                 asin,
             )
-        return results
+        return _apply_legacy_dash_fallback(results)
 
     for attr_name in attr_names:
         if attr_name == ATTR_REP_COLOR:
             results[attr_name] = _resolve_representative_color(resolved_fields)
         else:
             results[attr_name] = _resolve_generic_attribute(attr_name, resolved_fields, asin)
-    return results
+    return _apply_legacy_dash_fallback(results)

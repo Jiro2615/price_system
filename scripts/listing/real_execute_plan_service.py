@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from scripts.listing.models import to_jsonable
 from scripts.listing.rakuten_inventory_client import build_inventory_request
@@ -25,6 +26,14 @@ def _normalize_folder_path(path: str | None) -> str:
     return str(path or "").replace("\\", "/").strip().strip("/")
 
 
+def _normalize_shop_url(value: str | None) -> str:
+    raw = str(value or "").strip().strip("/")
+    if not raw:
+        return ""
+    parsed = urlparse(raw if "://" in raw else f"https://{raw}")
+    return parsed.path.strip("/") if parsed.netloc else raw
+
+
 def _build_safe_image_name(image_base_name: str, order: int) -> str:
     return f"{str(image_base_name or '').strip()}_{order}.jpg"
 
@@ -33,13 +42,13 @@ def _build_image_plan(dry_run_result: dict[str, Any], readiness_result: dict[str
     cabinet_config = dict(readiness_result.get("cabinet_config") or {})
     folder_id = cabinet_config.get("folder_id")
     folder_path = _normalize_folder_path(str(cabinet_config.get("folder_path") or ""))
-    shop_url = str(cabinet_config.get("shop_url") or "").strip()
+    shop_url = _normalize_shop_url(str(cabinet_config.get("shop_url") or ""))
     dry_image_plan = dict(dry_run_result.get("image_download_plan") or {})
     planned_items = [item for item in list(dry_image_plan.get("items") or []) if isinstance(item, dict)]
     image_urls = [str(item.get("source_url") or "").strip() for item in planned_items if str(item.get("source_url") or "").strip()]
     if not image_urls:
         image_urls = list(dry_run_result.get("image_urls") or [])
-    management_candidates = dict(dry_run_result.get("management_number_candidates") or {})
+    management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
     image_base_name = str(management_candidates.get("legacy_candidate") or dry_run_result.get("management_number") or asin).strip()
     items: list[dict[str, Any]] = []
     for index, source_url in enumerate(image_urls, start=1):
@@ -303,9 +312,10 @@ def _validate_plan_inputs(
     representative_color_required = _requires_representative_color(dry_run_result.get("item_payload"))
     representative_color = _extract_attribute_value(dry_run_result.get("item_payload"), "代表カラー") or str((mock_result.get("item_request_summary") or {}).get("representative_color") or "")
     if representative_color_required:
-        require(representative_color == "ブルー", "representative_color_value must be ブルー")
+        require(representative_color in {"ブルー", "-"}, "representative_color_value must be ブルー or -")
         original_color = str((dry_run_result.get("representative_color_mapping") or {}).get("original_value") or "")
-        require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
+        if representative_color != "-":
+            require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
     return blocking_reasons
 
 
@@ -569,9 +579,10 @@ def _validate_plan_inputs(
     representative_color_required = _requires_representative_color(dry_run_result.get("item_payload"))
     representative_color = _extract_attribute_value(dry_run_result.get("item_payload"), "代表カラー") or str((mock_result.get("item_request_summary") or {}).get("representative_color") or "")
     if representative_color_required:
-        require(representative_color == "ブルー", "representative_color_value must be ブルー")
+        require(representative_color in {"ブルー", "-"}, "representative_color_value must be ブルー or -")
         original_color = str((dry_run_result.get("representative_color_mapping") or {}).get("original_value") or "")
-        require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
+        if representative_color != "-":
+            require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
     return blocking_reasons
 
 
@@ -680,9 +691,10 @@ def _validate_plan_inputs(
     representative_color_required = _requires_representative_color(dry_run_result.get("item_payload"))
     representative_color = _extract_attribute_value(dry_run_result.get("item_payload"), "代表カラー") or str((mock_result.get("item_request_summary") or {}).get("representative_color") or "")
     if representative_color_required:
-        require(representative_color == "ブルー", "representative_color_value must be ブルー")
+        require(representative_color in {"ブルー", "-"}, "representative_color_value must be ブルー or -")
         original_color = str((dry_run_result.get("representative_color_mapping") or {}).get("original_value") or "")
-        require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
+        if representative_color != "-":
+            require(original_color == "クリアブルーラメ", "original_representative_color must be クリアブルーラメ")
     return blocking_reasons
 
 

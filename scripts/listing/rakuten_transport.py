@@ -12,7 +12,7 @@ from scripts.listing.models import sanitize_for_output
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 USER_AGENT = "price-system-listing-real-execute/1.0"
 
 SECRET_ENV_NAMES = (
@@ -36,20 +36,19 @@ def _normalize_store_env_prefix(store_code: str) -> str:
 
 
 def _store_scoped_names(store_code: str, base_names: tuple[str, ...]) -> tuple[str, ...]:
-    prefix = _normalize_store_env_prefix(store_code)
-    if not prefix:
-        return base_names
+    prefix = _normalize_store_env_prefix(store_code) or "RAKUTEN_1"
     scoped: list[str] = []
     for name in base_names:
         if name.startswith("RAKUTEN_"):
             scoped.append(f"{prefix}_{name.removeprefix('RAKUTEN_')}")
-    if prefix == "RAKUTEN_1":
-        scoped.extend(base_names)
     return tuple(dict.fromkeys(scoped))
 
 
 def _load_env_once() -> None:
-    load_dotenv(ENV_PATH)
+    # The orchestrator loads its own listing .env first.  Its intentionally
+    # blank store-2 placeholders must not mask the active credentials in the
+    # shared workspace .env used by the real listing transport.
+    load_dotenv(ENV_PATH, override=True)
 
 
 def _first_env(names: tuple[str, ...]) -> str:

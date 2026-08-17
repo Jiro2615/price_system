@@ -61,7 +61,7 @@ def _build_existing_rakuten_image_locations(dry_run_result: dict[str, Any]) -> l
     store_settings = dict(dry_run_result.get("store_settings") or {})
     cabinet = dict(store_settings.get("cabinet") or {})
     folder_path = str(cabinet.get("folder_path") or "").replace("\\", "/").strip().strip("/")
-    management_candidates = dict(dry_run_result.get("management_number_candidates") or {})
+    management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
     image_base_name = str(
         management_candidates.get("legacy_candidate")
         or dry_run_result.get("management_number")
@@ -99,7 +99,7 @@ def _build_upload_metadata(dry_run_result: dict[str, Any], item: Any) -> dict[st
         if source_url and str(candidate.get("source_url") or "") == source_url:
             match = candidate
             break
-    management_candidates = dict(dry_run_result.get("management_number_candidates") or {})
+    management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
     image_base_name = str(
         management_candidates.get("legacy_candidate")
         or dry_run_result.get("management_number")

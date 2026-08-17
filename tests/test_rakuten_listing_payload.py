@@ -200,8 +200,31 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertIsInstance(item_payload["variants"]["20250101010101_187_ab12"]["standardPrice"], str)
         self.assertEqual(item_payload["payment"]["taxRate"], "0.1")
         self.assertEqual(item_payload["variants"]["20250101010101_187_ab12"]["articleNumber"], {"exemptionReason": 5})
+        self.assertNotIn("shippingMethodGroup", item_payload["variants"]["20250101010101_187_ab12"]["shipping"])
         self.assertEqual(inventory_payload["quantity"], 4)
         self.assertEqual(inventory_payload["shipFromIds"], [1])
+
+    def test_payload_includes_configured_shipping_method_group(self) -> None:
+        evaluation = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=self.keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+        store = StoreSettings(**{**self.store.__dict__, "store_code": "rakuten_2", "shipping_method_group": "1"})
+
+        item_payload = build_item_payload(
+            management_number="20250101010101_187_ab12",
+            evaluation=evaluation,
+            store_settings=store,
+            amazon_price=self.amazon.amazon_price or 0,
+            amazon_point=0,
+        )
+
+        shipping = item_payload["variants"]["20250101010101_187_ab12"]["shipping"]
+        self.assertEqual(shipping["shippingMethodGroup"], "1")
 
     def test_management_number_bundle(self) -> None:
         bundle = generate_management_number_bundle("187", datetime(2026, 7, 8, 10, 11, 12))

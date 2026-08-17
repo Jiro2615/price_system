@@ -1,12 +1,25 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
 
 MASK_CHAR = "\uFFF0"
 DEFAULT_ALLOWED_PHRASE_SOURCE = "reference/legacy_listing/allowed_phrases_rakuten.json"
+COMPLIANCE_IGNORED_CHARACTERS_RE = re.compile(r"[\s\u200b-\u200d\ufeff\-‐‑‒–—―ーｰ・･./／,，、()（）\[\]［］]", re.UNICODE)
+
+
+def normalize_compliance_text(value: str) -> str:
+    """Normalize presentation-only variants before compliance word matching.
+
+    This is intentionally used for detection only; it never rewrites the
+    listing text to evade a prohibited-expression check.
+    """
+    normalized = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    return COMPLIANCE_IGNORED_CHARACTERS_RE.sub("", normalized)
 
 
 def load_allowed_phrase_rules(path: Path) -> dict[str, Any]:
@@ -224,7 +237,32 @@ def find_masked_forbidden_word_matches(
             )
             start = index + 1
 
-    forbidden_matches.sort(key=lambda item: (item["start"], item["end"], item["word"]))
+    # Detect deliberately split or full/half-width variants too.  Exceptions
+    # are applied only to the original exact text above; an obfuscated variant
+    # remains blocked for review rather than being silently permitted.
+    normalized_text = normalize_compliance_text(text)
+    for word in forbidden_words:
+        # Exact appearances were already evaluated with allowed-phrase masking.
+        if word in text:
+            continue
+        normalized_word = normalize_compliance_text(word)
+        if not normalized_word or normalized_word not in normalized_text:
+            continue
+        if any(match["word"] == word for match in forbidden_matches):
+            continue
+        forbidden_matches.append(
+            {
+                "word": word,
+                "field": field,
+                "start": None,
+                "end": None,
+                "context": text[:160],
+                "normalized_match": True,
+                "normalized_word": normalized_word,
+            }
+        )
+
+    forbidden_matches.sort(key=lambda item: (item["start"] is None, item["start"] or -1, item["end"] or -1, item["word"]))
     return allowed_phrase_matches, forbidden_matches
 
 

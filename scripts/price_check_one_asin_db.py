@@ -56,9 +56,30 @@ def parse_price(text: str) -> int:
     return int(float(m.group(0))) if m else 0
 
 
+def parse_yen_price(text: str) -> int:
+    """Read the price following a yen mark, never a discount percentage.
+
+    Amazon's AOD accessibility label can be rendered as, for example,
+    ``6パーセントの割引で￥2,500``.  The generic parser would select the
+    leading ``6``.  In AOD we require an explicit yen mark and use its last
+    amount, which is the price-to-pay when the label includes a promotion.
+    """
+    matches = re.findall(r"[￥¥]\s*([0-9][0-9,]*)", str(text or ""))
+    if not matches:
+        return 0
+    try:
+        return int(matches[-1].replace(",", ""))
+    except ValueError:
+        return 0
+
+
 def extract_asin(url: str) -> str:
     m = re.search(r"/(?:dp|gp/product)/([A-Z0-9]{10})", url, re.I)
     return m.group(1).upper() if m else ""
+
+
+def build_amazon_product_url(asin: str) -> str:
+    return f"https://www.amazon.co.jp/dp/{asin.strip().upper()}?th=1&psc=1"
 
 
 def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
@@ -83,12 +104,52 @@ def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
     return (target - today).days
 
 
-def judge_basic_ng(in_text: str) -> str:
+def judge_basic_ng(in_text: str, page_text: str = "") -> str:
     if "在庫切れ" in in_text:
         return "在庫切れ"
-    if "ギフト" not in in_text:
-        return "ギフト不可"
+    if "ギフト" not in in_text and not is_amazon_official_offer_text(in_text) and not is_amazon_official_offer_text(page_text):
+        return "ギフト不可（Amazon.co.jp直販例外の未確認: 出荷元・販売元 Amazon.co.jp）"
     return ""
+
+
+def is_amazon_official_offer_text(in_text: str) -> bool:
+    normalized = re.sub(r"\s+", "", in_text or "")
+    direct_amazon = bool(re.search(r"出荷元\s*/\s*販売元\s*Amazon\.co\.jp", normalized, re.I))
+    separate_amazon = bool(re.search(r"出荷元\s*Amazon\.co\.jp", normalized, re.I)) and bool(
+        re.search(r"販売元\s*Amazon\.co\.jp", normalized, re.I)
+    )
+    return direct_amazon or separate_amazon
+
+
+def is_amazon_fulfilled_offer_text(in_text: str) -> bool:
+    """Return whether Amazon, rather than the seller, will ship the offer."""
+    normalized = re.sub(r"\s+", "", in_text or "")
+    return bool(re.search(r"出荷元\s*Amazon(?:\.co\.jp)?", normalized, re.I))
+
+
+_NON_NEW_CONDITION_MARKERS = ("中古", "整備済み", "再生品", "アウトレット", "展示品", "コレクター")
+_OFFER_CONDITION_PATTERN = re.compile(
+    r"新品同様|中古|整備済み|再生品|アウトレット|展示品|コレクター|新品"
+)
+
+
+def is_explicit_new_offer_text(in_text: str) -> bool:
+    """Accept an Amazon offer only when its condition is explicitly ``新品``.
+
+    Do not infer ``新品`` from the absence of a used label.  Offer cards can
+    contain seller descriptions such as ``新品同様``; the token boundary keeps
+    that text from being mistaken for Amazon's actual condition label.
+    """
+    normalized = re.sub(r"\s+", " ", str(in_text or "")).strip()
+    # BuyBox text can include a separate used-offer teaser after the primary
+    # purchase block.  Judge the first displayed condition only: a trailing
+    # ``中古`` must not invalidate a BuyBox that begins with ``新品``.
+    match = _OFFER_CONDITION_PATTERN.search(normalized)
+    return bool(match and match.group(0) == "新品")
+
+
+def is_gift_or_amazon_official(in_text: str, page_text: str = "") -> bool:
+    return "ギフト" in (in_text or "") or is_amazon_official_offer_text(in_text) or is_amazon_official_offer_text(page_text)
 
 
 def parse_shipping_status(in_text: str) -> tuple[str, str]:
@@ -280,6 +341,81 @@ def parse_available_qty(text: str) -> Optional[int]:
         return None
 
 
+def quantity_dropdown_details(options: list[tuple[str, str]]) -> tuple[Optional[int], Optional[int]]:
+    """Return Amazon's maximum quantity and any explicit minimum order quantity."""
+    quantities: list[int] = []
+    minimum_order_quantity: Optional[int] = None
+    for raw_value, raw_text in options:
+        value = re.sub(r"\s+", "", str(raw_value or ""))
+        text = re.sub(r"\s+", "", str(raw_text or ""))
+        match = re.fullmatch(r"[1-9]\d*", value) or re.match(r"([1-9]\d*)", text)
+        if not match:
+            continue
+        quantity = int(match.group(1) if match.lastindex else match.group(0))
+        quantities.append(quantity)
+        if "最小注文個数" in text:
+            minimum_order_quantity = quantity
+    return (max(quantities) if quantities else None, minimum_order_quantity)
+
+
+def minimum_order_quantity_from_offer_text(*texts: object) -> Optional[int]:
+    """Read Amazon AOD's visible ``最小注文数: 2`` style constraint."""
+    for raw_text in texts:
+        normalized = re.sub(r"\s+", "", str(raw_text or ""))
+        match = re.search(r"最小注文(?:個数|数)[:：]?([1-9]\d*)", normalized)
+        if match:
+            return int(match.group(1))
+        match = re.search(r'"minQty"\s*:\s*([1-9]\d*)', str(raw_text or ""))
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def max_quantity_from_dropdown_options(values: list[str]) -> Optional[int]:
+    """Compatibility helper for callers with only numeric option values."""
+    maximum, _ = quantity_dropdown_details([(value, value) for value in values])
+    return maximum
+
+
+async def get_quantity_dropdown_details(page, root=None) -> tuple[Optional[int], Optional[int]]:
+    """Read quantity constraints without changing Amazon's selected value."""
+    roots = [root] if root is not None else []
+    roots.append(page)
+    selectors = (
+        "#quantity select",
+        "#quantityRelocateFeature select",
+        "select[name='quantity']",
+        "select#quantity",
+    )
+
+    for candidate_root in roots:
+        if candidate_root is None:
+            continue
+        for selector in selectors:
+            try:
+                select = candidate_root.locator(selector).first
+                if await select.count() == 0:
+                    continue
+                options = select.locator("option")
+                option_values: list[tuple[str, str]] = []
+                for index in range(await options.count()):
+                    option = options.nth(index)
+                    option_values.append(((await option.get_attribute("value")) or "", await safe_inner_text(option)))
+                maximum, minimum_order_quantity = quantity_dropdown_details(option_values)
+                if maximum is not None:
+                    return maximum, minimum_order_quantity
+            except Exception:
+                continue
+    return None, None
+
+
+def apply_minimum_order_block(result: dict[str, Any], minimum_order_quantity: Optional[int]) -> None:
+    result["minimum_order_quantity"] = minimum_order_quantity
+    if minimum_order_quantity and minimum_order_quantity > 1:
+        result["business_ng"] = True
+        result["ng_reason"] = f"最小注文個数が{minimum_order_quantity}個です"
+
+
 async def parse_point(page) -> int:
     loc = page.locator("#pointsInsideBuyBox_feature_div")
     if await loc.count() == 0:
@@ -352,16 +488,166 @@ async def read_buybox_info(page) -> dict[str, Any]:
     return result
 
 
-async def create_amazon_page() -> tuple[Any, Any, Any, Any]:
+async def has_used_only_buybox(page) -> bool:
+    """Return whether the visible purchase box is a used-item BuyBox.
+
+    Recent Amazon product pages can render a used BuyBox outside the
+    ``.a-box-group`` structure.  In that layout ``read_buybox_info`` has no
+    primary group, while the generic core-price selector still exposes the
+    used price.  That price must never be used as a new-item sourcing price.
+    """
+    used_text = "\n".join(
+        filter(
+            None,
+            [
+                await get_first_text(page, "#usedBuySection"),
+                await get_first_text(page, "#usedbuyBox"),
+            ],
+        )
+    )
+    if "中古" in used_text:
+        return True
+
+    buybox_text = "\n".join(
+        filter(
+            None,
+            [
+                await get_first_text(page, "#buybox"),
+                await get_first_text(page, "#desktop_buybox"),
+            ],
+        )
+    )
+    return "中古商品" in buybox_text and not is_explicit_new_offer_text(buybox_text)
+
+
+def delivery_within_one_week(text: str) -> bool:
+    """Return whether Amazon's displayed delivery promise is no later than 7 days."""
+    normalized = re.sub(r"\s+", "", text or "")
+    if any(word in normalized for word in ("本日", "今日", "明日", "翌日")):
+        return True
+
+    match = re.search(r"(\d{1,2})月(\d{1,2})日", normalized)
+    if not match:
+        return False
+
+    diff_days = calc_diff_days(int(match.group(1)), int(match.group(2)))
+    return diff_days is not None and 0 <= diff_days <= 7
+
+
+async def open_all_offers(page) -> None:
+    """Open Amazon's all-offers panel and load its currently available pages."""
+    ingress = page.locator("#aod-ingress-link")
+    if await ingress.count() == 0:
+        # Products without a BuyBox use a normal offer-listing link instead
+        # of the dynamic AOD ingress.  It redirects to the same AOD layout.
+        ingress = page.locator("a[href*='/gp/offer-listing/']").first
+    if await ingress.count() == 0:
+        return
+
+    try:
+        await ingress.first.click(timeout=5000)
+        offers = page.locator("#aod-offer-list #aod-offer")
+        await offers.first.wait_for(state="visible", timeout=10000)
+    except Exception:
+        return
+
+    # The first panel may not contain every seller.  Load a bounded number of
+    # follow-up pages so a hidden late offer is not silently ignored.
+    for _ in range(10):
+        more = page.locator("#aod-show-more-offers")
+        try:
+            if await more.count() == 0 or not await more.first.is_visible(timeout=500):
+                break
+            before = await offers.count()
+            await more.first.click(timeout=5000)
+            await page.wait_for_timeout(700)
+            if await offers.count() <= before:
+                break
+        except Exception:
+            break
+
+
+async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optional[dict[str, Any]]:
+    """Find the lowest-priced AOD offer Amazon can ship free within one week.
+
+    The offer panel is used because the BuyBox can be a merchant-fulfilled
+    seller even though an orderable Amazon-fulfilled offer exists below it.
+    """
+    await open_all_offers(page)
+    offers = page.locator("#aod-offer-list #aod-offer")
+    candidates: list[dict[str, Any]] = []
+
+    for position in range(await offers.count()):
+        offer = offers.nth(position)
+        try:
+            ships_from = re.sub(r"\s+", " ", await safe_inner_text(offer.locator("#aod-offer-shipsFrom").first)).strip()
+            ships_from = re.sub(r"^出荷元\s*", "", ships_from)
+            if ships_from not in {"Amazon", "Amazon.co.jp"}:
+                continue
+
+            # Prefer the dedicated visible price-to-pay element.  Its
+            # accessibility label may begin with a discount percentage, e.g.
+            # "6パーセントの割引で￥2,500", so it must be parsed by yen mark
+            # rather than by its first number.
+            price = parse_price(await safe_inner_text(offer.locator(".apex-pricetopay-value .a-price-whole").first))
+            if price <= 0:
+                price = parse_yen_price(
+                    await safe_inner_text(offer.locator(".apex-pricetopay-accessibility-label").first)
+                )
+            if price <= 0:
+                price = parse_yen_price(await safe_inner_text(offer.locator("#aod-offer-price").first))
+            delivery_node = offer.locator("[data-csa-c-delivery-price]").first
+            delivery_price = await delivery_node.get_attribute("data-csa-c-delivery-price") if await delivery_node.count() else ""
+            delivery_time = await delivery_node.get_attribute("data-csa-c-delivery-time") if await delivery_node.count() else ""
+            offer_text = await safe_inner_text(offer)
+            if (
+                not is_explicit_new_offer_text(offer_text)
+                or price <= 0
+                or delivery_price != "無料"
+                or not delivery_within_one_week(delivery_time or offer_text)
+            ):
+                continue
+
+            add_button = offer.locator("input[name='submit.addToCart']").first
+            if await add_button.count() == 0:
+                continue
+            action = await add_button.locator("xpath=ancestor::*[@data-aod-atc-action][1]").get_attribute("data-aod-atc-action")
+            index_match = re.search(r'"offerIndex"\s*:\s*(\d+)', action or "")
+            max_qty_match = re.search(r'"maxQty"\s*:\s*(\d+)', action or "")
+            max_qty = int(max_qty_match.group(1)) if max_qty_match else 1
+            minimum_order_quantity = minimum_order_quantity_from_offer_text(offer_text, action)
+            if max_qty < quantity:
+                continue
+
+            seller = re.sub(r"\s+", " ", await safe_inner_text(offer.locator("#aod-offer-soldBy").first)).strip()
+            candidates.append({
+                "price": price,
+                "offer_index": int(index_match.group(1)) if index_match else position,
+                "max_qty": max_qty,
+                "minimum_order_quantity": minimum_order_quantity,
+                "ships_from": ships_from,
+                "seller": re.sub(r"^販売元\s*", "", seller),
+                "delivery": delivery_time or offer_text,
+            })
+        except Exception:
+            continue
+
+    return min(candidates, key=lambda item: item["price"]) if candidates else None
+
+
+async def create_amazon_page(*, start_minimized: bool = False) -> tuple[Any, Any, Any, Any]:
     playwright = await async_playwright().start()
+    launch_args = [
+        "--disable-blink-features=AutomationControlled",
+        "--no-first-run",
+        "--no-default-browser-check",
+    ]
+    if start_minimized:
+        launch_args.append("--start-minimized")
     browser = await playwright.chromium.launch(
         channel="chrome",
         headless=False,
-        args=[
-            "--disable-blink-features=AutomationControlled",
-            "--no-first-run",
-            "--no-default-browser-check",
-        ],
+        args=launch_args,
     )
 
     context = await browser.new_context(
@@ -414,6 +700,7 @@ async def check_amazon_one(
         "amazon_price": None,
         "amazon_point": 0,
         "available_qty": None,
+        "minimum_order_quantity": None,
         "gift_available": None,
         "shipping_status": "",
         "business_ng": False,
@@ -433,7 +720,7 @@ async def check_amazon_one(
             playwright, browser, context, page = await create_amazon_page()
 
         try:
-            url = f"https://www.amazon.co.jp/dp/{asin}"
+            url = build_amazon_product_url(asin)
             print(f"Amazon確認開始: {url}")
 
             await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
@@ -463,6 +750,35 @@ async def check_amazon_one(
             buy_info = await read_buybox_info(page)
 
             if not buy_info["in_text"]:
+                # A product page can omit the BuyBox entirely while still
+                # exposing an orderable Amazon-fulfilled offer in AOD.  Check
+                # that panel before classifying this as a BuyBox fetch error.
+                lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
+                if lowest_offer is not None:
+                    result["amazon_price"] = lowest_offer["price"]
+                    result["amazon_point"] = await parse_point(page)
+                    result["available_qty"] = lowest_offer["max_qty"]
+                    apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                    result["gift_available"] = True
+                    result["shipping_status"] = f"Amazon発送最安: {lowest_offer['delivery']}"
+                    result["selected_offer"] = lowest_offer
+                    return result
+
+                # ``#corePriceDisplay_desktop_feature_div`` is also present
+                # for a used-only BuyBox.  Do this after the AOD lookup so a
+                # separately labelled new Amazon-fulfilled offer can still be
+                # selected, but before any generic price fallback runs.
+                if await has_used_only_buybox(page):
+                    result["business_ng"] = True
+                    result["system_error"] = False
+                    result["ng_reason"] = "新品BuyBoxなし（中古品のみ）"
+                    result["shipping_status"] = "NG"
+                    result["amazon_price"] = None
+                    result["amazon_point"] = await parse_point(page)
+                    result["available_qty"] = None
+                    result["gift_available"] = False
+                    return result
+
                 selector_diagnostics = await collect_selector_diagnostics(page)
                 diagnostics_map = {
                     item["selector"]: item for item in selector_diagnostics
@@ -521,7 +837,10 @@ async def check_amazon_one(
                     fallback_price = await get_price_from_selector(
                         page, "#corePriceDisplay_desktop_feature_div"
                     )
-                fallback_qty = parse_available_qty(fallback_text)
+                fallback_qty, minimum_order_quantity = await get_quantity_dropdown_details(page)
+                if fallback_qty is None:
+                    fallback_qty = parse_available_qty(fallback_text)
+                apply_minimum_order_block(result, minimum_order_quantity)
                 fallback_point = await parse_point(page)
                 offer_listing_only = (
                     "すべての出品を見る" in buybox_text
@@ -542,7 +861,7 @@ async def check_amazon_one(
                     result["amazon_price"] = fallback_price if fallback_price > 0 else None
                     result["amazon_point"] = fallback_point
                     result["available_qty"] = fallback_qty
-                    result["gift_available"] = "ギフト" in fallback_text if fallback_text else None
+                    result["gift_available"] = is_gift_or_amazon_official(fallback_text) if fallback_text else None
                 elif offer_listing_only and missing_core_purchase_info:
                     result["business_ng"] = True
                     result["system_error"] = False
@@ -556,7 +875,7 @@ async def check_amazon_one(
                     result["amazon_price"] = fallback_price if fallback_price > 0 else None
                     result["amazon_point"] = fallback_point
                     result["available_qty"] = fallback_qty
-                    result["gift_available"] = "ギフト" in fallback_text if fallback_text else None
+                    result["gift_available"] = is_gift_or_amazon_official(fallback_text) if fallback_text else None
                     result["shipping_status"] = availability_text or result["shipping_status"]
                 else:
                     result["system_error"] = True
@@ -566,12 +885,41 @@ async def check_amazon_one(
             in_text = buy_info["in_text"]
             price = int(buy_info["price"] or 0)
 
-            status_error = judge_basic_ng(in_text)
+            # A merchant-fulfilled or non-gift BuyBox can hide a valid FBA
+            # offer.  Only inspect the all-offers panel in that case; keep a
+            # valid Amazon-fulfilled BuyBox as-is.
+            needs_offer_fallback = (
+                not is_explicit_new_offer_text(in_text)
+                or "ギフト" not in in_text
+                or not is_amazon_fulfilled_offer_text(in_text)
+            )
+            if needs_offer_fallback:
+                lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
+                if lowest_offer is not None:
+                    result["amazon_price"] = lowest_offer["price"]
+                    result["amazon_point"] = await parse_point(page)
+                    result["available_qty"] = lowest_offer["max_qty"]
+                    apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                    # Amazon fulfillment is the approved fallback condition.
+                    # gift_available is the existing downstream eligibility
+                    # flag, not a literal assertion that the offer card shows
+                    # the word "ギフト".
+                    result["gift_available"] = True
+                    result["shipping_status"] = f"Amazon発送最安: {lowest_offer['delivery']}"
+                    result["selected_offer"] = lowest_offer
+                    return result
+
+            status_error = judge_basic_ng(in_text, body)
+            if not is_explicit_new_offer_text(in_text):
+                status_error = status_error or "新品条件を確認できません"
             if status_error:
                 result["business_ng"] = True
                 result["ng_reason"] = status_error
 
-            qty = parse_available_qty(in_text)
+            qty, minimum_order_quantity = await get_quantity_dropdown_details(page, root=page.locator("#buybox"))
+            if qty is None:
+                qty = parse_available_qty(in_text)
+            apply_minimum_order_block(result, minimum_order_quantity)
             shipping_status, shipping_message = parse_shipping_status(in_text)
 
             if shipping_status != "OK":
@@ -591,7 +939,7 @@ async def check_amazon_one(
             result["amazon_price"] = price if price > 0 else None
             result["amazon_point"] = point
             result["available_qty"] = qty
-            result["gift_available"] = "ギフト" in in_text
+            result["gift_available"] = is_gift_or_amazon_official(in_text, body)
             result["shipping_status"] = shipping_message
 
             return result

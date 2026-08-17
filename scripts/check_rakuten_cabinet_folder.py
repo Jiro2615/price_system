@@ -1,4 +1,5 @@
 import base64
+import argparse
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -9,10 +10,17 @@ from urllib.error import HTTPError, URLError
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-ENV_PATH = PROJECT_DIR / ".env"
+ENV_PATH = PROJECT_DIR.parent / ".env"
 
-TARGET_FOLDER_PATH = "listing_test"
 ENDPOINT = "https://api.rms.rakuten.co.jp/es/1.0/cabinet/folders/get"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Read R-Cabinet folders without making any change")
+    parser.add_argument("--store", default="rakuten_1", help="store code, such as rakuten_2")
+    parser.add_argument("--folder-path", default="", help="optional exact folder name or path filter")
+    parser.add_argument("--all", action="store_true", help="print every returned folder")
+    return parser.parse_args()
 
 
 def load_dotenv(path: Path) -> None:
@@ -102,17 +110,30 @@ def extract_folders(root: ET.Element) -> list[dict]:
 
 
 def main() -> int:
+    args = parse_args()
     load_dotenv(ENV_PATH)
+    store_prefix = args.store.strip().upper()
+    if not store_prefix:
+        print("ERROR: --store is required", file=sys.stderr)
+        return 1
 
     service_secret = get_env_any([
-        "RAKUTEN_SERVICE_SECRET",
+        f"{store_prefix}_SERVICE_SECRET",
+        f"{store_prefix}_ITEM_SERVICE_SECRET",
+        f"{store_prefix}_API_SERVICE_SECRET",
+        f"{store_prefix}_RMS_SERVICE_SECRET",
+        f"{store_prefix}_IMAGE_SERVICE_SECRET",
         "RAKUTEN_ITEM_SERVICE_SECRET",
         "RAKUTEN_API_SERVICE_SECRET",
         "RAKUTEN_RMS_SERVICE_SECRET",
         "RAKUTEN_IMAGE_SERVICE_SECRET",
     ])
     license_key = get_env_any([
-        "RAKUTEN_LICENSE_KEY",
+        f"{store_prefix}_LICENSE_KEY",
+        f"{store_prefix}_ITEM_LICENSE_KEY",
+        f"{store_prefix}_API_LICENSE_KEY",
+        f"{store_prefix}_RMS_LICENSE_KEY",
+        f"{store_prefix}_IMAGE_LICENSE_KEY",
         "RAKUTEN_ITEM_LICENSE_KEY",
         "RAKUTEN_API_LICENSE_KEY",
         "RAKUTEN_RMS_LICENSE_KEY",
@@ -122,7 +143,7 @@ def main() -> int:
     if not service_secret or not license_key:
         print("ERROR: .env から serviceSecret / licenseKey を取得できませんでした。", file=sys.stderr)
         print("確認候補:", file=sys.stderr)
-        print("  RAKUTEN_SERVICE_SECRET / RAKUTEN_LICENSE_KEY", file=sys.stderr)
+        print(f"  {store_prefix}_SERVICE_SECRET / {store_prefix}_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_ITEM_SERVICE_SECRET / RAKUTEN_ITEM_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_API_SERVICE_SECRET / RAKUTEN_API_LICENSE_KEY", file=sys.stderr)
         print("  RAKUTEN_RMS_SERVICE_SECRET / RAKUTEN_RMS_LICENSE_KEY", file=sys.stderr)
@@ -133,7 +154,7 @@ def main() -> int:
 
     limit = 100
     offset = 1
-    target_norm = normalize_folder_path(TARGET_FOLDER_PATH)
+    target_norm = normalize_folder_path(args.folder_path)
 
     all_matches = []
     total_seen = 0
@@ -152,7 +173,7 @@ def main() -> int:
             path_norm = normalize_folder_path(folder.get("FolderPath", ""))
             name_norm = normalize_folder_path(folder.get("FolderName", ""))
 
-            if path_norm == target_norm or name_norm == target_norm:
+            if args.all or (target_norm and (path_norm == target_norm or name_norm == target_norm)):
                 all_matches.append(folder)
 
         print(
@@ -175,12 +196,13 @@ def main() -> int:
         offset += 1
 
     print()
-    print(f"target_folder_path: {TARGET_FOLDER_PATH}")
+    print(f"store: {args.store}")
+    print(f"target_folder_path: {args.folder_path or '(all folders)'}")
     print(f"matches: {len(all_matches)}")
 
     if not all_matches:
         print("NOT_FOUND")
-        print("RMSで listing_test フォルダが存在するか、FolderPathが listing_test か確認してください。")
+        print("RMSでフォルダが存在するか、指定した FolderPath を確認してください。")
         return 2
 
     for i, folder in enumerate(all_matches, start=1):
@@ -197,14 +219,13 @@ def main() -> int:
         folder_path = normalize_folder_path(folder.get("FolderPath", ""))
         example_file = "b0cn39x1fc_01.jpg"
         item_location = f"/{folder_path}/{example_file}"
-        full_url = f"https://image.rakuten.co.jp/ecprime500/cabinet/{folder_path}/{example_file}"
+        print(f"Cabinet setting: folder_id={folder.get('FolderId')} folder_path={folder_path} folder_node={folder.get('FolderNode')}")
 
         print(f"Example item location: {item_location}")
-        print(f"Example full URL     : {full_url}")
 
-    if len(all_matches) > 1:
+    if len(all_matches) > 1 and not args.all:
         print()
-        print("WARNING: listing_test に一致するフォルダが複数あります。RMS上でどれを使うか確認してください。")
+        print("WARNING: 複数フォルダが見つかりました。RMS上でどれを使うか確認してください。")
         return 3
 
     return 0

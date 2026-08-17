@@ -106,6 +106,25 @@ def _contains_representative_color(item_payload: dict[str, Any] | None) -> bool:
     return False
 
 
+def _representative_color_value(item_payload: dict[str, Any] | None) -> str:
+    if not isinstance(item_payload, dict):
+        return ""
+    variants = item_payload.get("variants") or {}
+    if not isinstance(variants, dict):
+        return ""
+    for variant in variants.values():
+        if not isinstance(variant, dict):
+            continue
+        for attribute in variant.get("attributes") or []:
+            if not isinstance(attribute, dict) or str(attribute.get("name") or "") != "代表カラー":
+                continue
+            values = attribute.get("values")
+            if isinstance(values, list):
+                return next((str(value).strip() for value in values if str(value).strip()), "")
+            return str(attribute.get("value") or "").strip()
+    return ""
+
+
 def _build_unresolved_specifications(dry_run_result: dict[str, Any]) -> list[dict[str, Any]]:
     item_payload = dry_run_result.get("item_payload")
     if not isinstance(item_payload, dict):
@@ -114,7 +133,11 @@ def _build_unresolved_specifications(dry_run_result: dict[str, Any]) -> list[dic
         genre_id = int(item_payload.get("genreId"))
     except (TypeError, ValueError):
         genre_id = None
-    if genre_id == 213661 and _contains_representative_color(item_payload):
+    if (
+        genre_id == 213661
+        and _contains_representative_color(item_payload)
+        and _representative_color_value(item_payload) != "-"
+    ):
         return [
             {
                 "field": "代表カラー",

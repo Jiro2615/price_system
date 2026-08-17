@@ -10,7 +10,11 @@ from scripts.listing.models import (
     MasterData,
     StoreSettings,
 )
-from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
+from scripts.listing.prepare_service import (
+    PrepareListingRequest,
+    precheck_keepa_before_amazon,
+    prepare_listing,
+)
 
 
 class ListingPrepareFlowTests(unittest.TestCase):
@@ -116,8 +120,47 @@ class ListingPrepareFlowTests(unittest.TestCase):
         self.assertFalse(allow_missing)
         return self.master
 
-    def test_already_listed_skips_external_calls(self) -> None:
-        master = MasterData(**{**self.master.__dict__, "listed_asins": {"B00A25RH18": "20241117070745_187"}})
+    def test_keepa_business_ng_skips_amazon_page_before_browser_check(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "is_adult": True})
+        result, returned_keepa = precheck_keepa_before_amazon(
+            self.request,
+            keepa_fetcher=lambda asin: keepa,
+            prepare_kwargs={
+                "store_settings_loader": self._store_loader,
+                "master_data_loader": self._master_loader,
+                "existing_listing_lookup": lambda asin, store: None,
+            },
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result["listing_status"], "business_ng")
+        self.assertIsNone(result["amazon_result"])
+        self.assertTrue(result["keepa_precheck"]["amazon_page_skipped"])
+        self.assertIs(returned_keepa, keepa)
+
+    def test_keepa_precheck_uses_injected_result_without_offer_details(self) -> None:
+        keepa = KeepaProductData(
+            **{
+                **self.keepa.__dict__,
+                "avg90_new_offer_count": 4.2,
+                "current_new_offer_count": 4,
+            }
+        )
+        result, returned_keepa = precheck_keepa_before_amazon(
+            self.request,
+            keepa_fetcher=lambda asin: keepa,
+            prepare_kwargs={
+                "store_settings_loader": self._store_loader,
+                "master_data_loader": self._master_loader,
+                "existing_listing_lookup": lambda asin, store: None,
+            },
+        )
+
+        self.assertIsNone(result)
+        self.assertIs(returned_keepa, keepa)
+
+    def test_store_db_listing_skips_external_calls(self) -> None:
+        master = MasterData(**{**self.master.__dict__, "listed_asins": {"B00A25RH18": "legacy-file-entry-must-be-ignored"}})
         request = PrepareListingRequest(
             asin="B00A25RH18",
             store_code="rakuten_1",
@@ -157,6 +200,7 @@ class ListingPrepareFlowTests(unittest.TestCase):
             management_number_builder=fail_management_builder,
             item_payload_builder=fail_item_builder,
             inventory_payload_builder=fail_inventory_builder,
+            existing_listing_lookup=lambda asin, store: {"management_number": "20241117070745_187", "source": "store_products"},
         )
 
         self.assertEqual(result["listing_status"], "already_listed")

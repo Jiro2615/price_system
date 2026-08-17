@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from typing import Any
 
 
@@ -7,6 +8,10 @@ MACHINE_DEPENDENT_TEXT_REPLACEMENTS: dict[str, str] = {
     "№": "No.",
     "㎝": "cm",
     "㎜": "mm",
+    "㎏": "kg",
+    "㎡": "m2",
+    "Ⅱ": "II",
+    "É": "E",
     "㈱": "株式会社",
     "①": "1",
     "②": "2",
@@ -25,7 +30,20 @@ def sanitize_text_for_rakuten_api(value: str) -> str:
     sanitized = str(value)
     for source, replacement in MACHINE_DEPENDENT_TEXT_REPLACEMENTS.items():
         sanitized = sanitized.replace(source, replacement)
-    return sanitized
+    # RMS rejects a broader set of compatibility characters than ordinary
+    # Windows CP932 encoding does.  NFKC converts the remaining safe forms
+    # (for example full-width Latin letters and enclosed units) to plain text.
+    sanitized = unicodedata.normalize("NFKC", sanitized)
+    return "".join(_strip_latin_diacritic(character) for character in sanitized)
+
+
+def _strip_latin_diacritic(character: str) -> str:
+    """Convert accented Latin letters such as É without touching Japanese."""
+    codepoint = ord(character)
+    if not (0x00C0 <= codepoint <= 0x024F):
+        return character
+    ascii_value = unicodedata.normalize("NFKD", character).encode("ascii", "ignore").decode("ascii")
+    return ascii_value or character
 
 
 def sanitize_payload_text_for_rakuten_api(value: Any) -> Any:

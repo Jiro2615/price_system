@@ -51,6 +51,7 @@ async def fetch_amazon_result(
     *,
     page_timeout_ms: int = 15000,
     debug_html: bool = False,
+    page: Any = None,
 ) -> AmazonCheckResult:
     module = _load_amazon_module()
     captured: dict[str, object] = {}
@@ -69,6 +70,7 @@ async def fetch_amazon_result(
                 asin.strip().upper(),
                 page_timeout_ms=page_timeout_ms,
                 debug_html=debug_html,
+                page=page,
             )
         finally:
             module.log_result_summary = original_logger
@@ -77,6 +79,7 @@ async def fetch_amazon_result(
             asin.strip().upper(),
             page_timeout_ms=page_timeout_ms,
             debug_html=debug_html,
+            page=page,
         )
 
     return AmazonCheckResult(
@@ -85,6 +88,7 @@ async def fetch_amazon_result(
         title=str(result.get("title", "") or ""),
         amazon_price=result.get("amazon_price"),
         available_qty=result.get("available_qty"),
+        minimum_order_quantity=result.get("minimum_order_quantity"),
         gift_available=result.get("gift_available"),
         shipping_status=str(result.get("shipping_status", "") or ""),
         business_ng=bool(result.get("business_ng")),

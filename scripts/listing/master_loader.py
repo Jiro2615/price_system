@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Iterable
 
 from scripts.listing.models import MasterData
-from scripts.listing.prohibited_word_masking import load_allowed_phrase_rules, split_replacement_rules
+from scripts.listing.prohibited_word_masking import (
+    load_allowed_phrase_rules,
+    normalize_allowed_phrase_payload,
+    split_replacement_rules,
+)
 
 
 MASTER_FILENAMES = {
@@ -14,11 +19,13 @@ MASTER_FILENAMES = {
     "replacements": "replacelist_rakuten.txt",
     "prohibited_rakuten": "kinsiword_rakuten.txt",
     "prohibited_other": "kinsiword_other.txt",
-    "listed_asins": "shuppinlist_rakuten.txt",
     "category_map": "catlist_rakuten.txt",
     "allowed_phrases": "allowed_phrases_rakuten.json",
     "attribute_definitions": "属性定義書.txt",
 }
+
+STORE_ALLOWED_PHRASES_FILENAME = "allowed_phrases_rakuten.{store_code}.json"
+OPTIONAL_MASTER_KEYS = {"prohibited_other"}
 
 
 ENCODINGS = ("utf-8-sig", "utf-8", "cp932", "shift_jis")
@@ -128,6 +135,51 @@ def load_attribute_definitions(path: Path) -> dict[int, list[str]]:
     return result
 
 
+def apply_store_allowed_phrase_overrides(
+    master_data: MasterData,
+    master_dir: Path,
+    store_code: str,
+) -> MasterData:
+    """Merge an optional store-specific allow-list on top of shared rules."""
+    normalized_store_code = str(store_code or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", normalized_store_code):
+        return master_data
+
+    override_path = Path(master_dir) / STORE_ALLOWED_PHRASES_FILENAME.format(
+        store_code=normalized_store_code
+    )
+    if override_path.exists():
+        overlay = load_allowed_phrase_rules(override_path)
+        merged_rules = {
+            word: list(phrases)
+            for word, phrases in master_data.allowed_phrase_rules.items()
+        }
+        for word, phrases in overlay["rules"].items():
+            merged_rules.setdefault(word, []).extend(phrases)
+
+        master_data.allowed_phrase_rules = normalize_allowed_phrase_payload(merged_rules)["rules"]
+
+        merged_checks = {
+            phrase: list(checks)
+            for phrase, checks in master_data.allowed_phrase_separate_checks.items()
+        }
+        for phrase, checks in overlay["separate_checks"].items():
+            target = merged_checks.setdefault(phrase, [])
+            for check in checks:
+                if check not in target:
+                    target.append(check)
+        master_data.allowed_phrase_separate_checks = merged_checks
+        master_data.allowed_phrase_meta = {
+            **master_data.allowed_phrase_meta,
+            "store_override_file": override_path.name,
+        }
+    # PostgreSQL becomes the active source only after the explicit legacy
+    # import completes. Until then this safely preserves file-based behavior.
+    from scripts.listing.listing_master_db import apply_database_master_snapshot
+
+    return apply_database_master_snapshot(master_data, normalized_store_code)
+
+
 def load_master_data(master_dir: Path, allow_missing: bool = False) -> MasterData:
     master_dir = Path(master_dir)
     missing_files: list[str] = []
@@ -136,7 +188,8 @@ def load_master_data(master_dir: Path, allow_missing: bool = False) -> MasterDat
     for key, filename in MASTER_FILENAMES.items():
         path = master_dir / filename
         if not path.exists():
-            missing_files.append(filename)
+            if key not in OPTIONAL_MASTER_KEYS:
+                missing_files.append(filename)
             continue
         if key == "blacklist":
             loaded[key] = load_blacklist(path)

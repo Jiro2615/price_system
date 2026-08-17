@@ -76,7 +76,9 @@ def calc_price(
         base_cost = amazon_cost + fixed_cost + int(profit_amount or 0)
 
     raw_price = base_cost / (1 - fee_rate)
-    return ceil_to_unit(math.ceil(raw_price), rounding_unit)
+    # 価格在庫チェック（price_system）と同じ計算に統一する。
+    # 必要額を1円単位で切り上げた後、設定された端数単位にも切り上げる。
+    return ceil_to_unit(int(math.ceil(raw_price)), rounding_unit)
 
 
 # =========================
@@ -131,7 +133,6 @@ def fetch_calc_targets(conn, store_code: str | None):
             pr.profit_rate,
             pr.profit_amount,
             pr.fee_rate AS rule_fee_rate,
-            pr.fixed_profit AS rule_fixed_profit,
             pr.fixed_cost AS rule_fixed_cost,
             pr.rounding_unit AS rule_rounding_unit
         FROM store_products sp
@@ -243,7 +244,6 @@ def main() -> int:
                 profit_rate,
                 profit_amount,
                 rule_fee_rate,
-                rule_fixed_profit,
                 rule_fixed_cost,
                 rule_rounding_unit,
             ) = row
@@ -290,8 +290,7 @@ def main() -> int:
                         fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
                         rounding_unit = to_int(rule_rounding_unit, to_int(store_rounding_unit, 10)) or 10
 
-                        # profit_amountは新カラム優先。未設定なら既存 fixed_profit を互換利用。
-                        selected_profit_amount = to_int(profit_amount, to_int(rule_fixed_profit, 0)) or 0
+                        selected_profit_amount = to_int(profit_amount, 0) or 0
                         selected_profit_rate = to_float(profit_rate, 0.0)
 
                         target_price = calc_price(
