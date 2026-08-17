@@ -1,12 +1,14 @@
 import argparse
 import builtins
 import os
+import queue
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from db_config import connect_db
 from db_retry import DB_RETRY_EXIT_CODE, is_retryable_db_error
@@ -234,7 +236,11 @@ def wait_for_db_recovery(wait_seconds: int = DB_RECOVERY_WAIT_SECONDS) -> None:
             time.sleep(wait_seconds)
 
 
-def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, dict[str, str], str]:
+def run_child_once(
+    loop_index: int,
+    cmd: list[str],
+    should_stop_requested: Callable[[], bool] | None = None,
+) -> tuple[int, float, bool, dict[str, str], str, bool]:
     started = time.perf_counter()
     started_at = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
@@ -263,10 +269,48 @@ def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, d
         bufsize=1,
     )
 
-    output_lines: list[str] = []
-
     assert proc.stdout is not None
-    for line in proc.stdout:
+    output_lines: list[str] = []
+    output_queue: queue.Queue[str | None] = queue.Queue()
+
+    def read_output() -> None:
+        try:
+            for line in proc.stdout:
+                output_queue.put(line)
+        finally:
+            output_queue.put(None)
+
+    threading.Thread(target=read_output, name=f"amazon-worker-output-{loop_index}", daemon=True).start()
+    stop_requested = False
+    output_closed = False
+    while not output_closed:
+        try:
+            line = output_queue.get(timeout=1)
+        except queue.Empty:
+            if not stop_requested and should_stop_requested is not None:
+                try:
+                    stop_requested = bool(should_stop_requested())
+                except Exception as error:
+                    print(f"stop-state check failed: {error}", flush=True)
+                if stop_requested and proc.poll() is None:
+                    print("desired_state=stopped detected during child run. Terminating child process tree.", flush=True)
+                    try:
+                        if os.name == "nt":
+                            subprocess.run(
+                                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                                check=False,
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                                timeout=15,
+                            )
+                        else:
+                            proc.terminate()
+                    except (OSError, subprocess.SubprocessError) as error:
+                        print(f"child stop dispatch failed: {error}", flush=True)
+            continue
+        if line is None:
+            output_closed = True
+            continue
         print(line, end="", flush=True)
         output_lines.append(line)
 
@@ -304,10 +348,11 @@ def run_child_once(loop_index: int, cmd: list[str]) -> tuple[int, float, bool, d
             "returncode",
         ]:
             print(f"  {key}: {worker_summary.get(key, '')}")
-    print(f"result     : {'SUCCESS' if returncode == 0 else 'FAILED'}")
+    print(f"stop_requested: {'YES' if stop_requested else 'NO'}")
+    print(f"result     : {'SUCCESS' if returncode == 0 or stop_requested else 'FAILED'}")
     print("------------------------------------------------------------")
 
-    return returncode, elapsed, empty_result, worker_summary, get_last_error_line(output_lines)
+    return returncode, elapsed, empty_result, worker_summary, get_last_error_line(output_lines), stop_requested
 
 
 def add_bool_override(
@@ -437,7 +482,15 @@ def main() -> int:
                 dry_run=args.dry_run,
             )
             loop_index += 1
-            returncode, _elapsed, empty_result, worker_summary, child_error_line = run_child_once(loop_index, child_cmd)
+            returncode, _elapsed, empty_result, worker_summary, child_error_line, child_stop_requested = run_child_once(
+                loop_index,
+                child_cmd,
+                should_stop_requested=lambda: str(resolve_worker().get("desired_state", "")).strip().lower() == "stopped",
+            )
+
+            if child_stop_requested:
+                print("desired_state=stopped detected during child run. Exiting worker loop.")
+                return 0
 
             if returncode != 0:
                 if returncode == DB_RETRY_EXIT_CODE:
