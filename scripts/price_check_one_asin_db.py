@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import builtins
+import importlib.util
 import re
 import sys
 from datetime import date, datetime
@@ -54,6 +55,30 @@ def parse_price(text: str) -> int:
     return int(float(m.group(0))) if m else 0
 
 
+def parse_yen_price(text: str) -> int:
+    """Extract a price after ￥/¥, not a leading discount percentage."""
+    matches = re.findall(r"[￥¥]\s*([0-9][0-9,]*)", str(text or ""))
+    try:
+        return int(matches[-1].replace(",", "")) if matches else 0
+    except ValueError:
+        return 0
+
+
+_NON_NEW_CONDITION_MARKERS = ("中古", "整備済み", "再生品", "アウトレット", "展示品", "コレクター")
+_OFFER_CONDITION_PATTERN = re.compile(
+    r"新品同様|中古|整備済み|再生品|アウトレット|展示品|コレクター|新品"
+)
+
+
+def is_explicit_new_offer_text(in_text: str) -> bool:
+    """Accept an Amazon offer only when its condition is explicitly ``新品``."""
+    normalized = re.sub(r"\s+", " ", str(in_text or "")).strip()
+    # A trailing used-offer teaser belongs to a different offer.  The first
+    # condition in the primary BuyBox/offer block decides eligibility.
+    match = _OFFER_CONDITION_PATTERN.search(normalized)
+    return bool(match and match.group(0) == "新品")
+
+
 def extract_asin(url: str) -> str:
     m = re.search(r"/(?:dp|gp/product)/([A-Z0-9]{10})", url, re.I)
     return m.group(1).upper() if m else ""
@@ -85,10 +110,22 @@ def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
     return (target - today).days
 
 
+def is_prime_amazon_official_offer_text(in_text: str) -> bool:
+    normalized = re.sub(r"\s+", " ", str(in_text or "")).strip()
+    if "prime" not in normalized.lower():
+        return False
+    direct_amazon = bool(re.search(r"出荷元\s*/\s*販売元\s*Amazon\.co\.jp", normalized, re.I))
+    separate_amazon = bool(re.search(r"出荷元\s*Amazon\.co\.jp", normalized, re.I)) and bool(
+        re.search(r"販売元\s*Amazon\.co\.jp", normalized, re.I)
+    )
+    customer_service_amazon = bool(re.search(r"カスタマーサービス\s*Amazon\.co\.jp", normalized, re.I))
+    return (direct_amazon or separate_amazon) and customer_service_amazon
+
+
 def judge_basic_ng(in_text: str) -> str:
     if "在庫切れ" in in_text:
         return "在庫切れ"
-    if "ギフト" not in in_text:
+    if "ギフト" not in in_text and not is_prime_amazon_official_offer_text(in_text):
         return "ギフト不可"
     return ""
 
@@ -584,6 +621,67 @@ def parse_available_qty(text: str) -> Optional[int]:
         return None
 
 
+def quantity_dropdown_details(options: list[tuple[str, str]]) -> tuple[Optional[int], Optional[int]]:
+    quantities: list[int] = []
+    minimum_order_quantity: Optional[int] = None
+    for raw_value, raw_text in options:
+        value = re.sub(r"\s+", "", str(raw_value or ""))
+        text = re.sub(r"\s+", "", str(raw_text or ""))
+        match = re.fullmatch(r"[1-9]\d*", value) or re.match(r"([1-9]\d*)", text)
+        if not match:
+            continue
+        quantity = int(match.group(1) if match.lastindex else match.group(0))
+        quantities.append(quantity)
+        if "最小注文個数" in text:
+            minimum_order_quantity = quantity
+    return (max(quantities) if quantities else None, minimum_order_quantity)
+
+
+def minimum_order_quantity_from_offer_text(*texts: object) -> Optional[int]:
+    """Read Amazon AOD's visible ``最小注文数: 2`` style constraint."""
+    for raw_text in texts:
+        normalized = re.sub(r"\s+", "", str(raw_text or ""))
+        match = re.search(r"最小注文(?:個数|数)[:：]?([1-9]\d*)", normalized)
+        if match:
+            return int(match.group(1))
+        match = re.search(r'"minQty"\s*:\s*([1-9]\d*)', str(raw_text or ""))
+        if match:
+            return int(match.group(1))
+    return None
+
+
+async def get_quantity_dropdown_details(page, root=None) -> tuple[Optional[int], Optional[int]]:
+    roots = [root] if root is not None else []
+    roots.append(page)
+    selectors = ("#quantity select", "#quantityRelocateFeature select", "select[name='quantity']", "select#quantity")
+    for candidate_root in roots:
+        if candidate_root is None:
+            continue
+        for selector in selectors:
+            try:
+                select = candidate_root.locator(selector).first
+                if await select.count() == 0:
+                    continue
+                options = select.locator("option")
+                option_values: list[tuple[str, str]] = []
+                for index in range(await options.count()):
+                    option = options.nth(index)
+                    option_values.append(((await option.get_attribute("value")) or "", await safe_inner_text(option)))
+                maximum, minimum_order_quantity = quantity_dropdown_details(option_values)
+                if maximum is not None:
+                    return maximum, minimum_order_quantity
+            except Exception:
+                continue
+    return None, None
+
+
+def apply_minimum_order_block(result: dict[str, Any], minimum_order_quantity: Optional[int]) -> None:
+    result["minimum_order_quantity"] = minimum_order_quantity
+    if minimum_order_quantity and minimum_order_quantity > 1:
+        result["business_ng"] = True
+        result["ng_reason"] = f"最小注文個数が{minimum_order_quantity}個です"
+
+
 async def parse_point(page) -> int:
     loc = page.locator("#pointsInsideBuyBox_feature_div")
     if await loc.count() == 0:
@@ -647,6 +745,45 @@ def has_actual_purchase_button_text(text: str) -> bool:
 def is_generic_availability_text(text: str) -> bool:
     normalized = re.sub(r"\s+", "", text or "")
     return normalized in {"在庫状況について", "在庫状況"}
+
+
+async def read_lowest_amazon_fulfilled_offer(page) -> Optional[dict[str, Any]]:
+    """Read a real price-to-pay from the all-offers panel when BuyBox is absent."""
+    ingress = page.locator("#aod-ingress-link")
+    if await ingress.count() == 0:
+        ingress = page.locator("a[href*='/gp/offer-listing/']").first
+    if await ingress.count() == 0:
+        return None
+    try:
+        await ingress.first.click(timeout=5000)
+        offers = page.locator("#aod-offer-list #aod-offer")
+        await offers.first.wait_for(state="visible", timeout=10000)
+    except Exception:
+        return None
+    candidates: list[dict[str, Any]] = []
+    for index in range(await offers.count()):
+        offer = offers.nth(index)
+        try:
+            ships_from = re.sub(r"\s+", " ", await safe_inner_text(offer.locator("#aod-offer-shipsFrom").first)).strip()
+            if "Amazon" not in ships_from:
+                continue
+            price = parse_price(await safe_inner_text(offer.locator(".apex-pricetopay-value .a-price-whole").first))
+            if price <= 0:
+                price = parse_yen_price(await safe_inner_text(offer.locator(".apex-pricetopay-accessibility-label").first))
+            delivery = offer.locator("[data-csa-c-delivery-price]").first
+            delivery_price = await delivery.get_attribute("data-csa-c-delivery-price") if await delivery.count() else ""
+            offer_text = await safe_inner_text(offer)
+            if not is_explicit_new_offer_text(offer_text) or price <= 0 or delivery_price != "無料":
+                continue
+            candidates.append({
+                "price": price,
+                "offer_index": index,
+                "offer_text": offer_text,
+                "minimum_order_quantity": minimum_order_quantity_from_offer_text(offer_text),
+            })
+        except Exception:
+            continue
+    return min(candidates, key=lambda item: item["price"]) if candidates else None
 
 
 async def read_buybox_info(page) -> dict[str, Any]:
@@ -755,7 +892,7 @@ async def check_amazon_one(
             playwright, browser, context, page = await create_amazon_page()
 
         try:
-            url = f"https://www.amazon.co.jp/dp/{asin}"
+            url = build_amazon_product_url(asin)
             print(f"Amazon確認開始: {url}")
 
             await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
@@ -1516,7 +1653,13 @@ async def check_amazon_one_v3(
                     fallback_price = await get_alt_price_from_buybox(page)
                 if fallback_price <= 0:
                     fallback_price = await get_price_from_selector(page, "#corePriceDisplay_desktop_feature_div")
-                fallback_qty = parse_available_qty(fallback_text)
+                fallback_qty, minimum_order_quantity = await get_quantity_dropdown_details(page)
+
+                if fallback_qty is None:
+
+                    fallback_qty = parse_available_qty(fallback_text)
+
+                apply_minimum_order_block(result, minimum_order_quantity)
                 fallback_point = await parse_point(page)
                 availability_has_stock_signal = bool(availability_text) and not is_generic_availability_text(availability_text)
                 offer_listing_only = (
@@ -1524,6 +1667,17 @@ async def check_amazon_one_v3(
                     or "すべての出品を見る" in desktop_buybox_text
                     or add_to_cart_is_offer_link
                 )
+                if offer_listing_only:
+                    lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
+                    if lowest_offer is not None:
+                        result["amazon_price"] = lowest_offer["price"]
+                        result["amazon_point"] = fallback_point
+                        result["available_qty"] = 1
+                        apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                        result["gift_available"] = True
+                        result["shipping_status"] = "Amazon発送最安"
+                        return result
+
                 missing_core_purchase_info = (
                     fallback_price <= 0
                     and not availability_has_stock_signal
@@ -1570,12 +1724,38 @@ async def check_amazon_one_v3(
             in_text = buy_info["in_text"]
             price = int(buy_info["price"] or 0)
 
+            if not is_explicit_new_offer_text(in_text):
+                # A used or condition-unknown Buy Box must never become a
+                # price source. AOD remains usable only when it exposes a
+                # separately labelled new Amazon-fulfilled offer.
+                lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
+                if lowest_offer is not None:
+                    result["amazon_price"] = lowest_offer["price"]
+                    result["amazon_point"] = await parse_point(page)
+                    result["available_qty"] = 1
+                    apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                    result["gift_available"] = True
+                    result["shipping_status"] = "Amazon発送（新品・全出品）"
+                    result["selected_offer"] = lowest_offer
+                    return result
+                result["business_ng"] = True
+                result["system_error"] = False
+                result["ng_reason"] = "新品条件を確認できません"
+                result["amazon_price"] = None
+                result["available_qty"] = None
+                result["gift_available"] = False
+                result["shipping_status"] = "NG"
+                return result
+
             status_error = judge_basic_ng(in_text)
             if status_error:
                 result["business_ng"] = True
                 result["ng_reason"] = status_error
 
-            qty = parse_available_qty(in_text)
+            qty, minimum_order_quantity = await get_quantity_dropdown_details(page, root=page.locator("#buybox"))
+            if qty is None:
+                qty = parse_available_qty(in_text)
+            apply_minimum_order_block(result, minimum_order_quantity)
             shipping_status, shipping_message = parse_shipping_status(in_text)
             if shipping_status != "OK":
                 result["business_ng"] = True
@@ -1698,6 +1878,26 @@ def save_to_db(data: dict[str, Any]) -> None:
         description=f"save_to_db asin={data.get('asin')}",
         logger=print,
     )
+
+
+def _load_shared_amazon_checker():
+    """Load the canonical Amazon page checker used by the listing workflow."""
+    shared_path = Path(__file__).resolve().parents[2] / "price_system_listing" / "scripts" / "price_check_one_asin_db.py"
+    spec = importlib.util.spec_from_file_location("rakuten_shared_amazon_checker", shared_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"shared Amazon checker could not be loaded: {shared_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# Amazon page inspection is owned by the listing worktree. Price/stock keeps
+# its own DB persistence and target-calculation flow, but uses the same price,
+# stock, gift, and Amazon-fulfilled-offer decision as listing.
+_shared_amazon_checker = _load_shared_amazon_checker()
+check_amazon_one = _shared_amazon_checker.check_amazon_one
+create_amazon_page = _shared_amazon_checker.create_amazon_page
+close_amazon_page = _shared_amazon_checker.close_amazon_page
 
 
 async def main() -> int:

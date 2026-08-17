@@ -143,7 +143,6 @@ Existing DB-backed settings used here:
 - `price_rules.profit_rate`
 - `price_rules.profit_amount`
 - `price_rules.fee_rate`
-- `price_rules.fixed_profit`
 - `price_rules.fixed_cost`
 - `price_rules.rounding_unit`
 
@@ -231,8 +230,6 @@ Secret and connection settings stay outside DB.
 | `RAKUTEN_1_LICENSE_KEY` | `.env` | `secret_env` | Rakuten store auth |
 | `RAKUTEN_2_SERVICE_SECRET` | `.env` | `secret_env` | Rakuten store auth |
 | `RAKUTEN_2_LICENSE_KEY` | `.env` | `secret_env` | Rakuten store auth |
-| `RAKUTEN_SERVICE_SECRET` | `.env` fallback | `secret_env` | legacy `rakuten_1` compatibility |
-| `RAKUTEN_LICENSE_KEY` | `.env` fallback | `secret_env` | legacy `rakuten_1` compatibility |
 
 ## What Should Move to DB
 

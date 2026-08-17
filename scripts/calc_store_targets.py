@@ -59,7 +59,7 @@ def calc_price(
         base_cost = amazon_cost + fixed_cost + int(profit_amount or 0)
 
     raw_price = base_cost / (1 - fee_rate)
-    return int(math.ceil(raw_price))
+    return ceil_to_unit(int(math.ceil(raw_price)), rounding_unit)
 
 
 def parse_asin_args(single_asin: str, asin_list: str) -> list[str] | None:
@@ -101,6 +101,71 @@ def has_table_column(conn, table_name: str, column_name: str) -> bool:
         return cur.fetchone() is not None
 
 
+def has_table(conn, table_name: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = %s
+            """,
+            (table_name,),
+        )
+        return cur.fetchone() is not None
+
+
+def apply_rakuten_competitor_price_floor(
+    base_target_price: int,
+    competitor_price_enabled: bool,
+    competitor_lowest_price: Optional[int],
+) -> tuple[int, bool]:
+    """Prevent unnecessary underpricing without lowering a profit-based target."""
+    competitor_price = to_int(competitor_lowest_price)
+    if not competitor_price_enabled or competitor_price is None or competitor_price <= base_target_price:
+        return base_target_price, False
+    return competitor_price, True
+
+
+def calculate_profit_amount(
+    selling_price: int,
+    amazon_price: int,
+    amazon_point: int,
+    use_amazon_point: bool,
+    fee_rate: float,
+    fixed_cost: int,
+) -> int:
+    amazon_cost = amazon_price - amazon_point if use_amazon_point else amazon_price
+    return int(math.floor(selling_price * (1 - fee_rate) - amazon_cost - fixed_cost))
+
+
+def apply_rakuten_competitor_price_rules(
+    *,
+    base_target_price: int,
+    competitor_price_enabled: bool,
+    competitor_lowest_price: Optional[int],
+    competitor_undercut_yen: int,
+    competitor_floor_enabled: bool,
+    competitor_undercut_enabled: bool,
+    competitor_min_profit_amount: int,
+    amazon_price: int,
+    amazon_point: int,
+    use_amazon_point: bool,
+    fee_rate: float,
+    fixed_cost: int,
+) -> tuple[int, str]:
+    competitor_price = to_int(competitor_lowest_price)
+    if not competitor_price_enabled or competitor_price is None:
+        return base_target_price, ""
+    market_price = max(1, competitor_price - max(0, int(competitor_undercut_yen or 0)))
+    if competitor_undercut_enabled:
+        profit = calculate_profit_amount(market_price, amazon_price, amazon_point, use_amazon_point, fee_rate, fixed_cost)
+        if profit >= max(0, int(competitor_min_profit_amount or 0)):
+            return market_price, f"rakuten_competitor_undercut={market_price}/profit={profit}"
+    if competitor_floor_enabled and market_price > base_target_price:
+        return market_price, f"rakuten_competitor_floor={market_price}"
+    return base_target_price, ""
+
+
 def resolve_store_max_stock(store_code: str, store_max_stock: Optional[int]) -> int:
     max_stock = to_int(store_max_stock)
     if max_stock is None:
@@ -128,6 +193,30 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
     has_store_max_stock = has_table_column(conn, "stores", "max_stock")
     if not has_store_max_stock:
         raise RuntimeError("stores.max_stock column is required for safe target_stock calculation")
+
+    has_competitor_setting = has_table_column(conn, "store_settings", "rakuten_competitor_price_enabled")
+    has_competitor_snapshots = has_table(conn, "rakuten_competitor_price_snapshots")
+    competitor_setting_select = (
+        "COALESCE(ss.rakuten_competitor_price_enabled, FALSE)"
+        if has_competitor_setting
+        else "FALSE"
+    )
+    competitor_settings_join = "LEFT JOIN store_settings ss ON ss.store_id = s.id" if has_competitor_setting else ""
+    competitor_snapshot_select = "rcp.item_price" if has_competitor_snapshots else "NULL::integer"
+    competitor_snapshot_join = """
+        LEFT JOIN LATERAL (
+            SELECT rcp.item_price
+            FROM rakuten_competitor_price_snapshots rcp
+            WHERE rcp.asin = sp.asin
+              AND rcp.postage_included = TRUE
+              AND rcp.availability = TRUE
+              AND rcp.fetched_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+            ORDER BY rcp.item_price, rcp.fetched_at DESC
+            LIMIT 1
+        ) rcp ON TRUE
+    """ if has_competitor_snapshots else ""
+    def setting_select(column_name: str, default: str) -> str:
+        return f"COALESCE(ss.{column_name}, {default})" if has_table_column(conn, "store_settings", column_name) else default
 
     sql = f"""
         SELECT
@@ -162,12 +251,18 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             pr.profit_rate,
             pr.profit_amount,
             pr.fee_rate AS rule_fee_rate,
-            pr.fixed_profit AS rule_fixed_profit,
             pr.fixed_cost AS rule_fixed_cost,
-            pr.rounding_unit AS rule_rounding_unit
+            pr.rounding_unit AS rule_rounding_unit,
+            {competitor_setting_select} AS rakuten_competitor_price_enabled,
+            {competitor_snapshot_select} AS rakuten_competitor_lowest_price,
+            {setting_select('rakuten_competitor_floor_enabled', 'FALSE')} AS rakuten_competitor_floor_enabled,
+            {setting_select('rakuten_competitor_undercut_enabled', 'FALSE')} AS rakuten_competitor_undercut_enabled,
+            {setting_select('rakuten_competitor_undercut_yen', '0')} AS rakuten_competitor_undercut_yen,
+            {setting_select('rakuten_competitor_min_profit_amount', '0')} AS rakuten_competitor_min_profit_amount
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         JOIN amazon_products ap ON ap.asin = sp.asin
+        {competitor_settings_join}
         LEFT JOIN LATERAL (
             SELECT pr.*
             FROM price_rules pr
@@ -189,6 +284,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             ORDER BY pr.priority, pr.id
             LIMIT 1
         ) pr ON TRUE
+        {competitor_snapshot_join}
         WHERE {" AND ".join(where)}
         ORDER BY s.store_code, sp.id;
     """
@@ -246,9 +342,14 @@ def calc_target_for_row(row) -> dict:
         profit_rate,
         profit_amount,
         rule_fee_rate,
-        rule_fixed_profit,
         rule_fixed_cost,
         rule_rounding_unit,
+        rakuten_competitor_price_enabled,
+        rakuten_competitor_lowest_price,
+        rakuten_competitor_floor_enabled,
+        rakuten_competitor_undercut_enabled,
+        rakuten_competitor_undercut_yen,
+        rakuten_competitor_min_profit_amount,
     ) = row
 
     reason = ""
@@ -283,10 +384,10 @@ def calc_target_for_row(row) -> dict:
             fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
             fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
             rounding_unit = to_int(rule_rounding_unit, to_int(store_rounding_unit, 10)) or 10
-            selected_profit_amount = to_int(profit_amount, to_int(rule_fixed_profit, 0)) or 0
+            selected_profit_amount = to_int(profit_amount, 0) or 0
             selected_profit_rate = to_float(profit_rate, 0.0)
 
-            target_price = calc_price(
+            base_target_price = calc_price(
                 amazon_price=int(amazon_price),
                 amazon_point=int(amazon_point or 0),
                 use_amazon_point=bool(use_amazon_point),
@@ -297,6 +398,20 @@ def calc_target_for_row(row) -> dict:
                 fixed_cost=fixed_cost,
                 rounding_unit=rounding_unit,
             )
+            target_price, competitor_reason = apply_rakuten_competitor_price_rules(
+                base_target_price=base_target_price,
+                competitor_price_enabled=bool(rakuten_competitor_price_enabled),
+                competitor_lowest_price=rakuten_competitor_lowest_price,
+                competitor_undercut_yen=to_int(rakuten_competitor_undercut_yen, 0) or 0,
+                competitor_floor_enabled=bool(rakuten_competitor_floor_enabled),
+                competitor_undercut_enabled=bool(rakuten_competitor_undercut_enabled),
+                competitor_min_profit_amount=to_int(rakuten_competitor_min_profit_amount, 0) or 0,
+                amazon_price=int(amazon_price),
+                amazon_point=int(amazon_point or 0),
+                use_amazon_point=bool(use_amazon_point),
+                fee_rate=fee_rate,
+                fixed_cost=fixed_cost,
+            )
 
             reason = (
                 f"OK / rule={rule_name or rule_id} / "
@@ -304,6 +419,8 @@ def calc_target_for_row(row) -> dict:
                 f"mode={profit_mode or 'amount'} / "
                 f"point={'ON' if use_amazon_point else 'OFF'}"
             )
+            if competitor_reason:
+                reason += f" / {competitor_reason}"
 
         reason += f" / max_stock={max_stock}"
 

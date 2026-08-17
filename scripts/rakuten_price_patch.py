@@ -18,10 +18,11 @@ from rakuten_auth import build_rakuten_auth_header, resolve_rakuten_store_code
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers"
+RETRY_STATE_TABLE = "rakuten_price_api_retry_state"
 
 
 # =========================
@@ -44,8 +45,8 @@ def to_int(value: Any, default: int | None = None) -> int | None:
 def load_auth_header() -> dict[str, str]:
     load_dotenv(ENV_PATH)
 
-    service_secret = os.getenv("RAKUTEN_SERVICE_SECRET", "").strip()
-    license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
+    service_secret = os.getenv("RAKUTEN_1_SERVICE_SECRET", "").strip()
+    license_key = os.getenv("RAKUTEN_1_LICENSE_KEY", "").strip()
 
     if not service_secret:
         raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
@@ -160,6 +161,7 @@ def fetch_price_targets(
     manage_number: str | None = None,
     sku_code: str | None = None,
     blocked_only: bool = False,
+    skip_deferred_retries: bool = False,
 ) -> list[dict[str, Any]]:
     where = [
         "s.mall = 'rakuten'",
@@ -186,6 +188,22 @@ def fetch_price_targets(
 
     if blocked_only:
         where.append("COALESCE(sp.rakuten_csv_update_blocked, FALSE) = TRUE")
+
+    if skip_deferred_retries:
+        where.append(
+            f"""
+            NOT EXISTS (
+                SELECT 1
+                FROM {RETRY_STATE_TABLE} retry_state
+                WHERE retry_state.store_product_id = sp.id
+                  AND retry_state.target_price = sp.target_price
+                  AND (
+                    retry_state.state = 'permanent_hold'
+                    OR (retry_state.next_retry_at IS NOT NULL AND retry_state.next_retry_at > CURRENT_TIMESTAMP)
+                  )
+            )
+            """
+        )
 
     sql = f"""
         SELECT
@@ -215,9 +233,13 @@ def fetch_price_targets(
         LEFT JOIN amazon_products ap ON ap.asin = sp.asin
         WHERE {" AND ".join(where)}
         ORDER BY s.store_code, sp.id
-        LIMIT %s;
     """
-    params.append(limit)
+    # ``0`` means every matching product.  Do not emulate this with a large
+    # arbitrary value: a price-rule change must be able to reach the whole
+    # selected store deterministically.
+    if limit > 0:
+        sql += " LIMIT %s"
+        params.append(limit)
 
     conn = connect_db()
     try:
@@ -245,7 +267,8 @@ def fetch_price_targets_from_csv(
     conn = connect_db()
     try:
         with conn.cursor() as cur:
-            for target in csv_targets[:limit]:
+            targets = csv_targets if limit == 0 else csv_targets[:limit]
+            for target in targets:
                 manage_number = str(target.get("manage_number") or "").strip()
                 sku_code = str(target.get("sku") or "").strip()
                 where = [
@@ -543,6 +566,122 @@ def get_table_columns(cur, table_name: str) -> set[str]:
     return {row[0] for row in cur.fetchall()}
 
 
+def ensure_retry_state_table(conn) -> None:
+    """Create the small retry-state table on first continuous API use."""
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS {RETRY_STATE_TABLE} (
+                    store_product_id BIGINT PRIMARY KEY REFERENCES store_products(id) ON DELETE CASCADE,
+                    store_code TEXT NOT NULL,
+                    target_price INTEGER NOT NULL,
+                    state TEXT NOT NULL CHECK (state IN ('retry_scheduled', 'permanent_hold')),
+                    failure_kind TEXT NOT NULL,
+                    attempt_count INTEGER NOT NULL DEFAULT 0,
+                    next_retry_at TIMESTAMPTZ,
+                    last_error TEXT NOT NULL DEFAULT '',
+                    last_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            cur.execute(
+                f"""
+                CREATE INDEX IF NOT EXISTS idx_rakuten_price_api_retry_state_due
+                ON {RETRY_STATE_TABLE} (store_code, state, next_retry_at)
+                """
+            )
+
+
+def classify_retry_failure(error_message: str, previous_attempts: int, previous_kind: str) -> tuple[str, str, int | None]:
+    """Return failure kind, persisted state, and retry delay in seconds."""
+    normalized = str(error_message or "").lower()
+    verification_mismatch = "価格不一致" in str(error_message or "") or "verified=" in normalized
+    permanent_markers = (
+        "価格変更率が大きすぎます",
+        "current_price がnull",
+        "current_price が不正",
+        "target_price が不正",
+        "sku_code が空",
+        "managenumber が空",
+        "status=400",
+        "status=401",
+        "status=403",
+        "status=404",
+        "認証",
+        "unauthorized",
+        "forbidden",
+        "not found",
+    )
+    if verification_mismatch:
+        if previous_kind == "verification_delay" and previous_attempts >= 1:
+            return "verification_mismatch", "permanent_hold", None
+        return "verification_delay", "retry_scheduled", 5 * 60
+    if any(marker.lower() in normalized for marker in permanent_markers):
+        return "permanent_error", "permanent_hold", None
+    # The request function already retries 429 and transient 5xx responses in
+    # the same cycle.  Persisted retries are deliberately slower.
+    delay_schedule = (5 * 60, 15 * 60, 60 * 60)
+    return "transient_error", "retry_scheduled", delay_schedule[min(previous_attempts, len(delay_schedule) - 1)]
+
+
+def record_retry_state(cur, row: dict[str, Any], error_message: str) -> dict[str, Any]:
+    target_price = int(to_int(row.get("target_price")) or 0)
+    cur.execute(
+        f"""
+        SELECT target_price, failure_kind, attempt_count
+        FROM {RETRY_STATE_TABLE}
+        WHERE store_product_id = %s
+        FOR UPDATE
+        """,
+        (row["store_product_id"],),
+    )
+    previous = cur.fetchone()
+    previous_target, previous_kind, previous_attempts = previous if previous else (None, "", 0)
+    if previous_target != target_price:
+        previous_kind, previous_attempts = "", 0
+    failure_kind, state, retry_delay = classify_retry_failure(error_message, int(previous_attempts or 0), str(previous_kind or ""))
+    attempts = int(previous_attempts or 0) + 1
+    cur.execute(
+        f"""
+        INSERT INTO {RETRY_STATE_TABLE} (
+            store_product_id, store_code, target_price, state, failure_kind,
+            attempt_count, next_retry_at, last_error, last_attempt_at, updated_at
+        )
+        VALUES (
+            %s, %s, %s, %s, %s, %s,
+            CASE
+                WHEN %s::integer IS NULL THEN NULL
+                ELSE CURRENT_TIMESTAMP + (%s::integer * INTERVAL '1 second')
+            END,
+            %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (store_product_id) DO UPDATE SET
+            store_code = EXCLUDED.store_code,
+            target_price = EXCLUDED.target_price,
+            state = EXCLUDED.state,
+            failure_kind = EXCLUDED.failure_kind,
+            attempt_count = EXCLUDED.attempt_count,
+            next_retry_at = EXCLUDED.next_retry_at,
+            last_error = EXCLUDED.last_error,
+            last_attempt_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        """,
+        (
+            row["store_product_id"], str(row.get("store_code") or ""), target_price,
+            state, failure_kind, attempts, retry_delay, retry_delay,
+            str(error_message or "")[:2000],
+        ),
+    )
+    return {"state": state, "failure_kind": failure_kind, "attempt_count": attempts, "retry_delay_seconds": retry_delay}
+
+
+def clear_retry_state(cur, row: dict[str, Any]) -> None:
+    cur.execute(f"DELETE FROM {RETRY_STATE_TABLE} WHERE store_product_id = %s", (row["store_product_id"],))
+
+
 def update_success(cur, row: dict[str, Any], verified_price: int | None) -> None:
     price_to_set = verified_price if verified_price is not None else to_int(row.get("target_price"))
     cur.execute(
@@ -658,10 +797,12 @@ def save_log_best_effort(
         print(f"  注意: price_update_logs への記録に失敗しました: {e}")
 
 
-def mark_success(conn, row: dict[str, Any], verified_price: int | None, request_payload: dict[str, Any], response_payload: dict[str, Any]) -> None:
+def mark_success(conn, row: dict[str, Any], verified_price: int | None, request_payload: dict[str, Any], response_payload: dict[str, Any], retry_policy: bool = False) -> None:
     with conn.transaction():
         with conn.cursor() as cur:
             update_success(cur, row, verified_price)
+            if retry_policy:
+                clear_retry_state(cur, row)
         msg = "価格更新成功"
         if verified_price is not None:
             msg += f" verified_price={verified_price}"
@@ -675,10 +816,13 @@ def mark_success(conn, row: dict[str, Any], verified_price: int | None, request_
         )
 
 
-def mark_failed(conn, row: dict[str, Any], error_message: str, request_payload: dict[str, Any] | None) -> None:
+def mark_failed(conn, row: dict[str, Any], error_message: str, request_payload: dict[str, Any] | None, retry_policy: bool = False) -> dict[str, Any] | None:
+    retry_state: dict[str, Any] | None = None
     with conn.transaction():
         with conn.cursor() as cur:
             update_failed(cur, row, error_message)
+            if retry_policy:
+                retry_state = record_retry_state(cur, row, error_message)
         save_log_best_effort(
             conn,
             row=row,
@@ -687,6 +831,7 @@ def mark_failed(conn, row: dict[str, Any], error_message: str, request_payload: 
             request_payload=request_payload,
             response_payload=None,
         )
+    return retry_state
 
 
 # =========================
@@ -740,7 +885,7 @@ def print_summary(total_targets: int, success_count: int, failed_count: int, ski
 def main() -> int:
     parser = argparse.ArgumentParser(description="楽天商品API items.patch でSKU価格のdry-run/実更新を行います。")
     parser.add_argument("--store", default="rakuten_1", help="stores.store_code。空文字なら楽天全店舗")
-    parser.add_argument("--limit", type=int, default=10, help="対象最大件数")
+    parser.add_argument("--limit", type=int, default=0, help="対象最大件数。0なら全件")
     parser.add_argument("--manage-number", default="", help="特定の商品管理番号だけに絞る")
     parser.add_argument("--sku", default="", help="特定のSKUだけに絞る")
     parser.add_argument("--csv", default="", help="CSV file containing manage_number, sku, and optional price")
@@ -756,6 +901,7 @@ def main() -> int:
     parser.add_argument("--verify-wait", type=float, default=1.5, help="PATCH成功後、items.get確認前に待つ秒数")
     parser.add_argument("--retry-count", type=int, default=5, help="429/一時エラー時の再試行回数")
     parser.add_argument("--retry-wait", type=float, default=5.0, help="429/一時エラー時の基本待機秒数。再試行ごとに少し伸ばす")
+    parser.add_argument("--retry-policy", action="store_true", help="失敗理由別の再試行待機をDBへ記録し、待機中・恒久エラーを今回の対象から除外する")
 
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="API送信せずJSONだけ出力する")
@@ -763,8 +909,8 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    if args.limit <= 0:
-        print("--limit は 1以上にしてください。")
+    if args.limit < 0:
+        print("--limit は0以上にしてください。0は全件です。")
         return 2
 
     store_code = args.store.strip() or None
@@ -772,6 +918,17 @@ def main() -> int:
     sku_code = args.sku.strip() or None
     csv_path = Path(args.csv) if args.csv.strip() else None
     dry_run = not args.execute
+
+    if args.retry_policy and dry_run:
+        print("--retry-policy は --execute と一緒に使用してください。")
+        return 2
+
+    if args.retry_policy:
+        retry_conn = connect_db()
+        try:
+            ensure_retry_state_table(retry_conn)
+        finally:
+            retry_conn.close()
 
     if csv_path:
         if not csv_path.is_absolute():
@@ -790,6 +947,7 @@ def main() -> int:
             manage_number=manage_number,
             sku_code=sku_code,
             blocked_only=args.blocked_only,
+            skip_deferred_retries=args.retry_policy,
         )
     print_targets(rows)
     print(f"楽天価格更新対象件数: {len(rows)}")
@@ -893,7 +1051,7 @@ def main() -> int:
                     "verify_response": verify_response,
                 }
 
-                mark_success(conn, row, verified_price, request_payload, response_payload)
+                mark_success(conn, row, verified_price, request_payload, response_payload, retry_policy=args.retry_policy)
 
                 result_summary["success_count"] += 1
                 result_summary["items"].append({
@@ -912,7 +1070,13 @@ def main() -> int:
 
             except Exception as e:
                 error_message = str(e)
-                mark_failed(conn, row, error_message, request_payload)
+                # A failure to persist retry metadata must not terminate the
+                # whole batch.  The next SKU still needs its price check.
+                try:
+                    retry_state = mark_failed(conn, row, error_message, request_payload, retry_policy=args.retry_policy)
+                except Exception as retry_error:
+                    retry_state = None
+                    error_message = f"{error_message} / 失敗状態の保存にも失敗: {retry_error}"
 
                 result_summary["failed_count"] += 1
                 result_summary["items"].append({
@@ -925,8 +1089,16 @@ def main() -> int:
                     "target_price": row.get("target_price"),
                     "request": request_payload,
                     "error": error_message,
+                    "retry_state": retry_state,
                 })
                 print(f"失敗: {error_message}")
+                if retry_state:
+                    retry_at = "保留（手動対応）" if retry_state["retry_delay_seconds"] is None else f"{retry_state['retry_delay_seconds']}秒後"
+                    print(
+                        "  RETRY_STATE"
+                        f" state={retry_state['state']} kind={retry_state['failure_kind']}"
+                        f" attempt={retry_state['attempt_count']} next={retry_at}"
+                    )
 
             print("")
 

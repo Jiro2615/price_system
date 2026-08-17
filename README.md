@@ -152,8 +152,8 @@ PRICE_SYSTEM_DB_NAME=price_system
 PRICE_SYSTEM_DB_USER=price_app
 PRICE_SYSTEM_DB_PASSWORD=your_password_here
 
-RAKUTEN_SERVICE_SECRET=your_rakuten_service_secret
-RAKUTEN_LICENSE_KEY=your_rakuten_license_key
+RAKUTEN_1_SERVICE_SECRET=your_rakuten_service_secret
+RAKUTEN_1_LICENSE_KEY=your_rakuten_license_key
 ```
 
 補足:
@@ -191,8 +191,8 @@ PRICE_SYSTEM_DB_PORT=5432
 PRICE_SYSTEM_DB_NAME=price_system
 PRICE_SYSTEM_DB_USER=price_app
 PRICE_SYSTEM_DB_PASSWORD=shared_db_password
-RAKUTEN_SERVICE_SECRET=your_rakuten_service_secret
-RAKUTEN_LICENSE_KEY=your_rakuten_license_key
+RAKUTEN_1_SERVICE_SECRET=your_rakuten_service_secret
+RAKUTEN_1_LICENSE_KEY=your_rakuten_license_key
 ```
 
 接続確認コマンド:

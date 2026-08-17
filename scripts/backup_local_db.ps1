@@ -66,7 +66,7 @@ function Read-PasswordIfNeeded {
 }
 
 $repoRoot = Get-RepoRoot
-$envPath = Join-Path $repoRoot ".env"
+$envPath = Join-Path (Split-Path -Parent $repoRoot) ".env"
 $dotEnv = Read-DotEnvFile -Path $envPath
 
 $dbHost = Get-EnvFirst -DotEnv $dotEnv -Names @("PRICE_SYSTEM_DB_HOST", "DB_HOST")

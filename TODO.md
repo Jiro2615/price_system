@@ -7,7 +7,7 @@
 - [ ] API更新後、blocked商品の価格差分が消えるか確認する。
 
 ## Safety
-- [ ] `RAKUTEN_SFTP_HOSTKEY=*` を本番運用前に固定fingerprintへ変更する。
+- [ ] `RAKUTEN_1_SFTP_HOSTKEY` / `RAKUTEN_2_SFTP_HOSTKEY` を本番運用前に固定fingerprintへ変更する。
 - [ ] `.env` のサンプル `.env.example` を作る。
 - [ ] DBパスワード直書き箇所を `.env` 読み込みへ寄せる。
 - [ ] `--execute` なしでは絶対に更新しないことを全スクリプトで統一する。

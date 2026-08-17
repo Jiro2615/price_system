@@ -13,8 +13,8 @@ from psycopg.types.json import Jsonb
 from rakuten_auth import build_rakuten_auth_header, resolve_rakuten_store_code
 
 
-BASE_DIR = Path(r"C:\price_system")
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR = Path(__file__).resolve().parents[1]
+ENV_PATH = BASE_DIR.parent / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_INVENTORY_BULK_UPSERT_URL = (
@@ -42,8 +42,8 @@ def to_int(value: Any, default: int | None = None) -> int | None:
 def load_auth_header() -> dict[str, str]:
     load_dotenv(ENV_PATH)
 
-    service_secret = os.getenv("RAKUTEN_SERVICE_SECRET", "").strip()
-    license_key = os.getenv("RAKUTEN_LICENSE_KEY", "").strip()
+    service_secret = os.getenv("RAKUTEN_1_SERVICE_SECRET", "").strip()
+    license_key = os.getenv("RAKUTEN_1_LICENSE_KEY", "").strip()
 
     if not service_secret:
         raise RuntimeError(f"RAKUTEN_SERVICE_SECRET が空です: {ENV_PATH}")
@@ -112,9 +112,10 @@ def fetch_inventory_targets(store_code: str | None, limit: int) -> list[dict[str
         LEFT JOIN amazon_products ap ON ap.asin = sp.asin
         WHERE {" AND ".join(where)}
         ORDER BY s.store_code, sp.id
-        LIMIT %s;
     """
-    params.append(limit)
+    if limit > 0:
+        sql += " LIMIT %s"
+        params.append(limit)
 
     conn = connect_db()
     try:
@@ -468,8 +469,8 @@ def print_skipped_rows(skipped_rows: list[tuple[dict[str, Any], str]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="楽天在庫API bulk-upsert 用のdry-run/実更新を行います。")
     parser.add_argument("--store", default="rakuten_1", help="stores.store_code。空文字なら楽天全店舗")
-    parser.add_argument("--limit", type=int, default=10, help="対象最大件数")
-    parser.add_argument("--batch-size", type=int, default=100, help="bulk-upsert 1回あたりの最大件数")
+    parser.add_argument("--limit", type=int, default=10, help="対象最大件数。0は全件")
+    parser.add_argument("--batch-size", type=int, default=400, help="bulk-upsert 1回あたりの最大件数（楽天API上限: 400）")
     parser.add_argument("--output", default="", help="送信予定JSON/結果JSONの保存先。空なら自動")
 
     mode = parser.add_mutually_exclusive_group()
@@ -478,8 +479,8 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    if args.limit <= 0:
-        print("--limit は 1以上にしてください。")
+    if args.limit < 0:
+        print("--limit は 0以上にしてください。0は全件です。")
         return 2
 
     if args.batch_size <= 0:

@@ -15,8 +15,8 @@ except ImportError:
     load_dotenv = None
 
 
-BASE_DIR = Path(r"C:\price_system")
-ENV_PATH = BASE_DIR / ".env"
+BASE_DIR = Path(__file__).resolve().parents[1]
+ENV_PATH = BASE_DIR.parent / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_csv_logs"
 TEMP_DIR = BASE_DIR / "temp" / "winscp"
 
@@ -52,14 +52,10 @@ def normalize_store_env_prefix(store_code: str) -> str:
 
 
 def first_store_env(store_code: str, suffix: str, default: str = "") -> str:
-    prefix = normalize_store_env_prefix(store_code)
-    names = [f"{prefix}_{suffix}"] if prefix else []
-    if prefix in {"", "RAKUTEN_1"}:
-        names.append(f"RAKUTEN_{suffix}")
-    for name in names:
-        value = os.getenv(name)
-        if value is not None and str(value).strip():
-            return str(value).strip()
+    prefix = normalize_store_env_prefix(store_code) or "RAKUTEN_1"
+    value = os.getenv(f"{prefix}_{suffix}")
+    if value is not None and str(value).strip():
+        return str(value).strip()
     return default
 
 
@@ -77,10 +73,10 @@ def load_settings(store_code: str = "") -> dict:
     winscp_com = os.getenv("WINSCP_COM", "").strip()
 
     if not user:
-        raise RuntimeError(f"RAKUTEN_SFTP_USER が空です: {ENV_PATH}")
+        raise RuntimeError(f"RAKUTEN_1_SFTP_USER または店舗別SFTPユーザーが空です: {ENV_PATH}")
 
     if not password:
-        raise RuntimeError(f"RAKUTEN_SFTP_PASSWORD が空です: {ENV_PATH}")
+        raise RuntimeError(f"RAKUTEN_1_SFTP_PASSWORD または店舗別SFTPパスワードが空です: {ENV_PATH}")
 
     return {
         "host": host,
@@ -518,7 +514,7 @@ def main() -> int:
     parser.add_argument("--apply-db", action="store_true", help="成功判定後にDBへ current_price/current_stock を反映する")
     parser.add_argument("--include-stock", action="store_true", help="DB反映時にCSVの在庫数も current_stock へ反映する")
     parser.add_argument("--dry-run", action="store_true", help="SFTP接続やアップロードをせず内容確認のみ")
-    parser.add_argument("--store", default="", help="stores.store_code. Uses store-scoped RAKUTEN_2_SFTP_* keys when provided.")
+    parser.add_argument("--store", default="", help="stores.store_code. Uses RAKUTEN_1_SFTP_* by default and the matching store-scoped keys when provided.")
     args = parser.parse_args()
 
     return upload_and_watch(

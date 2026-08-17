@@ -132,6 +132,8 @@ def build_child_cmd(
     reason_contains: str = "",
     asin_file: str = "",
     dry_run: bool = False,
+    store_code: str = "",
+    listed_only: bool = False,
 ) -> list[str]:
     cmd = [
         *py_cmd("price_check_from_db.py"),
@@ -150,6 +152,8 @@ def build_child_cmd(
         cmd.extend(["--reason-contains", reason_contains])
     if asin_file:
         cmd.extend(["--asin-file", asin_file])
+    if listed_only:
+        cmd.extend(["--store-code", store_code, "--listed-only"])
     if dry_run:
         cmd.append("--dry-run")
     return cmd
@@ -338,6 +342,8 @@ def main() -> int:
     parser.add_argument("--recheck-system-errors", action="store_true", help="recheck amazon_products.system_error = TRUE only")
     parser.add_argument("--reason-contains", default="", help="filter system error recheck by ng_reason partial match")
     parser.add_argument("--asin-file", default="", help="explicit ASIN target file for direct checks")
+    parser.add_argument("--store-code", default="", help="Rakuten store_code used with --listed-only")
+    parser.add_argument("--listed-only", action="store_true", help="only active listed products mapped to --store-code")
     parser.add_argument("--dry-run", action="store_true", help="show target ASINs only without browser start or DB updates")
     parser.add_argument("--resolve-only", action="store_true", help="resolve settings and print child command without running it")
     args = parser.parse_args()
@@ -348,6 +354,8 @@ def main() -> int:
         raise RuntimeError("--max-loops must be 0 or greater")
     if args.reason_contains and not args.recheck_system_errors:
         raise RuntimeError("--reason-contains requires --recheck-system-errors")
+    if args.listed_only and not args.store_code.strip():
+        raise RuntimeError("--listed-only requires --store-code")
 
     cli_overrides = build_cli_overrides(args)
 
@@ -371,6 +379,8 @@ def main() -> int:
         recheck_system_errors=args.recheck_system_errors,
         reason_contains=args.reason_contains,
         asin_file=args.asin_file.strip(),
+        store_code=args.store_code.strip(),
+        listed_only=args.listed_only,
         dry_run=args.dry_run,
     )
 
@@ -422,6 +432,8 @@ def main() -> int:
                 recheck_system_errors=args.recheck_system_errors,
                 reason_contains=args.reason_contains,
                 asin_file=args.asin_file.strip(),
+                store_code=args.store_code.strip(),
+                listed_only=args.listed_only,
                 dry_run=args.dry_run,
             )
             loop_index += 1

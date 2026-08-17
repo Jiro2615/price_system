@@ -739,6 +739,185 @@ def claim_target_asins_by_stats_v2(
 claim_target_asins_by_stats = claim_target_asins_by_stats_v2
 
 
+_claim_target_asins_by_stats_unfiltered = claim_target_asins_by_stats
+
+
+def _claim_active_listed_store_asins_without_retry(
+    limit: int,
+    worker_id: str,
+    lock_minutes: int,
+    system_error_only: bool,
+    reason_contains: str,
+    store_code: str,
+) -> list[dict[str, Any]]:
+    """Claim due ASINs that still have an active item in the selected store."""
+    sql = """
+        WITH target_rows AS (
+            SELECT s.asin, s.status AS old_status, s.next_check_at AS old_next_check_at,
+                   ap.ng_reason AS current_ng_reason, ap.checked_at AS old_checked_at
+            FROM amazon_check_stats s
+            JOIN amazon_products ap ON ap.asin = s.asin
+            WHERE EXISTS (
+                SELECT 1
+                FROM store_products sp
+                JOIN stores st ON st.id = sp.store_id
+                WHERE sp.asin = s.asin
+                  AND LOWER(st.store_code) = LOWER(%(store_code)s)
+                  AND COALESCE(sp.enabled, FALSE) = TRUE
+                  AND COALESCE(sp.force_stop, FALSE) = FALSE
+                  AND COALESCE(sp.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
+            )
+            AND (
+                (%(system_error_only)s = TRUE
+                 AND COALESCE(ap.system_error, FALSE) = TRUE
+                 AND (%(reason_contains)s = '' OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s))
+                OR
+                (%(system_error_only)s = FALSE
+                 AND (s.next_check_at IS NULL OR s.next_check_at <= CURRENT_TIMESTAMP)
+                 AND (s.status IN ('pending', 'done')
+                      OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)))
+            )
+            ORDER BY ap.checked_at ASC NULLS FIRST, s.last_checked_at ASC NULLS FIRST,
+                     s.next_check_at ASC NULLS FIRST, s.priority_score DESC, s.asin
+            FOR UPDATE OF s SKIP LOCKED
+            LIMIT %(limit)s
+        )
+        UPDATE amazon_check_stats s
+        SET status = 'processing', worker_id = %(worker_id)s,
+            locked_at = CURRENT_TIMESTAMP,
+            lock_expires_at = CURRENT_TIMESTAMP + (%(lock_minutes)s || ' minutes')::interval,
+            updated_at = CURRENT_TIMESTAMP
+        FROM target_rows t
+        WHERE s.asin = t.asin
+        RETURNING s.asin, s.status, t.old_status, t.old_next_check_at, s.worker_id,
+                  t.current_ng_reason, t.old_checked_at
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, {
+                "limit": limit,
+                "worker_id": worker_id,
+                "lock_minutes": lock_minutes,
+                "system_error_only": system_error_only,
+                "reason_contains": reason_contains,
+                "reason_pattern": f"%{reason_contains}%",
+                "store_code": store_code,
+            })
+            rows = cur.fetchall()
+        conn.commit()
+        return [{
+            "asin": row[0], "status": row[1], "old_status": row[2],
+            "old_next_check_at": row[3], "worker_id": row[4],
+            "current_ng_reason": row[5], "old_checked_at": row[6],
+        } for row in rows]
+    finally:
+        conn.close()
+
+
+def _claim_next_scheduled_active_listed_store_asins_without_retry(
+    limit: int,
+    worker_id: str,
+    lock_minutes: int,
+    store_code: str,
+) -> list[dict[str, Any]]:
+    """Claim the nearest future checks when no store ASIN is currently due.
+
+    Normal operation always claims due ASINs first.  This fallback keeps a
+    continuous worker busy instead of waiting for the next scheduled time.
+    The row locks still prevent the other worker from taking the same ASIN.
+    """
+    sql = """
+        WITH target_rows AS (
+            SELECT s.asin, s.status AS old_status, s.next_check_at AS old_next_check_at,
+                   ap.ng_reason AS current_ng_reason, ap.checked_at AS old_checked_at
+            FROM amazon_check_stats s
+            JOIN amazon_products ap ON ap.asin = s.asin
+            WHERE EXISTS (
+                SELECT 1
+                FROM store_products sp
+                JOIN stores st ON st.id = sp.store_id
+                WHERE sp.asin = s.asin
+                  AND LOWER(st.store_code) = LOWER(%(store_code)s)
+                  AND COALESCE(sp.enabled, FALSE) = TRUE
+                  AND COALESCE(sp.force_stop, FALSE) = FALSE
+                  AND COALESCE(sp.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
+            )
+            AND s.next_check_at > CURRENT_TIMESTAMP
+            AND s.status IN ('pending', 'done')
+            ORDER BY s.next_check_at ASC, s.priority_score DESC, ap.checked_at ASC NULLS FIRST, s.asin
+            FOR UPDATE OF s SKIP LOCKED
+            LIMIT %(limit)s
+        )
+        UPDATE amazon_check_stats s
+        SET status = 'processing', worker_id = %(worker_id)s,
+            locked_at = CURRENT_TIMESTAMP,
+            lock_expires_at = CURRENT_TIMESTAMP + (%(lock_minutes)s || ' minutes')::interval,
+            updated_at = CURRENT_TIMESTAMP
+        FROM target_rows t
+        WHERE s.asin = t.asin
+        RETURNING s.asin, s.status, t.old_status, t.old_next_check_at, s.worker_id,
+                  t.current_ng_reason, t.old_checked_at
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, {
+                "limit": limit,
+                "worker_id": worker_id,
+                "lock_minutes": lock_minutes,
+                "store_code": store_code,
+            })
+            rows = cur.fetchall()
+        conn.commit()
+        return [{
+            "asin": row[0], "status": row[1], "old_status": row[2],
+            "old_next_check_at": row[3], "worker_id": row[4],
+            "current_ng_reason": row[5], "old_checked_at": row[6],
+        } for row in rows]
+    finally:
+        conn.close()
+
+
+def claim_target_asins_by_stats(
+    limit: int,
+    worker_id: str,
+    lock_minutes: int = 30,
+    system_error_only: bool = False,
+    reason_contains: str = "",
+    store_code: str = "",
+    listed_only: bool = False,
+) -> list[dict[str, Any]]:
+    if not listed_only:
+        return _claim_target_asins_by_stats_unfiltered(
+            limit, worker_id, lock_minutes=lock_minutes,
+            system_error_only=system_error_only, reason_contains=reason_contains,
+        )
+    due_rows = run_with_db_retry(
+        lambda: _claim_active_listed_store_asins_without_retry(
+            limit, worker_id, lock_minutes, system_error_only, reason_contains, store_code,
+        ),
+        description=f"claim listed store ASINs limit={limit} worker_id={worker_id} store={store_code}",
+        logger=print,
+    )
+    if due_rows or system_error_only:
+        return due_rows
+
+    scheduled_rows = run_with_db_retry(
+        lambda: _claim_next_scheduled_active_listed_store_asins_without_retry(
+            limit, worker_id, lock_minutes, store_code,
+        ),
+        description=f"claim next scheduled listed ASINs limit={limit} worker_id={worker_id} store={store_code}",
+        logger=print,
+    )
+    if scheduled_rows:
+        print(
+            "期限到来済みASINがないため、次回予定が近いASINを前倒し取得: "
+            f"count={len(scheduled_rows)} worker_id={worker_id}"
+        )
+    return scheduled_rows
+
+
 def get_previous_amazon_state(asin: str) -> dict[str, Any] | None:
     sql = """
         SELECT
@@ -1245,6 +1424,8 @@ def claim_target_asins_by_stats_v2(
     lock_minutes: int = 30,
     system_error_only: bool = False,
     reason_contains: str = "",
+    store_code: str = "",
+    listed_only: bool = False,
 ) -> list[dict[str, Any]]:
 
     return run_with_db_retry(
@@ -1254,6 +1435,8 @@ def claim_target_asins_by_stats_v2(
             lock_minutes=lock_minutes,
             system_error_only=system_error_only,
             reason_contains=reason_contains,
+            store_code=store_code,
+            listed_only=listed_only,
         ),
         description=f"claim_target_asins_by_stats limit={limit} worker_id={worker_id}",
         logger=print,
@@ -1342,6 +1525,8 @@ async def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="対象ASIN一覧だけ表示し、ブラウザ起動やDB更新を行わない")
     parser.add_argument("--worker-id", default="", help="stats方式で使うワーカーID。未指定なら自動生成")
     parser.add_argument("--asin-file", default="", help="explicit ASIN target file. accepts newline, comma, or whitespace separated values")
+    parser.add_argument("--store-code", default="", help="Rakuten store_code used with --listed-only")
+    parser.add_argument("--listed-only", action="store_true", help="only active listed products mapped to --store-code")
     parser.add_argument("--page-timeout", type=int, default=60000, help="page.goto の timeout(ms)")
     args = parser.parse_args()
 
@@ -1362,6 +1547,12 @@ async def main() -> int:
     if args.asin_file and (args.use_stats or args.system_error_only or args.reason_contains):
         print("--asin-file cannot be combined with stats/system-error target options")
         return 2
+    if args.listed_only and not args.store_code.strip():
+        print("--listed-only requires --store-code")
+        return 2
+    if args.listed_only and not args.use_stats:
+        print("--listed-only requires --use-stats")
+        return 2
 
     print(f"limit={args.limit}, hours={args.hours}")
     print(f"use_stats={args.use_stats}")
@@ -1369,6 +1560,8 @@ async def main() -> int:
     print(f"reason_contains={args.reason_contains}")
     print(f"dry_run={args.dry_run}")
     print(f"asin_file={args.asin_file}")
+    print(f"store_code={args.store_code}")
+    print(f"listed_only={args.listed_only}")
     print(f"page_timeout={args.page_timeout}")
     worker_id = args.worker_id.strip() or build_worker_id()
     started_at_dt = datetime.now()
@@ -1442,6 +1635,8 @@ async def main() -> int:
             worker_id,
             system_error_only=args.system_error_only,
             reason_contains=args.reason_contains,
+            store_code=args.store_code.strip(),
+            listed_only=args.listed_only,
         )
         asins = [row["asin"] for row in claimed_rows]
     else:

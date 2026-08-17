@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-ENV_PATH = BASE_DIR / ".env"
+ENV_PATH = BASE_DIR.parent / ".env"
 
 
 def _normalize_store_env_prefix(store_code: str) -> str:
@@ -52,11 +52,6 @@ def load_rakuten_auth(store_code: str) -> dict[str, str]:
     env_prefix = _normalize_store_env_prefix(store_code)
     service_names = [f"{env_prefix}_SERVICE_SECRET"]
     license_names = [f"{env_prefix}_LICENSE_KEY"]
-
-    # Keep existing rakuten_1 environments working without requiring immediate .env changes.
-    if env_prefix == "RAKUTEN_1":
-        service_names.append("RAKUTEN_SERVICE_SECRET")
-        license_names.append("RAKUTEN_LICENSE_KEY")
 
     service_name, service_secret = _first_non_empty_env(service_names)
     license_name, license_key = _first_non_empty_env(license_names)
