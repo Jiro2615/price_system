@@ -122,9 +122,17 @@ def is_prime_amazon_official_offer_text(in_text: str) -> bool:
     return (direct_amazon or separate_amazon) and customer_service_amazon
 
 
+def is_amazon_delivery_origin_offer_text(in_text: str) -> bool:
+    """``配送元`` / ``発送元`` Amazon is not an eligible ``出荷元`` offer."""
+    normalized = re.sub(r"\s+", "", str(in_text or ""))
+    return bool(re.search(r"(?:配送元|発送元)[\s:：]*Amazon(?:\.co\.jp)?", normalized, re.I))
+
+
 def judge_basic_ng(in_text: str) -> str:
     if "在庫切れ" in in_text:
         return "在庫切れ"
+    if is_amazon_delivery_origin_offer_text(in_text):
+        return "配送元Amazonは対象外（出荷元Amazonのみ採用）"
     if "ギフト" not in in_text and not is_prime_amazon_official_offer_text(in_text):
         return "ギフト不可"
     return ""
@@ -765,7 +773,7 @@ async def read_lowest_amazon_fulfilled_offer(page) -> Optional[dict[str, Any]]:
         offer = offers.nth(index)
         try:
             ships_from = re.sub(r"\s+", " ", await safe_inner_text(offer.locator("#aod-offer-shipsFrom").first)).strip()
-            if "Amazon" not in ships_from:
+            if is_amazon_delivery_origin_offer_text(ships_from) or not re.match(r"^出荷元\s*Amazon(?:\.co\.jp)?\s*$", ships_from, re.I):
                 continue
             price = parse_price(await safe_inner_text(offer.locator(".apex-pricetopay-value .a-price-whole").first))
             if price <= 0:
