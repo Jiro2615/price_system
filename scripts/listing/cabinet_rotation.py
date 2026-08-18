@@ -169,13 +169,21 @@ def resolve_cabinet_upload_folder(
         }
 
     day_prefix = (now or datetime.now(JST)).astimezone(JST).strftime("%Y%m%d")
-    child_pattern = re.compile(rf"^{re.escape(root_folder_path)}/{day_prefix}(\d{{2}})$")
-    children: list[tuple[int, dict[str, Any]]] = []
+    # A rotated child has a date plus two-digit sequence, for example
+    # ``2026081801``.  Folder metadata already contains FileCount, so reuse
+    # the newest child with room without listing its files individually.
+    child_pattern = re.compile(rf"^{re.escape(root_folder_path)}/(\d{{8}})(\d{{2}})$")
+    children: list[tuple[str, int, dict[str, Any]]] = []
     for folder in folders:
         match = child_pattern.fullmatch(str(folder.get("folder_path") or ""))
         if match:
-            children.append((int(match.group(1)), folder))
-    for _, child in sorted(children, reverse=True):
+            children.append((match.group(1), int(match.group(2)), folder))
+
+    # Prefer the most recently named child (today's child first), but keep
+    # using an earlier partially-filled child when it still has capacity.
+    # This avoids creating an unnecessary date folder after every restart or
+    # date change while preserving the 2,000-file ceiling.
+    for _, _, child in sorted(children, reverse=True):
         if int(child["file_count"]) + planned_image_count <= CABINET_FOLDER_FILE_LIMIT:
             return {
                 **cabinet_config,
@@ -192,7 +200,7 @@ def resolve_cabinet_upload_folder(
                 },
             }
 
-    next_sequence = max((sequence for sequence, _ in children), default=0) + 1
+    next_sequence = max((sequence for date, sequence, _ in children if date == day_prefix), default=0) + 1
     if next_sequence > 99:
         raise CabinetRotationError(f"R-Cabinet daily rotation exceeded 99 folders for {day_prefix}")
     folder_name = f"{day_prefix}{next_sequence:02d}"

@@ -96,6 +96,24 @@ class CabinetRotationTests(unittest.TestCase):
         self.assertFalse(result["rotation"]["created"])
         self.assertEqual(result["folder_path"], "r_2025042547/listing_test/2026081701")
 
+    def test_reuses_newest_prior_day_child_before_creating_another(self) -> None:
+        result = resolve_cabinet_upload_folder(
+            self.root,
+            store_code="rakuten_2",
+            planned_image_count=3,
+            now=datetime(2026, 8, 18, 12, 0, tzinfo=JST),
+            headers={"Authorization": "test"},
+            http_get=lambda *_, **__: FakeResponse(folder_list_xml([
+                (10, self.root["folder_path"], 2000),
+                (11, "r_2025042547/listing_test/2026081601", 1999),
+                (12, "r_2025042547/listing_test/2026081701", 1996),
+            ])),
+            http_post=lambda *_, **__: self.fail("existing child folder must be reused"),
+        )
+        self.assertEqual(result["folder_id"], 12)
+        self.assertEqual(result["folder_path"], "r_2025042547/listing_test/2026081701")
+        self.assertFalse(result["rotation"]["created"])
+
 
 if __name__ == "__main__":
     unittest.main()
