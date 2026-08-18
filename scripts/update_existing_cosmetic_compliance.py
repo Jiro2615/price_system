@@ -270,9 +270,8 @@ def main() -> int:
         time.sleep(max(args.lookup_interval, 0.0))
 
     if args.execute:
-        for entry in plan:
-            if entry.get("status") != "ready":
-                continue
+        ready_entries = [entry for entry in plan if entry.get("status") == "ready"]
+        for update_index, entry in enumerate(ready_entries, start=1):
             response = requests.patch(
                 item_url(str(entry["manage_number"])),
                 headers=build_rakuten_auth_header("rakuten_2"),
@@ -299,6 +298,19 @@ def main() -> int:
                         entry["attribute_update_skipped"] = "RMS rejected an existing legacy attribute name (IE1002)"
                     else:
                         entry["fallback_response_body"] = fallback.text[:2000]
+            print(
+                json.dumps(
+                    {
+                        "update_progress": update_index,
+                        "update_total": len(ready_entries),
+                        "updated": sum(item.get("status") == "updated" for item in plan),
+                        "description_only": sum(item.get("status") == "updated_description_only" for item in plan),
+                        "failed": sum(item.get("status") == "failed" for item in plan),
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
             time.sleep(max(args.api_interval, 0.0))
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
