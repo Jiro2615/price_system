@@ -155,7 +155,8 @@ def replace_snapshots(asin: str, jan_code: str, candidates: list[dict[str, Any]]
                 # exists.  The calculation query only accepts availability=true,
                 # while the recurring fetcher uses fetched_at to avoid querying
                 # the same no-result JAN every cycle.
-                snapshot_rows = candidates or [{
+                lowest_candidate = min(candidates, key=lambda candidate: int(candidate["item_price"])) if candidates else None
+                snapshot_rows = [lowest_candidate] if lowest_candidate is not None else [{
                     "item_code": "__no_competitor__",
                     "shop_code": "",
                     "shop_name": "",
@@ -187,7 +188,7 @@ def replace_snapshots(asin: str, jan_code: str, candidates: list[dict[str, Any]]
                             datetime.now(timezone.utc),
                         ),
                     )
-        return len(candidates)
+        return len(snapshot_rows)
     finally:
         conn.close()
 
