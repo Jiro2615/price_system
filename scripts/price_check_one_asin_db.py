@@ -159,19 +159,18 @@ def is_explicit_new_offer_text(in_text: str) -> bool:
 
 
 def is_eligible_buybox_condition_text(in_text: str) -> bool:
-    """Allow an unmarked standard Amazon.co.jp BuyBox but never a used one.
+    """Treat an unmarked BuyBox as new, but never a visibly non-new one.
 
-    Amazon's standard direct-sale template can show ``出荷元 / 販売元`` followed
-    by ``Amazon.co.jp`` without a visible ``新品`` condition label.  This form is
-    accepted only when the primary BuyBox has no non-new marker; unlabelled
-    third-party offers remain ineligible.
+    Amazon can omit the condition label from direct-sale and FBA BuyBoxes.
+    Amazon shipment is checked separately, so this condition check accepts any
+    BuyBox without a non-new marker and still rejects ``中古`` / ``整備済み``.
     """
     primary_text = re.split(r"Amazonの他の出品者|すべての出品", str(in_text or ""), maxsplit=1)[0]
     if is_explicit_new_offer_text(primary_text):
         return True
     if any(marker in primary_text for marker in _NON_NEW_CONDITION_MARKERS):
         return False
-    return is_amazon_official_offer_text(primary_text)
+    return True
 
 
 def is_gift_or_amazon_official(in_text: str, page_text: str = "") -> bool:
@@ -942,6 +941,8 @@ async def check_amazon_one(
             status_error = judge_basic_ng(in_text, body)
             if not is_eligible_buybox_condition_text(in_text):
                 status_error = status_error or "新品条件を確認できません"
+            if not is_amazon_fulfilled_offer_text(in_text):
+                status_error = status_error or "Amazon発送を確認できません"
             if status_error:
                 result["business_ng"] = True
                 result["ng_reason"] = status_error

@@ -29,6 +29,11 @@ class AmazonShipFromPolicyTests(unittest.TestCase):
         self.assertTrue(is_amazon_fulfilled_offer_text(text))
         self.assertTrue(is_eligible_buybox_condition_text(text))
 
+    def test_amazon_fulfilled_buybox_is_eligible_without_new_label(self) -> None:
+        text = "出荷元\nAmazon\n販売元\nSouth's Choice\n無料配送 明日お届け"
+        self.assertTrue(is_amazon_fulfilled_offer_text(text))
+        self.assertTrue(is_eligible_buybox_condition_text(text))
+
     def test_combined_amazon_official_buybox_stays_ineligible_when_used(self) -> None:
         text = "中古 - 非常に良い\n出荷元 / 販売元\nAmazon.co.jp"
         self.assertFalse(is_eligible_buybox_condition_text(text))
