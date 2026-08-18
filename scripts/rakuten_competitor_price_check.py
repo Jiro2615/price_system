@@ -15,6 +15,15 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 ENV_PATH = BASE_DIR.parent / ".env"
 ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
 
+# Price comparison must not lower a physical product to our own listing, a
+# used offer, or a digital edition.  RWS Search does not return a structured
+# condition field in the compact response, so the title is the available
+# conservative signal for these non-comparable offers.
+OWN_SHOP_CODES_BY_STORE = {
+    "rakuten_2": {"lifeforest"},
+}
+NON_COMPARABLE_ITEM_TERMS = ("中古", "整備済", "電子書籍")
+
 
 def load_credentials() -> tuple[str, str]:
     load_dotenv(ENV_PATH)
@@ -38,8 +47,14 @@ def normalize_items(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return normalized
 
 
-def fetch_competitors(jan_code: str, timeout: float = 20.0) -> list[dict[str, Any]]:
+def fetch_competitors(
+    jan_code: str,
+    *,
+    excluded_shop_codes: set[str] | None = None,
+    timeout: float = 20.0,
+) -> list[dict[str, Any]]:
     application_id, access_key = load_credentials()
+    excluded_shop_codes = {str(code).strip().lower() for code in (excluded_shop_codes or set()) if str(code).strip()}
     try:
         response = requests.get(
             ENDPOINT,
@@ -67,6 +82,10 @@ def fetch_competitors(jan_code: str, timeout: float = 20.0) -> list[dict[str, An
         raise RuntimeError(f"Rakuten competitor request rejected: HTTP {response.status_code} {detail}".strip())
     candidates: list[dict[str, Any]] = []
     for item in normalize_items(response.json()):
+        shop_code = str(item.get("shopCode") or "").strip()
+        item_name = str(item.get("itemName") or "").strip()
+        if shop_code.lower() in excluded_shop_codes or any(term in item_name for term in NON_COMPARABLE_ITEM_TERMS):
+            continue
         try:
             price = int(item.get("itemPrice"))
         except (TypeError, ValueError):
@@ -76,9 +95,9 @@ def fetch_competitors(jan_code: str, timeout: float = 20.0) -> list[dict[str, An
         candidates.append(
             {
                 "item_code": str(item.get("itemCode") or ""),
-                "shop_code": str(item.get("shopCode") or ""),
+                "shop_code": shop_code,
                 "shop_name": str(item.get("shopName") or ""),
-                "item_name": str(item.get("itemName") or ""),
+                "item_name": item_name,
                 "item_price": price,
                 "postage_included": True,
                 "availability": True,
@@ -237,12 +256,13 @@ def main() -> int:
 
     next_request_at = time.monotonic()
     grouped_targets = list(targets_by_jan.items())
+    excluded_shop_codes = OWN_SHOP_CODES_BY_STORE.get(args.store.strip().lower(), set())
     for index, (jan_code, asins) in enumerate(grouped_targets, start=1):
         wait_seconds = next_request_at - time.monotonic()
         if wait_seconds > 0:
             time.sleep(wait_seconds)
         request_started_at = time.monotonic()
-        candidates = fetch_competitors(jan_code)
+        candidates = fetch_competitors(jan_code, excluded_shop_codes=excluded_shop_codes)
         lowest = min((row["item_price"] for row in candidates), default=None)
         saved = (
             sum(replace_snapshots(asin, jan_code, candidates) for asin in asins if asin)
