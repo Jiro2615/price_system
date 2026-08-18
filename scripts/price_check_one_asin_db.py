@@ -125,6 +125,8 @@ def is_amazon_official_offer_text(in_text: str) -> bool:
 
 def is_amazon_fulfilled_offer_text(in_text: str) -> bool:
     """Return whether Amazon, rather than the seller, will ship the offer."""
+    if is_amazon_official_offer_text(in_text):
+        return True
     normalized = re.sub(r"\s+", "", in_text or "")
     return bool(re.search(r"出荷元\s*Amazon(?:\.co\.jp)?", normalized, re.I))
 
@@ -154,6 +156,22 @@ def is_explicit_new_offer_text(in_text: str) -> bool:
     # ``中古`` must not invalidate a BuyBox that begins with ``新品``.
     match = _OFFER_CONDITION_PATTERN.search(normalized)
     return bool(match and match.group(0) == "新品")
+
+
+def is_eligible_buybox_condition_text(in_text: str) -> bool:
+    """Allow an unmarked standard Amazon.co.jp BuyBox but never a used one.
+
+    Amazon's standard direct-sale template can show ``出荷元 / 販売元`` followed
+    by ``Amazon.co.jp`` without a visible ``新品`` condition label.  This form is
+    accepted only when the primary BuyBox has no non-new marker; unlabelled
+    third-party offers remain ineligible.
+    """
+    primary_text = re.split(r"Amazonの他の出品者|すべての出品", str(in_text or ""), maxsplit=1)[0]
+    if is_explicit_new_offer_text(primary_text):
+        return True
+    if any(marker in primary_text for marker in _NON_NEW_CONDITION_MARKERS):
+        return False
+    return is_amazon_official_offer_text(primary_text)
 
 
 def is_gift_or_amazon_official(in_text: str, page_text: str = "") -> bool:
@@ -901,7 +919,7 @@ async def check_amazon_one(
             # offer.  Only inspect the all-offers panel in that case; keep a
             # valid Amazon-fulfilled BuyBox as-is.
             needs_offer_fallback = (
-                not is_explicit_new_offer_text(in_text)
+                not is_eligible_buybox_condition_text(in_text)
                 or "ギフト" not in in_text
                 or not is_amazon_fulfilled_offer_text(in_text)
             )
@@ -922,7 +940,7 @@ async def check_amazon_one(
                     return result
 
             status_error = judge_basic_ng(in_text, body)
-            if not is_explicit_new_offer_text(in_text):
+            if not is_eligible_buybox_condition_text(in_text):
                 status_error = status_error or "新品条件を確認できません"
             if status_error:
                 result["business_ng"] = True
