@@ -88,7 +88,12 @@ def fetch_competitors(jan_code: str, timeout: float = 20.0) -> list[dict[str, An
     return candidates
 
 
-def fetch_targets(store_code: str, limit: int, asin: str = "") -> list[tuple[str, str]]:
+def fetch_targets(
+    store_code: str,
+    limit: int,
+    asin: str = "",
+    max_age_hours: float | None = None,
+) -> list[tuple[str, str]]:
     where = ["sp.enabled = TRUE", "ap.jan_code IS NOT NULL", "ap.jan_code <> ''"]
     params: list[Any] = []
     if store_code:
@@ -97,13 +102,37 @@ def fetch_targets(store_code: str, limit: int, asin: str = "") -> list[tuple[str
     if asin:
         where.append("sp.asin = %s")
         params.append(asin.strip().upper())
+    freshness_join = ""
+    freshness_order = "sp.asin"
+    target_select = "DISTINCT sp.asin, ap.jan_code"
+    if max_age_hours is not None:
+        if max_age_hours <= 0:
+            raise ValueError("max_age_hours must be greater than zero")
+        # A missing snapshot, including a saved no-result marker, is selected
+        # before a fresh one.  This makes the recurring QNAP job work through
+        # the full catalog instead of repeatedly starting at the same ASINs.
+        freshness_join = """
+        LEFT JOIN LATERAL (
+            SELECT MAX(rcp.fetched_at) AS fetched_at
+            FROM rakuten_competitor_price_snapshots rcp
+            WHERE rcp.asin = sp.asin
+        ) latest_snapshot ON TRUE
+        """
+        where.append("(latest_snapshot.fetched_at IS NULL OR latest_snapshot.fetched_at < CURRENT_TIMESTAMP - (%s * INTERVAL '1 hour'))")
+        params.append(max_age_hours)
+        freshness_order = "latest_snapshot.fetched_at NULLS FIRST, sp.asin"
+        # ``store_products`` has one row per store/ASIN.  Avoid DISTINCT here
+        # because PostgreSQL requires the freshness ORDER BY expression to be
+        # part of a DISTINCT select list.
+        target_select = "sp.asin, ap.jan_code"
     sql = f"""
-        SELECT DISTINCT sp.asin, ap.jan_code
+        SELECT {target_select}
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         JOIN amazon_products ap ON ap.asin = sp.asin
+        {freshness_join}
         WHERE {' AND '.join(where)}
-        ORDER BY sp.asin
+        ORDER BY {freshness_order}
         LIMIT %s
     """
     params.append(limit)
@@ -122,13 +151,27 @@ def replace_snapshots(asin: str, jan_code: str, candidates: list[dict[str, Any]]
         with conn:
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM rakuten_competitor_price_snapshots WHERE asin = %s", (asin,))
-                for candidate in candidates:
+                # Keep one unavailable marker when no matching Rakuten offer
+                # exists.  The calculation query only accepts availability=true,
+                # while the recurring fetcher uses fetched_at to avoid querying
+                # the same no-result JAN every cycle.
+                snapshot_rows = candidates or [{
+                    "item_code": "__no_competitor__",
+                    "shop_code": "",
+                    "shop_name": "",
+                    "item_name": "",
+                    "item_price": 1,
+                    "postage_included": False,
+                    "availability": False,
+                    "item_url": "",
+                }]
+                for candidate in snapshot_rows:
                     cur.execute(
                         """
                         INSERT INTO rakuten_competitor_price_snapshots (
                             asin, jan_code, item_code, shop_code, shop_name, item_name,
                             item_price, postage_included, availability, item_url, fetched_at
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, TRUE, %s, %s)
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """,
                         (
                             asin,
@@ -138,6 +181,8 @@ def replace_snapshots(asin: str, jan_code: str, candidates: list[dict[str, Any]]
                             candidate["shop_name"],
                             candidate["item_name"],
                             candidate["item_price"],
+                            bool(candidate["postage_included"]),
+                            bool(candidate["availability"]),
                             candidate["item_url"],
                             datetime.now(timezone.utc),
                         ),
@@ -155,11 +200,22 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=5)
     parser.add_argument("--save", action="store_true", help="Replace saved snapshots for database targets. --jan never saves.")
     parser.add_argument("--interval", type=float, default=1.0)
+    parser.add_argument(
+        "--max-age-hours",
+        type=float,
+        default=None,
+        help="Only fetch targets whose saved competitor snapshot is older than this many hours.",
+    )
     args = parser.parse_args()
     if args.limit < 1:
         raise SystemExit("--limit must be at least 1")
 
-    targets = [("", args.jan.strip())] if args.jan.strip() else fetch_targets(args.store, args.limit, args.asin)
+    targets = [("", args.jan.strip())] if args.jan.strip() else fetch_targets(
+        args.store,
+        args.limit,
+        args.asin,
+        args.max_age_hours,
+    )
     if not targets:
         print("No JAN-linked targets found.")
         return 0
