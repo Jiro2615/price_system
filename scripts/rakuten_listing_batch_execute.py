@@ -19,6 +19,7 @@ from scripts.listing.prepare_service import (
     prepare_listing,
 )
 from scripts.listing.real_execute_service import RealExecuteRequest, build_real_execute_result
+from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.price_check_one_asin_db import create_amazon_page
@@ -59,6 +60,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     playwright, browser, context, page = await create_amazon_page()
     completed = 0
     next_keepa_precheck_at = 0.0
+    cabinet_folder_resolver = CachedCabinetUploadFolderResolver()
     with results_path.open("w", encoding="utf-8") as handle:
         for index, asin in enumerate(asins, start=1):
             item_dir = args.output_dir / asin
@@ -92,7 +94,25 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 mock_path = item_dir / "mock.json"; save_json(mock_path, mock)
                 readiness = build_real_readiness_result(dry_run_json=dry_path, preflight_json=preflight_path, mock_result_json=mock_path, api_spec_json=API_SPEC, asin=asin, management_number=management, store=args.store)
                 readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
-                result = build_real_execute_result(RealExecuteRequest(readiness_json=readiness_path, dry_run_json=dry_path, preflight_json=preflight_path, mock_result_json=mock_path, asin=asin, management_number=management, store=args.store, execute=True, approved=True, confirm_real_api=True, confirm_asin=asin, confirm_management_number=management, confirm_store=args.store, allow_live_transport=True))
+                result = build_real_execute_result(
+                    RealExecuteRequest(
+                        readiness_json=readiness_path,
+                        dry_run_json=dry_path,
+                        preflight_json=preflight_path,
+                        mock_result_json=mock_path,
+                        asin=asin,
+                        management_number=management,
+                        store=args.store,
+                        execute=True,
+                        approved=True,
+                        confirm_real_api=True,
+                        confirm_asin=asin,
+                        confirm_management_number=management,
+                        confirm_store=args.store,
+                        allow_live_transport=True,
+                    ),
+                    cabinet_folder_resolver=cabinet_folder_resolver,
+                )
                 save_json(item_dir / "execute.json", result)
                 if result.get("final_status") == "completed":
                     db_sync = sync_listing_result_to_db(ListingDbSyncRequest(result_json=item_dir / "execute.json", dry_run_json=dry_path, store=args.store, execute=True))

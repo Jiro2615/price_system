@@ -225,3 +225,60 @@ def resolve_cabinet_upload_folder(
             "planned_image_count": planned_image_count,
         },
     }
+
+
+class CachedCabinetUploadFolderResolver:
+    """Reuse one Cabinet folder lookup safely within a sequential batch.
+
+    The real listing batch is serial per store.  After a folder has been
+    selected, reserve its planned image slots locally for later items in the
+    same Python process.  A failed image upload can only make the reservation
+    conservative (and cause an earlier refresh); it can never exceed the
+    remote 2,000-file ceiling.
+    """
+
+    def __init__(self) -> None:
+        self._entries: dict[tuple[str, int, str], dict[str, Any]] = {}
+
+    def __call__(
+        self,
+        cabinet_config: dict[str, Any],
+        *,
+        store_code: str,
+        planned_image_count: int,
+    ) -> dict[str, Any]:
+        root_folder_id = _int(cabinet_config.get("folder_id"))
+        root_folder_path = _normalized_path(cabinet_config.get("folder_path"))
+        cache_key = (str(store_code or "").strip(), root_folder_id, root_folder_path)
+        entry = self._entries.get(cache_key)
+        if entry is not None:
+            reserved_count = int(entry["reserved_file_count"])
+            if reserved_count + planned_image_count <= CABINET_FOLDER_FILE_LIMIT:
+                entry["reserved_file_count"] = reserved_count + planned_image_count
+                destination = dict(entry["destination"])
+                rotation = dict(destination.get("rotation") or {})
+                rotation.update(
+                    {
+                        "cached": True,
+                        "reserved_file_count_before": reserved_count,
+                        "reserved_file_count_after": entry["reserved_file_count"],
+                        "planned_image_count": planned_image_count,
+                    }
+                )
+                destination["rotation"] = rotation
+                return destination
+
+        destination = resolve_cabinet_upload_folder(
+            cabinet_config,
+            store_code=store_code,
+            planned_image_count=planned_image_count,
+        )
+        rotation = dict(destination.get("rotation") or {})
+        observed_count = _int(
+            rotation.get("root_file_count") if rotation.get("used_root") else rotation.get("child_file_count")
+        )
+        self._entries[cache_key] = {
+            "destination": dict(destination),
+            "reserved_file_count": observed_count + planned_image_count,
+        }
+        return destination

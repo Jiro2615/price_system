@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timezone, timedelta
 
-from scripts.listing.cabinet_rotation import resolve_cabinet_upload_folder
+from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver, resolve_cabinet_upload_folder
 
 
 JST = timezone(timedelta(hours=9))
@@ -113,6 +113,29 @@ class CabinetRotationTests(unittest.TestCase):
         self.assertEqual(result["folder_id"], 12)
         self.assertEqual(result["folder_path"], "r_2025042547/listing_test/2026081701")
         self.assertFalse(result["rotation"]["created"])
+
+    def test_batch_resolver_reuses_reservation_without_a_second_folder_lookup(self) -> None:
+        calls = 0
+
+        def get(*_, **__):
+            nonlocal calls
+            calls += 1
+            return FakeResponse(folder_list_xml([(10, self.root["folder_path"], 1990)]))
+
+        resolver = CachedCabinetUploadFolderResolver()
+        # Patch the module-level lookup used by the resolver so this test proves
+        # that the second item does not fetch the Cabinet folder list again.
+        from unittest.mock import patch
+
+        with patch("scripts.listing.cabinet_rotation.requests.get", side_effect=get):
+            first = resolver(self.root, store_code="rakuten_2", planned_image_count=4)
+            second = resolver(self.root, store_code="rakuten_2", planned_image_count=4)
+
+        self.assertEqual(calls, 1)
+        self.assertEqual(first["folder_id"], 10)
+        self.assertEqual(second["folder_id"], 10)
+        self.assertTrue(second["rotation"]["cached"])
+        self.assertEqual(second["rotation"]["reserved_file_count_after"], 1998)
 
 
 if __name__ == "__main__":
