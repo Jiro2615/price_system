@@ -41,6 +41,34 @@ def _caption_label_value(caption: str, label: str) -> str:
     return str(match.group(1) if match else "").strip()
 
 
+def _manufacturer_aliases(value: str) -> set[str]:
+    """Return conservative Japanese manufacturer aliases for same-JAN matching.
+
+    Keepa often reports a local operating company plus its English name (for
+    example ``資生堂ジャパン (SHISEIDO JAPAN)``), while Rakuten descriptions
+    commonly name only the Japanese manufacturer (``資生堂``).  The exact JAN
+    and product category are already required by the caller, so accepting this
+    narrowly-defined corporate suffix is safer than losing otherwise complete
+    Japanese compliance evidence.
+    """
+    normalized = _normalized(value)
+    # Strip English trading names and their surrounding punctuation.  Leaving
+    # ``()`` behind would prevent the trailing ``ジャパン`` alias from being
+    # recognised in values such as ``資生堂ジャパン (SHISEIDO JAPAN)``.
+    japanese_only = re.sub(r"[^ぁ-んァ-ヶー一-龯々]+", "", normalized)
+    aliases = {candidate for candidate in (normalized, japanese_only) if len(candidate) >= 3}
+    for candidate in tuple(aliases):
+        for suffix in ("ジャパン", "日本"):
+            if candidate.endswith(suffix) and len(candidate) - len(suffix) >= 3:
+                aliases.add(candidate[: -len(suffix)])
+    return aliases
+
+
+def _caption_confirms_manufacturer(caption: str, manufacturer: str) -> bool:
+    normalized_caption = _normalized(caption)
+    return any(alias in normalized_caption for alias in _manufacturer_aliases(manufacturer))
+
+
 def _rakuten24_first(items: list[object]) -> list[object]:
     """Prefer Rakuten24's caption when the exact-JAN search has one."""
     return sorted(
@@ -53,10 +81,9 @@ def _rakuten24_first(items: list[object]) -> list[object]:
 
 def _caption_confirms_category_and_manufacturer(caption: str, manufacturer: str, category: str) -> bool:
     normalized_caption = _normalized(caption)
-    normalized_manufacturer = _normalized(manufacturer)
     return bool(
-        normalized_manufacturer
-        and normalized_manufacturer in normalized_caption
+        _manufacturer_aliases(manufacturer)
+        and _caption_confirms_manufacturer(caption, manufacturer)
         and category in normalized_caption
     )
 
