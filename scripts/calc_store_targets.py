@@ -454,11 +454,13 @@ def recalc_targets(
             "updated": 0,
             "skipped": 0,
             "errors": 0,
+            "targets": [],
         }
 
     updated = 0
     skipped = 0
     errors = 0
+    targets: list[dict] = []
 
     if verbose:
         print("calculate target_price / target_stock start")
@@ -481,6 +483,9 @@ def recalc_targets(
                 )
 
             updated += 1
+            # Callers which update one ASIN at a time need the exact calculated
+            # values to confirm that the transaction reached store_products.
+            targets.append(result)
 
             if verbose:
                 print(
@@ -524,6 +529,7 @@ def recalc_targets(
         "updated": updated,
         "skipped": skipped,
         "errors": errors,
+        "targets": targets,
     }
 
 

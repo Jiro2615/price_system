@@ -1281,15 +1281,81 @@ def fetch_store_codes_for_asin(asin: str, mall: str = "rakuten") -> list[str]:
 def run_target_recalc_for_asin(asin: str, store_code: str) -> dict[str, Any]:
     conn = connect_db()
     try:
-        return recalc_targets_for_asins(
+        result = recalc_targets_for_asins(
             conn,
             store_code=store_code,
             asins=[asin],
             dry_run=False,
             verbose=False,
         )
+        verify_target_recalc_persisted(conn, asin=asin, store_code=store_code, result=result)
+        return result
     finally:
         conn.close()
+
+
+def verify_target_recalc_persisted(
+    conn,
+    *,
+    asin: str,
+    store_code: str,
+    result: dict[str, Any],
+) -> None:
+    """Confirm the just-calculated target values are actually stored.
+
+    The Amazon worker writes its source result first and then calculates targets
+    for every mapped Rakuten store.  A successful calculation without a stored
+    target would otherwise leave the price/inventory API with no candidate while
+    the worker log still looks successful.
+    """
+    targets = result.get("targets") or []
+    expected_targets = [
+        target
+        for target in targets
+        if str(target.get("asin") or "").upper() == asin.upper()
+        and str(target.get("store_code") or "").casefold() == store_code.casefold()
+    ]
+    if not expected_targets:
+        if int(result.get("rows") or 0) == 0:
+            # A stale or disabled store mapping has no active target row to save.
+            return
+        raise RuntimeError(
+            "target recalc returned no calculated row: "
+            f"asin={asin} store={store_code} rows={result.get('rows')}"
+        )
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT sp.target_price, sp.target_stock
+            FROM store_products sp
+            JOIN stores s ON s.id = sp.store_id
+            WHERE sp.asin = %s
+              AND s.store_code = %s
+              AND sp.enabled = TRUE
+            """,
+            (asin, store_code),
+        )
+        rows = cur.fetchall()
+
+    if len(rows) != len(expected_targets):
+        raise RuntimeError(
+            "target recalc persistence row mismatch: "
+            f"asin={asin} store={store_code} "
+            f"expected_rows={len(expected_targets)} actual_rows={len(rows)}"
+        )
+
+    actual_values = Counter((price, stock) for price, stock in rows)
+    expected_values = Counter(
+        (target.get("target_price"), target.get("target_stock"))
+        for target in expected_targets
+    )
+    if actual_values != expected_values:
+        raise RuntimeError(
+            "target recalc was not persisted: "
+            f"asin={asin} store={store_code} "
+            f"expected={dict(expected_values)} actual={dict(actual_values)}"
+        )
 
 
 def print_db_summary() -> None:

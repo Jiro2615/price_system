@@ -95,6 +95,60 @@ class PriceCheckMainTests(unittest.TestCase):
         self.assertEqual(mock_get_existing_stats.call_count, 1)
 
 
+class TargetRecalcPersistenceTests(unittest.TestCase):
+    class _Cursor:
+        def __init__(self, rows):
+            self.rows = rows
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def execute(self, *_args):
+            return None
+
+        def fetchall(self):
+            return self.rows
+
+    class _Connection:
+        def __init__(self, rows):
+            self.rows = rows
+
+        def cursor(self):
+            return TargetRecalcPersistenceTests._Cursor(self.rows)
+
+    @staticmethod
+    def _result(price=1234, stock=2):
+        return {
+            "rows": 1,
+            "targets": [{
+                "asin": "B000TEST01",
+                "store_code": "rakuten_2",
+                "target_price": price,
+                "target_stock": stock,
+            }],
+        }
+
+    def test_saved_target_matching_calculation_is_accepted(self) -> None:
+        price_check_from_db.verify_target_recalc_persisted(
+            self._Connection([(1234, 2)]),
+            asin="B000TEST01",
+            store_code="rakuten_2",
+            result=self._result(),
+        )
+
+    def test_unsaved_target_is_reported(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "was not persisted"):
+            price_check_from_db.verify_target_recalc_persisted(
+                self._Connection([(None, None)]),
+                asin="B000TEST01",
+                store_code="rakuten_2",
+                result=self._result(),
+            )
+
+
 class WorkerLoopTests(unittest.TestCase):
     def setUp(self) -> None:
         self.resolved_worker = {
