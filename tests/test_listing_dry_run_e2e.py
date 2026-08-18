@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
 from scripts.listing.master_loader import load_master_data
-from scripts.listing.models import AmazonCheckResult, MasterData, StoreSettings, to_jsonable
+from scripts.listing.models import AmazonCheckResult, EvaluationResult, MasterData, StoreSettings, to_jsonable
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
 
 
@@ -53,6 +54,42 @@ class ListingDryRunE2ETests(unittest.TestCase):
         self.assertEqual([item["name"] for item in payload_attrs], expected_attr_order)
         self.assertEqual([item["value"] for item in payload_attrs], ["-", "chapter", "Aíam", "-", "日本製"])
         self.assertEqual(payload_attrs[0]["value"], result["resolved_attributes"]["カラー"].value)
+
+    def test_quasi_drug_without_same_jan_evidence_is_never_eligible(self) -> None:
+        amazon_payload = json.loads((FIXTURE_DIR / "eligible_amazon_result.json").read_text(encoding="utf-8"))
+        keepa_payload = json.loads((FIXTURE_DIR / "eligible_keepa_result.json").read_text(encoding="utf-8"))
+        amazon_payload["title"] += " 医薬部外品"
+        keepa_payload["title"] += " 医薬部外品"
+        # A blank EAN prevents the exact-JAN Rakuten evidence lookup before it
+        # can make a network request. This reproduces the historical leak.
+        keepa_payload["ean"] = ""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            amazon_path = temp_path / "amazon.json"
+            keepa_path = temp_path / "keepa.json"
+            amazon_path.write_text(json.dumps(amazon_payload), encoding="utf-8")
+            keepa_path.write_text(json.dumps(keepa_payload), encoding="utf-8")
+            result = prepare_listing(
+                PrepareListingRequest(
+                    asin="B0ELIGIBLE1",
+                    store_code="rakuten_1",
+                    master_dir=REFERENCE_MASTER_DIR,
+                    offline=True,
+                    allow_missing_master=True,
+                    store_settings_json=FIXTURE_DIR / "eligible_store_settings.json",
+                    amazon_result_json=amazon_path,
+                    keepa_result_json=keepa_path,
+                ),
+                master_data_loader=load_master_data,
+                # Keep the pre-existing evaluator eligible so this test proves
+                # that the regulated-evidence guard is the blocking condition.
+                evaluator=lambda **_kwargs: EvaluationResult("eligible", "出品可能"),
+            )
+        self.assertEqual(result["listing_status"], "business_ng")
+        self.assertIn("医薬部外品証跡不足", result["listing_reason"])
+        self.assertFalse(result["execution_allowed"])
+        self.assertIsNone(result["item_payload"])
+        self.assertIsNone(result["inventory_payload"])
 
     def test_business_ng_saved_raw_has_blocking_reasons_and_resolved_attributes(self) -> None:
         from scripts.listing.keepa_product_client import parse_keepa_product

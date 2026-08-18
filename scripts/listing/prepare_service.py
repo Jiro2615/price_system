@@ -658,6 +658,20 @@ def prepare_listing(
         quasi_drug_evidence=quasi_drug_evidence,
     )
 
+    # A regulated-category candidate may never proceed without the factual
+    # disclosure evidence used to build its description.  Previously this was
+    # only appended to `warnings`, so a product such as an 医薬部外品 with a
+    # missing JAN could still be marked eligible and be listed without the
+    # required advertiser/manufacturer/origin block.
+    if category and not quasi_drug_evidence and evaluation.listing_status == "eligible":
+        evaluation.listing_status = "business_ng"
+        evaluation.listing_reason = (
+            f"{category}証跡不足: 楽天同一JANでメーカー一致・日本製を確認できないため出品不可"
+        )
+        evaluation.warnings.append(
+            f"{category}候補の説明文には広告文責・メーカー名または販売業者名・原産国・商品区分が必要です"
+        )
+
     if evaluation.listing_status != "eligible" or amazon_result is None:
         image_download_plan = image_plan_builder(
             asin=asin,
