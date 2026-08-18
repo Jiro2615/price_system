@@ -41,6 +41,52 @@ class RealExecuteRequest:
     resume_after_item_upsert: bool = False
 
 
+def _compact_text_validation_issues(issues: Any) -> list[str]:
+    """Return readable, safe text-validation diagnostics for batch history."""
+    results: list[str] = []
+    for issue in list(issues or []):
+        if not isinstance(issue, dict):
+            continue
+        field = str(issue.get("field") or issue.get("name") or "").strip()
+        codepoint = str(issue.get("codepoint") or "").strip()
+        reason = str(issue.get("reason") or "").strip()
+        detail = " ".join(part for part in (field, codepoint, reason) if part)
+        if detail:
+            results.append(detail)
+    return list(dict.fromkeys(results))
+
+
+def _build_execution_diagnostics(
+    *,
+    preflight_result: dict[str, Any],
+    mock_result: dict[str, Any],
+    readiness_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Keep the actual pre-execution failure cause with the per-ASIN result.
+
+    The central dashboard cannot read the JSON files left on an execution PC.
+    These summaries intentionally exclude payloads, credentials, and file paths,
+    while retaining exactly the status/reasons needed to explain a blocked row.
+    """
+    return {
+        "preflight": {
+            "status": str(preflight_result.get("preflight_status") or ""),
+            "blocking_reasons": list(preflight_result.get("blocking_reasons") or []),
+            "text_validation_issues": _compact_text_validation_issues(preflight_result.get("text_validation_issues")),
+            "unresolved_specifications": _compact_text_validation_issues(preflight_result.get("unresolved_specifications")),
+        },
+        "mock": {
+            "status": str(mock_result.get("final_status") or ""),
+            "errors": list(mock_result.get("errors") or []),
+        },
+        "readiness": {
+            "status": str(readiness_result.get("readiness_status") or ""),
+            "blocking_reasons": list(readiness_result.get("blocking_reasons") or []),
+            "unresolved_specifications": _compact_text_validation_issues(readiness_result.get("unresolved_specifications")),
+        },
+    }
+
+
 def _validate_readiness_inputs(
     request: RealExecuteRequest,
     readiness_result: dict[str, Any],
@@ -293,6 +339,11 @@ def build_real_execute_result(
     # the product-specific cause, rather than only its downstream gate failures.
     result["listing_status"] = str(dry_run_result.get("listing_status") or "")
     result["listing_reason"] = str(dry_run_result.get("listing_reason") or "")
+    result["execution_diagnostics"] = _build_execution_diagnostics(
+        preflight_result=preflight_result,
+        mock_result=mock_result,
+        readiness_result=readiness_result,
+    )
 
     readiness_reasons = _validate_readiness_inputs(request, readiness_result, dry_run_result, preflight_result, mock_result)
     guard_reasons = _validate_execute_guards(request)
