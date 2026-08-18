@@ -135,25 +135,8 @@ def _product_spec_attributes(item_url: str, timeout: float) -> dict[str, str]:
     }
 
 
-def lookup_japanese_regulated_product_evidence(
-    *,
-    jan_code: str,
-    manufacturer: str,
-    store_code: str,
-    category: str,
-    timeout: float = 15.0,
-    fetch_product_spec: bool = False,
-) -> dict[str, str] | None:
-    """Return minimal compliance evidence from Rakuten's same-JAN search.
-
-    Search-result descriptions are evidence only.  They are never copied into
-    the new listing because another shop's wording is not an approval source.
-    """
-    config = _configured(store_code)
-    jan = str(jan_code or "").strip()
-    if not config or not jan or not str(manufacturer or "").strip():
-        return None
-
+def _search_same_jan_items(jan: str, timeout: float) -> list[object] | None:
+    """Return Rakuten search items for an exact-JAN lookup, or ``None`` on API failure."""
     application_id = os.getenv("RAKUTEN_WEB_SERVICE_APPLICATION_ID", "").strip()
     access_key = os.getenv("RAKUTEN_WEB_SERVICE_ACCESS_KEY", "").strip()
     if not application_id or not access_key:
@@ -180,18 +163,64 @@ def lookup_japanese_regulated_product_evidence(
                 response.raise_for_status()
             except requests.RequestException:
                 return None
-            break
+            data = response.json()
+            return list(data.get("items") or data.get("Items") or [])
         retry_after = response.headers.get("Retry-After", "")
         try:
             delay = max(float(retry_after), 1.0)
         except ValueError:
             delay = float(2 ** (attempt + 1))
         time.sleep(delay)
-    else:
+    return None
+
+
+def _item_mentions_exact_jan(item: object, jan: str) -> bool:
+    if not isinstance(item, dict):
+        return False
+    text = " ".join(str(item.get(key) or "") for key in ("itemName", "itemCaption", "itemCode"))
+    return str(jan or "") in re.sub(r"\D", "", text)
+
+
+def has_same_jan_rakuten_candidate(*, jan_code: str, timeout: float = 15.0) -> bool:
+    """Whether Rakuten search visibly returns at least one exact-JAN product.
+
+    This is intentionally weaker than regulated-product evidence: it permits
+    ordinary Beauty tools to proceed without a disclosure when a same-JAN
+    product exists but its public caption lacks category/manufacturer/origin.
+    API failure, missing JAN, and non-exact search hits remain false so they
+    cannot silently bypass the regulated listing guard.
+    """
+    jan = re.sub(r"\D", "", str(jan_code or ""))
+    if not jan:
+        return False
+    items = _search_same_jan_items(jan, timeout)
+    return bool(items and any(_item_mentions_exact_jan(item, jan) for item in items))
+
+
+def lookup_japanese_regulated_product_evidence(
+    *,
+    jan_code: str,
+    manufacturer: str,
+    store_code: str,
+    category: str,
+    timeout: float = 15.0,
+    fetch_product_spec: bool = False,
+) -> dict[str, str] | None:
+    """Return minimal compliance evidence from Rakuten's same-JAN search.
+
+    Search-result descriptions are evidence only.  They are never copied into
+    the new listing because another shop's wording is not an approval source.
+    """
+    config = _configured(store_code)
+    jan = str(jan_code or "").strip()
+    if not config or not jan or not str(manufacturer or "").strip():
+        return None
+
+    items = _search_same_jan_items(jan, timeout)
+    if items is None:
         return None
 
     spec_page_attempts = 0
-    items = response.json().get("items") or response.json().get("Items") or []
     for item in _rakuten24_first(items):
         if not isinstance(item, dict):
             continue

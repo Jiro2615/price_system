@@ -602,8 +602,12 @@ def prepare_listing(
     # not the literal "化粧品".  Use the shared cosmetics classifier so those
     # products also receive the same-JAN compliance check and disclosure block.
     category = "医薬部外品" if "医薬部外品" in source_text else ("化粧品" if is_cosmetics_category(keepa_result.category_tree) else "")
+    same_jan_candidate = False
     if category:
-        from scripts.listing.quasi_drug_compliance import lookup_japanese_regulated_product_evidence
+        from scripts.listing.quasi_drug_compliance import (
+            has_same_jan_rakuten_candidate,
+            lookup_japanese_regulated_product_evidence,
+        )
 
         quasi_drug_evidence = lookup_japanese_regulated_product_evidence(
             jan_code=keepa_result.ean,
@@ -613,7 +617,13 @@ def prepare_listing(
             fetch_product_spec=False,
         ) or {}
         if not quasi_drug_evidence:
-            warnings.append(f"{category}候補: 楽天同一JANで日本製・メーカー一致を確認できないため出品不可")
+            same_jan_candidate = has_same_jan_rakuten_candidate(jan_code=keepa_result.ean)
+            if same_jan_candidate:
+                warnings.append(
+                    f"{category}候補: 楽天同一JAN候補は確認できたが、本文に区分・メーカー・原産国の証跡が揃わないため広告文責は追記しません"
+                )
+            else:
+                warnings.append(f"{category}候補: 楽天同一JAN候補を確認できないため出品不可")
         else:
             # Exact-JAN Rakuten search captions are factual attribute fallbacks.
             # Keepa remains authoritative whenever it already has a value.
@@ -658,18 +668,18 @@ def prepare_listing(
         quasi_drug_evidence=quasi_drug_evidence,
     )
 
-    # A regulated-category candidate may never proceed without the factual
-    # disclosure evidence used to build its description.  Previously this was
-    # only appended to `warnings`, so a product such as an 医薬部外品 with a
-    # missing JAN could still be marked eligible and be listed without the
-    # required advertiser/manufacturer/origin block.
-    if category and not quasi_drug_evidence and evaluation.listing_status == "eligible":
+    # A regulated-category candidate without full disclosure evidence can
+    # proceed only when Rakuten search visibly returned an exact-JAN candidate.
+    # That exception avoids rejecting Beauty tools whose captions omit the
+    # regulated facts, while a missing JAN, API failure, or unrelated search
+    # hit remains a strict business NG.
+    if category and not quasi_drug_evidence and not same_jan_candidate and evaluation.listing_status == "eligible":
         evaluation.listing_status = "business_ng"
         evaluation.listing_reason = (
-            f"{category}証跡不足: 楽天同一JANでメーカー一致・日本製を確認できないため出品不可"
+            f"{category}証跡不足: 楽天同一JAN候補を確認できないため出品不可"
         )
         evaluation.warnings.append(
-            f"{category}候補の説明文には広告文責・メーカー名または販売業者名・原産国・商品区分が必要です"
+            f"{category}候補は広告文責・メーカー名または販売業者名・原産国・商品区分を確認できないため出品停止です"
         )
 
     if evaluation.listing_status != "eligible" or amazon_result is None:

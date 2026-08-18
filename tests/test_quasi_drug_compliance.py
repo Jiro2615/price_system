@@ -3,7 +3,10 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from scripts.listing.quasi_drug_compliance import lookup_japanese_regulated_product_evidence
+from scripts.listing.quasi_drug_compliance import (
+    has_same_jan_rakuten_candidate,
+    lookup_japanese_regulated_product_evidence,
+)
 
 
 class _Response:
@@ -34,6 +37,24 @@ class _Response:
 
 
 class QuasiDrugComplianceTests(unittest.TestCase):
+    @patch("scripts.listing.quasi_drug_compliance.requests.get")
+    @patch("scripts.listing.quasi_drug_compliance.os.getenv")
+    def test_exact_jan_candidate_is_detected_without_regulated_caption_facts(self, getenv, get) -> None:
+        getenv.return_value = "configured"
+        response = _Response()
+        response.json = lambda: {
+            "Items": [
+                {
+                    "shopName": "美容用品店",
+                    "itemName": "美容器具 4972525533379",
+                    "itemCaption": "商品仕様のみ",
+                }
+            ]
+        }
+        get.return_value = response
+
+        self.assertTrue(has_same_jan_rakuten_candidate(jan_code="4972525533379"))
+
     @patch("scripts.listing.quasi_drug_compliance._configured")
     @patch("scripts.listing.quasi_drug_compliance.requests.get")
     @patch("scripts.listing.quasi_drug_compliance.os.getenv")
