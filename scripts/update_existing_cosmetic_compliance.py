@@ -212,7 +212,7 @@ def main() -> int:
     if args.limit:
         products = products[:args.limit]
     plan: list[dict[str, Any]] = []
-    for product in products:
+    for index, product in enumerate(products, start=1):
         source = source_by_asin[product["asin"]]
         keepa = source["keepa"]
         source_text = " ".join(str(keepa.get(key) or "") for key in ("title", "description"))
@@ -253,6 +253,20 @@ def main() -> int:
         except (requests.RequestException, ValueError) as exc:
             entry.update({"status": "error", "error": str(exc)})
         plan.append(entry)
+        if args.audit_existing and (index % 25 == 0 or index == len(products)):
+            print(
+                json.dumps(
+                    {
+                        "progress": index,
+                        "total": len(products),
+                        "disclosure_missing": sum(item.get("status") == "disclosure_missing" for item in plan),
+                        "unchanged": sum(item.get("status") == "unchanged" for item in plan),
+                        "errors": sum(item.get("status") == "error" for item in plan),
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
         time.sleep(max(args.lookup_interval, 0.0))
 
     if args.execute:
