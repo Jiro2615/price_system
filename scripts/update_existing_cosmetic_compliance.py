@@ -154,11 +154,18 @@ def main() -> int:
         action="store_true",
         help="商品ページを開かず楽天検索API本文だけで照合する（--execute時はRMSへ反映）",
     )
+    parser.add_argument(
+        "--audit-existing",
+        action="store_true",
+        help="RMSは読み取りだけで、広告文責の追記が必要な既存商品を一覧化する（--executeとは併用不可）",
+    )
     parser.add_argument("--api-interval", type=float, default=1.5, help="RMS PATCH間隔（秒）")
     parser.add_argument("--lookup-interval", type=float, default=1.1, help="楽天検索・商品仕様照会の間隔（秒）")
     args = parser.parse_args()
     if args.limit < 0:
         raise SystemExit("--limit は0以上です")
+    if args.audit_existing and args.execute:
+        raise SystemExit("--audit-existing と --execute は併用できません")
 
     source_by_asin = latest_saved_sources()
     products = [product for product in listed_products() if product["asin"] in source_by_asin]
@@ -183,7 +190,7 @@ def main() -> int:
         if not evidence:
             continue
         entry: dict[str, Any] = {**product, "source_dry_run": source["path"], "evidence": evidence}
-        if args.search_api_only and not args.execute:
+        if args.search_api_only and not args.execute and not args.audit_existing:
             entry.update({"status": "search_api_matched"})
             plan.append(entry)
             time.sleep(max(args.lookup_interval, 0.0))
@@ -191,7 +198,21 @@ def main() -> int:
         try:
             live_item = get_live_item(product["manage_number"])
             payload, changes = build_patch(live_item, product["sku"], evidence)
-            entry.update({"status": "ready" if changes else "unchanged", "changes": changes, "request_json": payload})
+            description_change = "商品説明末尾に法定表示を追記" in changes
+            if args.audit_existing:
+                # Do not retain a full patch body in the audit output: it is
+                # enough for the operator to know precisely which fields are
+                # missing, while avoiding a file full of existing descriptions.
+                status = "disclosure_missing" if description_change else ("attribute_missing" if changes else "unchanged")
+                entry.update(
+                    {
+                        "status": status,
+                        "changes": changes,
+                        "advertiser_disclosure_missing": description_change,
+                    }
+                )
+            else:
+                entry.update({"status": "ready" if changes else "unchanged", "changes": changes, "request_json": payload})
         except (requests.RequestException, ValueError) as exc:
             entry.update({"status": "error", "error": str(exc)})
         plan.append(entry)
@@ -232,7 +253,7 @@ def main() -> int:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / f"cosmetic_compliance_{datetime.now():%Y%m%d_%H%M%S}.json"
     path.write_text(json.dumps({"execute": args.execute, "search_api_only": args.search_api_only, "entries": plan}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"saved_sources": len(source_by_asin), "listed_candidates": len(products), "search_api_matched": sum(entry.get("status") == "search_api_matched" for entry in plan), "ready": sum(entry.get("status") == "ready" for entry in plan), "updated": sum(entry.get("status") == "updated" for entry in plan), "output": str(path)}, ensure_ascii=False))
+    print(json.dumps({"saved_sources": len(source_by_asin), "listed_candidates": len(products), "search_api_matched": sum(entry.get("status") == "search_api_matched" for entry in plan), "disclosure_missing": sum(entry.get("status") == "disclosure_missing" for entry in plan), "attribute_missing": sum(entry.get("status") == "attribute_missing" for entry in plan), "ready": sum(entry.get("status") == "ready" for entry in plan), "updated": sum(entry.get("status") == "updated" for entry in plan), "output": str(path)}, ensure_ascii=False))
     return 0
 
 
