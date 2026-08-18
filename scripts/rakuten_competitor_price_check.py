@@ -199,7 +199,12 @@ def main() -> int:
     parser.add_argument("--jan", default="", help="Read one JAN directly without database lookup or saving.")
     parser.add_argument("--limit", type=int, default=5)
     parser.add_argument("--save", action="store_true", help="Replace saved snapshots for database targets. --jan never saves.")
-    parser.add_argument("--interval", type=float, default=1.0)
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=1.0,
+        help="Minimum seconds between request starts. Rakuten Web Service requires at least 1.0.",
+    )
     parser.add_argument(
         "--max-age-hours",
         type=float,
@@ -209,23 +214,46 @@ def main() -> int:
     args = parser.parse_args()
     if args.limit < 1:
         raise SystemExit("--limit must be at least 1")
+    if args.interval < 1.0:
+        raise SystemExit("--interval must be at least 1.0 (one request per second per Rakuten application ID)")
 
-    targets = [("", args.jan.strip())] if args.jan.strip() else fetch_targets(
+    raw_targets = [("", args.jan.strip())] if args.jan.strip() else fetch_targets(
         args.store,
         args.limit,
         args.asin,
         args.max_age_hours,
     )
-    if not targets:
+    if not raw_targets:
         print("No JAN-linked targets found.")
         return 0
-    for index, (asin, jan_code) in enumerate(targets, start=1):
+
+    # The price search result is determined by JAN, not ASIN.  Avoid consuming
+    # the one-request-per-second quota more than once when the same JAN has
+    # multiple listed variations or duplicate catalog records in this batch.
+    targets_by_jan: dict[str, list[str]] = {}
+    for asin, jan_code in raw_targets:
+        targets_by_jan.setdefault(jan_code, []).append(asin)
+
+    next_request_at = time.monotonic()
+    grouped_targets = list(targets_by_jan.items())
+    for index, (jan_code, asins) in enumerate(grouped_targets, start=1):
+        wait_seconds = next_request_at - time.monotonic()
+        if wait_seconds > 0:
+            time.sleep(wait_seconds)
+        request_started_at = time.monotonic()
         candidates = fetch_competitors(jan_code)
         lowest = min((row["item_price"] for row in candidates), default=None)
-        saved = replace_snapshots(asin, jan_code, candidates) if args.save and asin else 0
-        print(f"{index}/{len(targets)} asin={asin or '-'} jan={jan_code} candidates={len(candidates)} lowest={lowest} saved={saved}")
-        if index < len(targets):
-            time.sleep(max(args.interval, 0))
+        saved = (
+            sum(replace_snapshots(asin, jan_code, candidates) for asin in asins if asin)
+            if args.save
+            else 0
+        )
+        asin_labels = ",".join(asins) if asins else "-"
+        print(
+            f"{index}/{len(grouped_targets)} asins={asin_labels} jan={jan_code} "
+            f"candidates={len(candidates)} lowest={lowest} saved={saved}"
+        )
+        next_request_at = request_started_at + args.interval
     return 0
 
 
