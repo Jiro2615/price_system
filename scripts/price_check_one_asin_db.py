@@ -988,6 +988,10 @@ async def check_amazon_one(
 
 
 def save_to_db(data: dict[str, Any]) -> None:
+    data = dict(data)
+    jan_code = re.sub(r"\D", "", str(data.get("jan_code") or data.get("ean") or ""))
+    check_total = sum(int(digit) * (3 if position % 2 else 1) for position, digit in enumerate(jan_code[-2::-1], start=1)) if jan_code.isdigit() else -1
+    data["jan_code"] = jan_code if len(jan_code) in {8, 12, 13, 14} and (check_total + int(jan_code[-1])) % 10 == 0 else None
     conn = connect_db()
 
     try:
@@ -1005,6 +1009,7 @@ def save_to_db(data: dict[str, Any]) -> None:
                     business_ng,
                     system_error,
                     ng_reason,
+                    jan_code,
                     checked_at,
                     updated_at
                 )
@@ -1019,6 +1024,7 @@ def save_to_db(data: dict[str, Any]) -> None:
                     %(business_ng)s,
                     %(system_error)s,
                     %(ng_reason)s,
+                    %(jan_code)s,
                     %(checked_at)s,
                     CURRENT_TIMESTAMP
                 )
@@ -1032,6 +1038,7 @@ def save_to_db(data: dict[str, Any]) -> None:
                     business_ng = EXCLUDED.business_ng,
                     system_error = EXCLUDED.system_error,
                     ng_reason = EXCLUDED.ng_reason,
+                    jan_code = COALESCE(EXCLUDED.jan_code, amazon_products.jan_code),
                     checked_at = EXCLUDED.checked_at,
                     updated_at = CURRENT_TIMESTAMP
                 ;

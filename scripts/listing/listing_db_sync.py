@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -39,6 +40,20 @@ def _to_int_or_none(value: Any) -> int | None:
         return None
 
 
+def _normalize_jan_code(value: Any) -> str:
+    """Return a usable JAN/EAN, or an empty string when the source is not exact.
+
+    Listing preparation obtains this value from Keepa's ``eanList``.  It must
+    never replace a previously stored code with a display label or malformed
+    value when syncing a later execution result.
+    """
+    digits = re.sub(r"\D", "", str(value or ""))
+    if len(digits) not in {8, 12, 13, 14}:
+        return ""
+    check_total = sum(int(digit) * (3 if position % 2 else 1) for position, digit in enumerate(digits[-2::-1], start=1))
+    return digits if (check_total + int(digits[-1])) % 10 == 0 else ""
+
+
 def _load_related_json(result: dict[str, Any], explicit_path: Path | None, key: str) -> dict[str, Any]:
     if explicit_path is not None:
         return load_json(explicit_path)
@@ -55,6 +70,7 @@ def _extract_sync_payload(request: ListingDbSyncRequest) -> dict[str, Any]:
     executed_item_payload = raw.get("executed_item_payload") or dry_run.get("item_payload") or {}
     inventory_payload = dry_run.get("inventory_payload") or {}
     amazon_result = dry_run.get("amazon_result") or {}
+    keepa_result = dry_run.get("keepa_result") or {}
 
     variant_id, variant_payload = _first_variant(executed_item_payload if isinstance(executed_item_payload, dict) else {})
     management_number = str(
@@ -81,6 +97,9 @@ def _extract_sync_payload(request: ListingDbSyncRequest) -> dict[str, Any]:
         "standard_price": standard_price,
         "quantity": quantity,
         "amazon_result": amazon_result,
+        "jan_code": _normalize_jan_code(
+            keepa_result.get("ean") if isinstance(keepa_result, dict) else getattr(keepa_result, "ean", "")
+        ),
         "executed_item_payload": executed_item_payload,
         "inventory_payload": inventory_payload,
         "final_status": str(result.get("final_status") or raw.get("execute_status") or "").strip(),
@@ -112,6 +131,7 @@ def _build_preview(sync: dict[str, Any], *, execute: bool, save_snapshot: bool) 
                 "business_ng": sync["amazon_result"].get("business_ng"),
                 "system_error": sync["amazon_result"].get("system_error"),
                 "ng_reason": sync["amazon_result"].get("ng_reason"),
+                "jan_code": sync["jan_code"] or None,
             },
         },
         {
@@ -174,9 +194,9 @@ def _upsert_amazon_product(cur: Any, sync: dict[str, Any]) -> None:
         """
         INSERT INTO amazon_products (
             asin, title, amazon_price, amazon_point, available_qty, gift_available,
-            shipping_status, business_ng, system_error, ng_reason, checked_at, updated_at
+            shipping_status, business_ng, system_error, ng_reason, jan_code, checked_at, updated_at
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ON CONFLICT (asin) DO UPDATE SET
             title = EXCLUDED.title,
             amazon_price = EXCLUDED.amazon_price,
@@ -187,6 +207,7 @@ def _upsert_amazon_product(cur: Any, sync: dict[str, Any]) -> None:
             business_ng = EXCLUDED.business_ng,
             system_error = EXCLUDED.system_error,
             ng_reason = EXCLUDED.ng_reason,
+            jan_code = COALESCE(EXCLUDED.jan_code, amazon_products.jan_code),
             checked_at = EXCLUDED.checked_at,
             updated_at = EXCLUDED.updated_at
         """,
@@ -201,6 +222,7 @@ def _upsert_amazon_product(cur: Any, sync: dict[str, Any]) -> None:
             bool(amazon.get("business_ng")),
             bool(amazon.get("system_error")),
             amazon.get("ng_reason") or None,
+            sync["jan_code"] or None,
         ),
     )
 
