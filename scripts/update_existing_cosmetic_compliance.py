@@ -159,6 +159,11 @@ def main() -> int:
         action="store_true",
         help="RMSは読み取りだけで、広告文責の追記が必要な既存商品を一覧化する（--executeとは併用不可）",
     )
+    parser.add_argument(
+        "--candidate-manifest",
+        type=Path,
+        help="中央DBと保存済み判定から作成した監査候補JSON。指定時は過去dry_run全件を再走査しない",
+    )
     parser.add_argument("--api-interval", type=float, default=1.5, help="RMS PATCH間隔（秒）")
     parser.add_argument("--lookup-interval", type=float, default=1.1, help="楽天検索・商品仕様照会の間隔（秒）")
     args = parser.parse_args()
@@ -167,8 +172,40 @@ def main() -> int:
     if args.audit_existing and args.execute:
         raise SystemExit("--audit-existing と --execute は併用できません")
 
-    source_by_asin = latest_saved_sources()
-    products = [product for product in listed_products() if product["asin"] in source_by_asin]
+    source_by_asin: dict[str, dict[str, Any]] = {}
+    if args.candidate_manifest:
+        try:
+            raw_candidates = json.loads(args.candidate_manifest.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"candidate manifest を読めません: {exc}") from exc
+        if not isinstance(raw_candidates, list):
+            raise SystemExit("candidate manifest は配列JSONにしてください")
+        products: list[dict[str, str]] = []
+        for raw in raw_candidates:
+            if not isinstance(raw, dict):
+                continue
+            asin = str(raw.get("asin") or "").strip().upper()
+            manage_number = str(raw.get("manage_number") or "").strip()
+            sku = str(raw.get("sku") or manage_number).strip()
+            ean = str(raw.get("ean") or "").strip()
+            manufacturer = str(raw.get("manufacturer") or "").strip()
+            category = str(raw.get("category") or "").strip()
+            if not asin or not manage_number or not sku or not ean or not manufacturer or category not in {"化粧品", "医薬部外品"}:
+                continue
+            products.append({"asin": asin, "manage_number": manage_number, "sku": sku})
+            source_by_asin[asin] = {
+                "path": str(args.candidate_manifest),
+                "keepa": {
+                    "ean": ean,
+                    "manufacturer": manufacturer,
+                    "title": "医薬部外品" if category == "医薬部外品" else "",
+                    "description": "",
+                },
+                "category": category,
+            }
+    else:
+        source_by_asin = latest_saved_sources()
+        products = [product for product in listed_products() if product["asin"] in source_by_asin]
     requested_asins = {asin.strip().upper() for asin in str(args.asin or "").split(",") if asin.strip()}
     if requested_asins:
         products = [product for product in products if product["asin"] in requested_asins]
@@ -179,7 +216,7 @@ def main() -> int:
         source = source_by_asin[product["asin"]]
         keepa = source["keepa"]
         source_text = " ".join(str(keepa.get(key) or "") for key in ("title", "description"))
-        category = "医薬部外品" if "医薬部外品" in source_text else "化粧品"
+        category = str(source.get("category") or "") or ("医薬部外品" if "医薬部外品" in source_text else "化粧品")
         evidence = lookup_japanese_regulated_product_evidence(
             jan_code=str(keepa.get("ean") or ""),
             manufacturer=str(keepa.get("manufacturer") or ""),
