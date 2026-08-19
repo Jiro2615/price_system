@@ -755,19 +755,26 @@ def is_generic_availability_text(text: str) -> bool:
     return normalized in {"在庫状況について", "在庫状況"}
 
 
-async def read_lowest_amazon_fulfilled_offer(page) -> Optional[dict[str, Any]]:
-    """Read a real price-to-pay from the all-offers panel when BuyBox is absent."""
+async def read_lowest_amazon_fulfilled_offer_with_status(
+    page,
+) -> tuple[Optional[dict[str, Any]], bool]:
+    """Return the cheapest eligible AOD offer and whether AOD was inspected.
+
+    ``None`` alone is ambiguous: Amazon may have no eligible new offer, or
+    the all-offers sheet may simply have failed to open.  The caller must only
+    mark a product out of stock when the sheet was actually read.
+    """
     ingress = page.locator("#aod-ingress-link")
     if await ingress.count() == 0:
         ingress = page.locator("a[href*='/gp/offer-listing/']").first
     if await ingress.count() == 0:
-        return None
+        return None, False
     try:
         await ingress.first.click(timeout=5000)
         offers = page.locator("#aod-offer-list #aod-offer")
         await offers.first.wait_for(state="visible", timeout=10000)
     except Exception:
-        return None
+        return None, False
     candidates: list[dict[str, Any]] = []
     for index in range(await offers.count()):
         offer = offers.nth(index)
@@ -791,7 +798,24 @@ async def read_lowest_amazon_fulfilled_offer(page) -> Optional[dict[str, Any]]:
             })
         except Exception:
             continue
-    return min(candidates, key=lambda item: item["price"]) if candidates else None
+    return (min(candidates, key=lambda item: item["price"]) if candidates else None), True
+
+
+async def read_lowest_amazon_fulfilled_offer(page) -> Optional[dict[str, Any]]:
+    """Read the cheapest eligible all-offers item, preserving the old API."""
+    offer, _inspected = await read_lowest_amazon_fulfilled_offer_with_status(page)
+    return offer
+
+
+def mark_no_eligible_amazon_offer(result: dict[str, Any]) -> None:
+    """Persist a confirmed no-candidate result as stock zero, not a system error."""
+    result["business_ng"] = True
+    result["system_error"] = False
+    result["ng_reason"] = "no eligible new Amazon-fulfilled offer in BuyBox or all offers"
+    result["shipping_status"] = "NG"
+    result["amazon_price"] = None
+    result["available_qty"] = 0
+    result["gift_available"] = False
 
 
 async def read_buybox_info(page) -> dict[str, Any]:
@@ -1675,16 +1699,22 @@ async def check_amazon_one_v3(
                     or "すべての出品を見る" in desktop_buybox_text
                     or add_to_cart_is_offer_link
                 )
-                if offer_listing_only:
-                    lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
-                    if lowest_offer is not None:
-                        result["amazon_price"] = lowest_offer["price"]
-                        result["amazon_point"] = fallback_point
-                        result["available_qty"] = 1
-                        apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
-                        result["gift_available"] = True
-                        result["shipping_status"] = "Amazon発送最安"
-                        return result
+                # Amazon changes the ingress label often, so try all offers
+                # whenever the BuyBox itself could not be read.  Only a sheet
+                # that was successfully inspected is evidence for stock zero.
+                lowest_offer, all_offers_inspected = await read_lowest_amazon_fulfilled_offer_with_status(page)
+                if lowest_offer is not None:
+                    result["amazon_price"] = lowest_offer["price"]
+                    result["amazon_point"] = fallback_point
+                    result["available_qty"] = 1
+                    apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                    result["gift_available"] = True
+                    result["shipping_status"] = "Amazon発送最安"
+                    return result
+                if all_offers_inspected:
+                    mark_no_eligible_amazon_offer(result)
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
 
                 missing_core_purchase_info = (
                     fallback_price <= 0
@@ -1736,7 +1766,7 @@ async def check_amazon_one_v3(
                 # A used or condition-unknown Buy Box must never become a
                 # price source. AOD remains usable only when it exposes a
                 # separately labelled new Amazon-fulfilled offer.
-                lowest_offer = await read_lowest_amazon_fulfilled_offer(page)
+                lowest_offer, all_offers_inspected = await read_lowest_amazon_fulfilled_offer_with_status(page)
                 if lowest_offer is not None:
                     result["amazon_price"] = lowest_offer["price"]
                     result["amazon_point"] = await parse_point(page)
@@ -1746,13 +1776,11 @@ async def check_amazon_one_v3(
                     result["shipping_status"] = "Amazon発送（新品・全出品）"
                     result["selected_offer"] = lowest_offer
                     return result
-                result["business_ng"] = True
-                result["system_error"] = False
-                result["ng_reason"] = "新品条件を確認できません"
-                result["amazon_price"] = None
-                result["available_qty"] = None
-                result["gift_available"] = False
-                result["shipping_status"] = "NG"
+                if all_offers_inspected:
+                    mark_no_eligible_amazon_offer(result)
+                else:
+                    result["system_error"] = True
+                    result["ng_reason"] = "all offers could not be inspected"
                 return result
 
             status_error = judge_basic_ng(in_text)
@@ -1768,6 +1796,27 @@ async def check_amazon_one_v3(
             if shipping_status != "OK":
                 result["business_ng"] = True
                 result["ng_reason"] = result["ng_reason"] or shipping_message
+
+            # An ineligible BuyBox (for example, "配送元 Amazon") must not
+            # hide a valid Amazon-fulfilled offer from another seller.
+            if result["business_ng"]:
+                lowest_offer, all_offers_inspected = await read_lowest_amazon_fulfilled_offer_with_status(page)
+                if lowest_offer is not None:
+                    result["amazon_price"] = lowest_offer["price"]
+                    result["amazon_point"] = await parse_point(page)
+                    result["available_qty"] = 1
+                    result["business_ng"] = False
+                    result["system_error"] = False
+                    result["ng_reason"] = ""
+                    result["gift_available"] = True
+                    result["shipping_status"] = "Amazon発送（新品・全出品）"
+                    result["selected_offer"] = lowest_offer
+                    apply_minimum_order_block(result, lowest_offer.get("minimum_order_quantity"))
+                    return result
+                if all_offers_inspected:
+                    mark_no_eligible_amazon_offer(result)
+                    log_result_summary(asin, page_asin, current_url, result)
+                    return result
 
             point = await parse_point(page)
             alt_price = await get_alt_price_from_buybox(page)
