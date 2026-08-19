@@ -46,6 +46,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--cycle-wait", type=int, default=60)
     parser.add_argument("--max-change-rate", type=float, default=0.5)
+    parser.add_argument("--allow-large-change", action="store_true")
     parser.add_argument("--api-interval", type=float, default=1.5)
     parser.add_argument("--verify", action="store_true")
     parser.add_argument("--retry-count", type=int, default=5)
@@ -79,6 +80,8 @@ def main() -> int:
             str(args.retry_wait),
             "--retry-policy",
         ]
+        if args.allow_large_change:
+            command.append("--allow-large-change")
         if args.verify:
             command.append("--verify")
         print(f"[continuous-price] cycle={cycle} start store=rakuten_2 limit={args.limit}", flush=True)
