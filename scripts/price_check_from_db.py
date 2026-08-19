@@ -114,7 +114,9 @@ def ensure_amazon_check_stats_schema() -> None:
         ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
         ADD COLUMN IF NOT EXISTS worker_id TEXT,
         ADD COLUMN IF NOT EXISTS locked_at TIMESTAMP,
-        ADD COLUMN IF NOT EXISTS lock_expires_at TIMESTAMP;
+        ADD COLUMN IF NOT EXISTS lock_expires_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS consecutive_system_error_count INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS last_system_error_reason TEXT NOT NULL DEFAULT '';
     """
 
     conn = connect_db()
@@ -965,7 +967,9 @@ def get_existing_stats(asin: str) -> dict[str, Any] | None:
             status,
             worker_id,
             locked_at,
-            lock_expires_at
+            lock_expires_at,
+            consecutive_system_error_count,
+            last_system_error_reason
         FROM amazon_check_stats
         WHERE asin = %s
     """
@@ -989,6 +993,8 @@ def get_existing_stats(asin: str) -> dict[str, Any] | None:
                 "worker_id": row[7],
                 "locked_at": row[8],
                 "lock_expires_at": row[9],
+                "consecutive_system_error_count": int(row[10] or 0),
+                "last_system_error_reason": row[11] or "",
             }
     finally:
         conn.close()
@@ -996,6 +1002,48 @@ def get_existing_stats(asin: str) -> dict[str, Any] | None:
 
 def normalize_text(value: Any) -> str:
     return str(value or "").strip()
+
+
+def system_error_reason(data: dict[str, Any]) -> str:
+    """Keep the raw reason stable even when the UI adds a stock-stop note."""
+    return normalize_text(data.get("system_error_reason") or data.get("ng_reason"))
+
+
+def consecutive_system_error_count(current: dict[str, Any], existing: dict[str, Any] | None) -> int:
+    if not current.get("system_error"):
+        return 0
+    reason = system_error_reason(current)
+    if not reason:
+        return 0
+    stats = existing or {}
+    if normalize_text(stats.get("last_system_error_reason")) == reason:
+        return int(stats.get("consecutive_system_error_count") or 0) + 1
+    return 1
+
+
+def apply_repeated_system_error_stock_stop(
+    current: dict[str, Any],
+    existing: dict[str, Any] | None,
+    *,
+    threshold: int = 3,
+) -> int:
+    """Turn a repeated, same-reason fetch error into a stock-stop signal.
+
+    The original ``system_error`` remains true for diagnostics and retry
+    priority.  ``business_ng`` makes target calculation set RMS stock to zero.
+    """
+    streak = consecutive_system_error_count(current, existing)
+    if streak < threshold:
+        return streak
+    raw_reason = system_error_reason(current)
+    if not raw_reason:
+        return streak
+    current["system_error_reason"] = raw_reason
+    current["business_ng"] = True
+    current["available_qty"] = 0
+    current["ng_reason"] = f"system_error repeated {streak} times: {raw_reason}"
+    current["shipping_status"] = "NG"
+    return streak
 
 
 def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, Any], existing: dict[str, Any] | None) -> dict[str, Any]:
@@ -1006,6 +1054,8 @@ def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, A
         "ng_change_count": 0,
         "error_count": 0,
         "stable_count": 0,
+        "consecutive_system_error_count": 0,
+        "last_system_error_reason": "",
     }
 
     previous = previous or {}
@@ -1040,6 +1090,8 @@ def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, A
         "change_detected": False,
         "system_error_detected": False,
         "stable_detected": False,
+        "consecutive_system_error_count": consecutive_system_error_count(current, stats),
+        "last_system_error_reason": system_error_reason(current) if current.get("system_error") else "",
     }
 
     if current.get("system_error"):
@@ -1091,6 +1143,8 @@ def update_amazon_check_stats(asin: str, update: dict[str, Any]) -> None:
             worker_id,
             locked_at,
             lock_expires_at,
+            consecutive_system_error_count,
+            last_system_error_reason,
             updated_at
         )
         VALUES (
@@ -1109,6 +1163,8 @@ def update_amazon_check_stats(asin: str, update: dict[str, Any]) -> None:
             %(worker_id)s,
             %(locked_at)s,
             %(lock_expires_at)s,
+            %(consecutive_system_error_count)s,
+            %(last_system_error_reason)s,
             CURRENT_TIMESTAMP
         )
         ON CONFLICT (asin) DO UPDATE SET
@@ -1126,6 +1182,8 @@ def update_amazon_check_stats(asin: str, update: dict[str, Any]) -> None:
             worker_id = EXCLUDED.worker_id,
             locked_at = EXCLUDED.locked_at,
             lock_expires_at = EXCLUDED.lock_expires_at,
+            consecutive_system_error_count = EXCLUDED.consecutive_system_error_count,
+            last_system_error_reason = EXCLUDED.last_system_error_reason,
             updated_at = CURRENT_TIMESTAMP
     """
 
@@ -1148,6 +1206,8 @@ def build_error_stats_update(existing: dict[str, Any] | None) -> dict[str, Any]:
         "ng_change_count": 0,
         "error_count": 0,
         "stable_count": 0,
+        "consecutive_system_error_count": 0,
+        "last_system_error_reason": "",
     }
     now = datetime.now()
     return {
@@ -1168,6 +1228,8 @@ def build_error_stats_update(existing: dict[str, Any] | None) -> dict[str, Any]:
         "change_detected": False,
         "system_error_detected": True,
         "stable_detected": False,
+        "consecutive_system_error_count": int(stats.get("consecutive_system_error_count") or 0),
+        "last_system_error_reason": normalize_text(stats.get("last_system_error_reason")),
     }
 
 
@@ -1836,6 +1898,14 @@ async def main() -> int:
                     print("共有Chrome/page再初期化完了")
                     data = await check_amazon_one(asin, page=shared_page, page_timeout_ms=args.page_timeout)
 
+                repeated_error_streak = apply_repeated_system_error_stock_stop(data, existing_stats)
+                if data.get("system_error") and data.get("business_ng"):
+                    print(
+                        "repeated_system_error_stock_stop "
+                        f"asin={asin} streak={repeated_error_streak} "
+                        f"reason={data.get('system_error_reason') or data.get('ng_reason')}"
+                    )
+
                 print("取得結果:")
                 print(f"  asin           : {data.get('asin')}")
                 print(f"  title          : {data.get('title')}")
@@ -1851,7 +1921,7 @@ async def main() -> int:
                 save_to_db(data)
                 print("amazon_products save: OK")
 
-                if data.get("system_error"):
+                if data.get("system_error") and not data.get("business_ng"):
                     print(f"target recalc skipped: asin={asin} reason=system_error")
                 else:
                     recalc_store_codes = fetch_store_codes_for_asin(asin)
