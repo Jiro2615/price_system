@@ -14,6 +14,13 @@ from scripts.listing.models import sanitize_for_output, to_jsonable
 from scripts.listing.rakuten_image_client import RakutenImageClient, build_upload_request_from_validation
 from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, build_inventory_request
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
+from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
+from scripts.listing.rakuten_shop_category_client import (
+    DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+    RakutenShopCategoryClient,
+    build_mapping_payload,
+    response_json,
+)
 
 
 IMAGE_UPLOAD_WAIT_SECONDS = 1.5
@@ -144,6 +151,7 @@ def _base_result(request: ExecuteListingRequest, dry_run_result: dict[str, Any])
         "validation_result": None,
         "image_upload_results": [],
         "item_result": None,
+        "shop_category_result": None,
         "inventory_result": None,
         "image_urls_before": list(dry_run_result.get("image_urls") or []),
         "rakuten_image_urls_after": [],
@@ -204,6 +212,91 @@ def _classify_upload_failure(upload: Any) -> str:
     return f"image upload failed: status={status_code}, error={error_message or getattr(upload, 'error_type', None)}"
 
 
+def _requires_cosmetics_shop_category(dry_run_result: dict[str, Any], store_code: str) -> bool:
+    """Return whether this listing uses LifeForest's cosmetics display category.
+
+    The established compliance classifier covers Amazon's Beauty hierarchy,
+    while an explicit ``医薬部外品`` marker covers products that are not
+    consistently placed below that hierarchy in Keepa.
+    """
+    if str(store_code or "").strip().lower() != "rakuten_2":
+        return False
+    keepa = dry_run_result.get("keepa_result") or {}
+    category_tree = keepa.get("category_tree") if isinstance(keepa, dict) else getattr(keepa, "category_tree", None)
+    if is_cosmetics_category(category_tree):
+        return True
+    item_payload = dry_run_result.get("item_payload") or {}
+    title = str(item_payload.get("title") or "") if isinstance(item_payload, dict) else ""
+    description = str(item_payload.get("descriptionForPC") or "") if isinstance(item_payload, dict) else ""
+    return "医薬部外品" in f"{title}\n{description}"
+
+
+def _assign_cosmetics_shop_category(
+    *,
+    client: RakutenShopCategoryClient,
+    management_number: str,
+    store_code: str,
+) -> dict[str, Any]:
+    """Add the cosmetics shop category without replacing existing mappings."""
+    current_result = client.get_item_mapping(management_number, store_code=store_code)
+    current = response_json(current_result)
+    if not current_result.success:
+        return {
+            "success": False,
+            "stage": "get_current_mapping",
+            "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+            "error": current_result.error_message or "Category API mapping read failed",
+            "request_summary": current_result.request_summary,
+        }
+
+    current_ids = [str(value) for value in list(current.get("categoryIds") or [])]
+    if DEFAULT_COSMETICS_SHOP_CATEGORY_ID in current_ids:
+        return {
+            "success": True,
+            "skipped": True,
+            "reason": "already_assigned",
+            "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+            "category_ids": current_ids,
+        }
+
+    target_result = client.get_category(DEFAULT_COSMETICS_SHOP_CATEGORY_ID, store_code=store_code)
+    target = response_json(target_result)
+    if not target_result.success:
+        return {
+            "success": False,
+            "stage": "get_target_category",
+            "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+            "error": target_result.error_message or "Category API category read failed",
+            "request_summary": target_result.request_summary,
+        }
+    try:
+        payload = build_mapping_payload(
+            current,
+            target_category_id=DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+            target_is_plural=str(((target.get("categoryFeatures") or {}).get("categoryPageViewMode") or "")).upper() == "PLURAL",
+        )
+    except ValueError as exc:
+        return {
+            "success": False,
+            "stage": "build_mapping",
+            "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+            "error": str(exc),
+            "category_ids": current_ids,
+        }
+
+    put_result = client.put_item_mapping(management_number, payload, store_code=store_code)
+    return {
+        "success": put_result.success,
+        "stage": "put_mapping",
+        "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+        "category_ids": payload.get("categoryIds") or [],
+        "main_plural_category_id": payload.get("mainPluralCategoryId"),
+        "http_status": put_result.http_status,
+        "error": put_result.error_message,
+        "request_summary": put_result.request_summary,
+    }
+
+
 def execute_listing(
     request: ExecuteListingRequest,
     *,
@@ -213,6 +306,7 @@ def execute_listing(
     image_client: RakutenImageClient | None = None,
     item_client: RakutenItemClient | None = None,
     inventory_client: RakutenInventoryClient | None = None,
+    shop_category_client: RakutenShopCategoryClient | None = None,
 ) -> dict[str, Any]:
     dry_run_result = dict(request.dry_run_result)
     result = _base_result(request, dry_run_result)
@@ -350,6 +444,32 @@ def execute_listing(
             return _fail(result, status="item_failed", message=item_result.error_message or "item API failed", final_state="partial_failure")
 
     result["execute_status"] = "item_succeeded"
+
+    # Shop display categories are managed by Category API, not Item API
+    # ``genreId``.  A category failure must not cause a second Item API write:
+    # the item has already been registered, so retain a visible warning and
+    # continue the inventory registration.
+    if _requires_cosmetics_shop_category(dry_run_result, store_code):
+        try:
+            shop_category_client = shop_category_client or RakutenShopCategoryClient()
+            category_result = _assign_cosmetics_shop_category(
+                client=shop_category_client,
+                management_number=management_number,
+                store_code=store_code,
+            )
+            result["shop_category_result"] = sanitize_for_output(to_jsonable(category_result))
+            if not category_result.get("success"):
+                result["warnings"].append(
+                    "化粧品ショップカテゴリの設定に失敗しました: "
+                    + str(category_result.get("error") or "Category API error")
+                )
+        except Exception as exc:
+            result["shop_category_result"] = {
+                "success": False,
+                "target_category_id": DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
+                "error": str(exc),
+            }
+            result["warnings"].append(f"化粧品ショップカテゴリの設定に失敗しました: {exc}")
 
     inventory_client = inventory_client or RakutenInventoryClient()
     inventory_request = build_inventory_request(management_number, inventory_payload, request.inventory_headers or {}, store_code=store_code)

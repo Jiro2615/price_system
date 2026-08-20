@@ -474,6 +474,7 @@ def build_real_execute_result(
         response_summaries={
             "cabinet_destination": resolved_cabinet,
             "item_result": item_result,
+            "shop_category_result": (raw_execute_result.get("shop_category_result") or {}),
             "inventory_result": inventory_result,
         },
     )
