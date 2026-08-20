@@ -39,7 +39,10 @@ from scripts.listing.keepa_product_client import KeepaClient, load_keepa_api_key
 
 KEEPA_QUERY_ENDPOINT = "https://api.keepa.com/query"
 ASIN_PATTERN = re.compile(r"^[A-Z0-9]{10}$")
-MAX_CANDIDATE_LIMIT = 1000
+# Keepa permits up to 10,000 ASINs for the first Product Finder page.  The
+# UI warns about the matching product-metadata token cost before such a large
+# request is started.
+MAX_CANDIDATE_LIMIT = 10000
 
 
 def comma_values(value: object) -> list[str]:
