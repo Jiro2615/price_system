@@ -1,4 +1,4 @@
-"""Continuous store-2 Rakuten inventory API worker.
+"""Continuous store-scoped Rakuten inventory API worker.
 
 Each cycle reads rows where ``current_stock != target_stock`` and delegates
 the non-empty difference to the existing inventories.bulk.upsert script. The
@@ -54,8 +54,9 @@ def main() -> int:
     parser.add_argument("--reconcile-retry-wait", type=float, default=5.0)
     args = parser.parse_args()
 
-    if args.store.strip().lower() != "rakuten_2":
-        raise SystemExit("continuous Rakuten inventory API worker is restricted to store=rakuten_2")
+    store_code = args.store.strip().lower()
+    if not store_code:
+        raise SystemExit("store is required")
     if args.limit < 0:
         raise SystemExit("limit must be >= 0")
     if not 1 <= args.batch_size <= 400:
@@ -85,7 +86,7 @@ def main() -> int:
             str(UPSERT_SCRIPT),
             "--execute",
             "--store",
-            "rakuten_2",
+            store_code,
             "--limit",
             str(args.limit),
             "--batch-size",
@@ -93,7 +94,7 @@ def main() -> int:
         ]
         print(
             f"[continuous-inventory] cycle={cycle} start "
-            f"store=rakuten_2 limit={args.limit} batch_size={args.batch_size}",
+            f"store={store_code} limit={args.limit} batch_size={args.batch_size}",
             flush=True,
         )
         result = subprocess.run(command, cwd=SCRIPT_DIR.parent, check=False)
@@ -109,7 +110,7 @@ def main() -> int:
                 str(RECONCILE_SCRIPT),
                 "--execute",
                 "--store",
-                "rakuten_2",
+                store_code,
                 "--limit",
                 str(args.reconcile_limit),
                 "--api-interval",

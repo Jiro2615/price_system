@@ -1,4 +1,4 @@
-"""Continuous store-2 Rakuten price API worker.
+"""Continuous store-scoped Rakuten price API worker.
 
 Each cycle delegates the actual items.patch work to the existing, audited
 single-run script.  The child is intentionally kept in this process tree so
@@ -53,8 +53,9 @@ def main() -> int:
     parser.add_argument("--retry-wait", type=float, default=5.0)
     args = parser.parse_args()
 
-    if args.store.strip().lower() != "rakuten_2":
-        raise SystemExit("continuous Rakuten price API worker is restricted to store=rakuten_2")
+    store_code = args.store.strip().lower()
+    if not store_code:
+        raise SystemExit("store is required")
     if args.limit < 0 or args.cycle_wait < 1:
         raise SystemExit("limit must be >= 0 and cycle-wait must be >= 1")
 
@@ -67,7 +68,7 @@ def main() -> int:
             str(PATCH_SCRIPT),
             "--execute",
             "--store",
-            "rakuten_2",
+            store_code,
             "--limit",
             str(args.limit),
             "--max-change-rate",
@@ -85,7 +86,7 @@ def main() -> int:
             command.append("--retry-large-change-holds")
         if args.verify:
             command.append("--verify")
-        print(f"[continuous-price] cycle={cycle} start store=rakuten_2 limit={args.limit}", flush=True)
+        print(f"[continuous-price] cycle={cycle} start store={store_code} limit={args.limit}", flush=True)
         result = subprocess.run(command, cwd=SCRIPT_DIR.parent, check=False)
         print(f"[continuous-price] cycle={cycle} finished exit_code={result.returncode}", flush=True)
         if not wait_until_next_cycle(args.run_id, args.cycle_wait):
