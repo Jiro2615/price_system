@@ -82,6 +82,7 @@ def main() -> int:
         ]
         if args.allow_large_change:
             command.append("--allow-large-change")
+            command.append("--retry-large-change-holds")
         if args.verify:
             command.append("--verify")
         print(f"[continuous-price] cycle={cycle} start store=rakuten_2 limit={args.limit}", flush=True)

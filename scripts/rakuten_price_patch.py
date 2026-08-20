@@ -162,6 +162,7 @@ def fetch_price_targets(
     sku_code: str | None = None,
     blocked_only: bool = False,
     skip_deferred_retries: bool = False,
+    retry_large_change_holds: bool = False,
 ) -> list[dict[str, Any]]:
     where = [
         "s.mall = 'rakuten'",
@@ -190,6 +191,12 @@ def fetch_price_targets(
         where.append("COALESCE(sp.rakuten_csv_update_blocked, FALSE) = TRUE")
 
     if skip_deferred_retries:
+        permanent_hold_condition = "retry_state.state = 'permanent_hold'"
+        if retry_large_change_holds:
+            # An operator explicitly allowed large changes for this run. Keep
+            # auth/validation holds manual, but let prior rate-only holds be
+            # selected again so the override has an effect.
+            permanent_hold_condition += " AND retry_state.last_error NOT ILIKE '%価格変更率が大きすぎます%'"
         where.append(
             f"""
             NOT EXISTS (
@@ -198,7 +205,7 @@ def fetch_price_targets(
                 WHERE retry_state.store_product_id = sp.id
                   AND retry_state.target_price = sp.target_price
                   AND (
-                    retry_state.state = 'permanent_hold'
+                    {permanent_hold_condition}
                     OR (retry_state.next_retry_at IS NOT NULL AND retry_state.next_retry_at > CURRENT_TIMESTAMP)
                   )
             )
@@ -902,6 +909,7 @@ def main() -> int:
     parser.add_argument("--retry-count", type=int, default=5, help="429/一時エラー時の再試行回数")
     parser.add_argument("--retry-wait", type=float, default=5.0, help="429/一時エラー時の基本待機秒数。再試行ごとに少し伸ばす")
     parser.add_argument("--retry-policy", action="store_true", help="失敗理由別の再試行待機をDBへ記録し、待機中・恒久エラーを今回の対象から除外する")
+    parser.add_argument("--retry-large-change-holds", action="store_true", help="--allow-large-change 時、過去の価格変更率だけの手動保留を再試行する")
 
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="API送信せずJSONだけ出力する")
@@ -921,6 +929,9 @@ def main() -> int:
 
     if args.retry_policy and dry_run:
         print("--retry-policy は --execute と一緒に使用してください。")
+        return 2
+    if args.retry_large_change_holds and (not args.retry_policy or not args.allow_large_change):
+        print("--retry-large-change-holds は --retry-policy と --allow-large-change を一緒に指定してください。")
         return 2
 
     if args.retry_policy:
@@ -948,6 +959,7 @@ def main() -> int:
             sku_code=sku_code,
             blocked_only=args.blocked_only,
             skip_deferred_retries=args.retry_policy,
+            retry_large_change_holds=args.retry_large_change_holds,
         )
     print_targets(rows)
     print(f"楽天価格更新対象件数: {len(rows)}")
