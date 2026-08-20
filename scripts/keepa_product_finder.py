@@ -2,11 +2,10 @@ from __future__ import annotations
 
 """Keepa Product Finder candidate discovery for the Rakuten listing flow.
 
-The Product Finder endpoint returns ASINs only.  This command obtains a
-bounded page of ASINs, fetches lightweight product metadata (no offers or
-history), and stores the candidates in the shared PostgreSQL database so that
-the QNAP dashboard can show the result even when the command ran on a Windows
-listing PC.
+The Product Finder endpoint returns ASINs only. This command normally stores
+that bounded ASIN list in the shared PostgreSQL database. Optional product
+metadata can be requested for a smaller, detail-oriented search, but it costs
+one additional Keepa token per candidate.
 
 It is deliberately a *candidate* finder.  The existing listing bulk check is
 still the authority for the Amazon page, Rakuten duplicate, blacklist and RMS
@@ -175,6 +174,7 @@ def make_selection(args: argparse.Namespace) -> dict[str, Any]:
         "avg90_COUNT_NEW_gte": math.floor(args.min_avg90_new_sellers) if args.min_avg90_new_sellers is not None else None,
         "avg90_COUNT_NEW_lte": math.ceil(args.max_avg90_new_sellers) if args.max_avg90_new_sellers is not None else None,
         "current_COUNT_REVIEWS_gte": args.min_review_count,
+        "current_SALES_gte": args.min_sales_rank,
         "current_SALES_lte": args.max_sales_rank,
         "monthlySold_gte": args.min_monthly_sold,
     }
@@ -281,6 +281,27 @@ def metadata_candidates(
     return rows, token_state
 
 
+def asin_only_candidates(asins: list[str], selection: dict[str, Any]) -> list[dict[str, Any]]:
+    """Persist fast Product Finder output without per-ASIN product requests."""
+    return [
+        {
+            "asin": asin,
+            "title": "",
+            "ean_code": "",
+            "category_id": None,
+            "category_path": "",
+            "current_new_offer_count": None,
+            "avg90_new_offer_count": None,
+            "avg90_seller_count": None,
+            "buy_box_price": None,
+            "buy_box_shipping": None,
+            "keepa_summary": {},
+            "finder_selection": selection,
+        }
+        for asin in asins
+    ]
+
+
 def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]]) -> None:
     conn = connect_db()
     try:
@@ -338,11 +359,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-current-new-sellers", default="")
     parser.add_argument("--min-avg90-new-sellers", default="")
     parser.add_argument("--max-avg90-new-sellers", default="")
+    parser.add_argument("--min-sales-rank", default="")
     parser.add_argument("--max-sales-rank", default="")
     parser.add_argument("--min-monthly-sold", default="")
     parser.add_argument("--candidate-limit", type=int, default=100)
     parser.add_argument("--page", type=int, default=0)
     parser.add_argument("--amazon-in-stock", action="store_true")
+    parser.add_argument("--fetch-product-metadata", action="store_true")
     args = parser.parse_args()
     args.store = str(args.store).strip().lower()
     args.run_id = str(args.run_id).strip()
@@ -358,6 +381,7 @@ def parse_args() -> argparse.Namespace:
         ("min_review_count", "最小レビュー数", 0),
         ("min_current_new_sellers", "新品出品者数下限", 1),
         ("max_current_new_sellers", "新品出品者数上限", 1),
+        ("min_sales_rank", "販売ランク下限", 1),
         ("max_sales_rank", "販売ランク上限", 1),
         ("min_monthly_sold", "月間販売数下限", 0),
     ):
@@ -373,6 +397,8 @@ def parse_args() -> argparse.Namespace:
     args.min_rating = optional_rating(args.min_rating)
     if args.min_price is not None and args.max_price is not None and args.min_price > args.max_price:
         raise ValueError("仕入れ価格下限は上限以下にしてください")
+    if args.min_sales_rank is not None and args.max_sales_rank is not None and args.min_sales_rank > args.max_sales_rank:
+        raise ValueError("販売ランク下限は上限以下にしてください")
     for lower, upper, label in (
         (args.min_current_new_sellers, args.max_current_new_sellers, "新品出品者数"),
         (args.min_avg90_new_sellers, args.max_avg90_new_sellers, "90日平均新品出品者数"),
@@ -404,7 +430,11 @@ def main() -> int:
     )
     asins = [str(asin).strip().upper() for asin in (query_response.get("asinList") or [])]
     asins = list(dict.fromkeys(asin for asin in asins if ASIN_PATTERN.fullmatch(asin)))
-    candidates, product_tokens = metadata_candidates(session, api_key, asins, args, selection)
+    if args.fetch_product_metadata:
+        candidates, product_tokens = metadata_candidates(session, api_key, asins, args, selection)
+    else:
+        candidates = asin_only_candidates(asins, selection)
+        product_tokens = {}
     save_candidates(args.run_id, args.store, candidates)
     summary = {
         "run_id": args.run_id,
@@ -414,6 +444,7 @@ def main() -> int:
         "matched_total": query_response.get("totalResults"),
         "finder_returned_count": len(asins),
         "candidate_count": len(candidates),
+        "product_metadata_fetched": bool(args.fetch_product_metadata),
         "finder_tokens": {key: query_response.get(key) for key in ("tokensLeft", "tokensConsumed", "refillRate", "refillIn") if key in query_response},
         "product_tokens": product_tokens,
         "estimated_product_requests": math.ceil(len(asins) / 100) if asins else 0,
