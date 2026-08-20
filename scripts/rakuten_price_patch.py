@@ -196,7 +196,9 @@ def fetch_price_targets(
             # An operator explicitly allowed large changes for this run. Keep
             # auth/validation holds manual, but let prior rate-only holds be
             # selected again so the override has an effect.
-            permanent_hold_condition += " AND retry_state.last_error NOT ILIKE '%価格変更率が大きすぎます%'"
+            # psycopg uses percent-style placeholders, so literal SQL
+            # wildcards must be doubled at this layer.
+            permanent_hold_condition += " AND retry_state.last_error NOT ILIKE '%%価格変更率が大きすぎます%%'"
         where.append(
             f"""
             NOT EXISTS (
