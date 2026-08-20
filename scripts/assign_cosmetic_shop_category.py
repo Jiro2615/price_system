@@ -8,10 +8,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+# This script is invoked directly by the execution agent.  Add the project
+# root so its ``scripts.*`` package imports work in that invocation mode too.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from scripts.db_config import connect_db
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
@@ -23,7 +30,6 @@ from scripts.listing.rakuten_shop_category_client import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "output" / "compliance_updates"
 
 
@@ -40,27 +46,38 @@ def is_cosmetics_source(dry_run: dict[str, Any]) -> bool:
     )
 
 
-def latest_saved_cosmetics_sources() -> dict[str, dict[str, str]]:
-    """Return the latest saved cosmetics decision per ASIN from listing output."""
-    sources: dict[str, tuple[float, dict[str, str]]] = {}
+def latest_saved_cosmetics_sources(allowed_asins: set[str]) -> dict[str, dict[str, str]]:
+    """Return the newest saved cosmetics decision for currently listed ASINs.
+
+    A listing batch can contain many historic attempts for the same ASIN.  The
+    category operation only needs the newest one, so first select that path by
+    filename/mtime and then parse just those JSON files.  This keeps a one-off
+    existing-item update fast even after the batch archive grows large.
+    """
+    latest_paths: dict[str, tuple[float, Path]] = {}
     for path in (ROOT / "output" / "listing" / "batches").glob("*/*/dry_run.json"):
+        asin = path.parent.name.strip().upper()
+        if asin not in allowed_asins:
+            continue
+        try:
+            modified_at = path.stat().st_mtime
+        except OSError:
+            continue
+        if asin not in latest_paths or modified_at > latest_paths[asin][0]:
+            latest_paths[asin] = (modified_at, path)
+
+    sources: dict[str, dict[str, str]] = {}
+    for asin, (_modified_at, path) in latest_paths.items():
         try:
             payload = json.loads(path.read_text(encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError):
             continue
         if str(payload.get("store_code") or "").strip().lower() != "rakuten_2":
             continue
-        asin = str(payload.get("asin") or "").strip().upper()
-        if not asin or not is_cosmetics_source(payload):
+        if str(payload.get("asin") or "").strip().upper() != asin or not is_cosmetics_source(payload):
             continue
-        try:
-            modified_at = path.stat().st_mtime
-        except OSError:
-            continue
-        value = {"asin": asin, "source_path": str(path)}
-        if asin not in sources or modified_at > sources[asin][0]:
-            sources[asin] = (modified_at, value)
-    return {asin: source for asin, (_mtime, source) in sources.items()}
+        sources[asin] = {"asin": asin, "source_path": str(path)}
+    return sources
 
 
 def listed_products() -> list[dict[str, str]]:
@@ -97,9 +114,10 @@ def build_plan(*, category_id: str, limit: int, request_interval: float) -> tupl
         raise RuntimeError(f"cosmetics shop category {category_id} could not be read: {target_result.error_message or target_result.http_status}")
     target_is_plural = str(((target.get("categoryFeatures") or {}).get("categoryPageViewMode") or "")).upper() == "PLURAL"
 
-    candidates = latest_saved_cosmetics_sources()
+    products = listed_products()
+    candidates = latest_saved_cosmetics_sources({product["asin"] for product in products})
     entries: list[dict[str, Any]] = []
-    for product in listed_products():
+    for product in products:
         if limit and len(entries) >= limit:
             break
         source = candidates.get(product["asin"])
