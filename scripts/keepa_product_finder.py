@@ -21,10 +21,17 @@ import sys
 import time
 from dataclasses import asdict
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Iterable
 
 import requests
 from psycopg.types.json import Jsonb
+
+# The execution agent invokes this file directly.  Make the project package
+# importable without depending on the caller's PYTHONPATH.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from scripts.db_config import connect_db
 from scripts.listing.keepa_product_client import KeepaClient, load_keepa_api_key, parse_keepa_product
