@@ -147,7 +147,9 @@ def build_child_cmd(
         "--page-timeout",
         str(resolved_settings["page_timeout_ms"]["value"]),
     ]
-    cmd.append("--no-use-stats" if asin_file else "--use-stats" if resolved_settings["use_stats"]["value"] else "--no-use-stats")
+    # Explicit ASIN batches also claim rows in amazon_check_stats.  This keeps
+    # the same ASIN from being checked simultaneously by another PC.
+    cmd.append("--use-stats" if asin_file or resolved_settings["use_stats"]["value"] else "--no-use-stats")
     if recheck_system_errors:
         cmd.append("--system-error-only")
     if reason_contains:

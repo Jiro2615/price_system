@@ -920,6 +920,63 @@ def claim_target_asins_by_stats(
     return scheduled_rows
 
 
+def claim_explicit_asins_by_stats(
+    asins: list[str],
+    worker_id: str,
+    lock_minutes: int = 30,
+) -> list[dict[str, Any]]:
+    """Claim explicitly requested ASINs without duplicating another worker.
+
+    Direct ASIN batches used to skip ``amazon_check_stats`` completely.  That
+    was safe only while one PC ran checks.  Use the same row-level lock as the
+    scheduled queue so multiple execution PCs can safely process separate
+    ASINs from one shared input list.
+    """
+    requested = list(dict.fromkeys(str(asin or "").strip() for asin in asins if str(asin or "").strip()))
+    if not requested:
+        return []
+    sql = """
+        WITH requested AS (
+            SELECT asin, MIN(position) AS position
+            FROM unnest(%(asins)s::text[]) WITH ORDINALITY AS source(asin, position)
+            GROUP BY asin
+        ),
+        target_rows AS (
+            SELECT s.asin, s.status AS old_status, s.next_check_at AS old_next_check_at,
+                   COALESCE(ap.ng_reason, '') AS current_ng_reason, ap.checked_at AS old_checked_at
+            FROM requested r
+            JOIN amazon_check_stats s ON s.asin = r.asin
+            LEFT JOIN amazon_products ap ON ap.asin = s.asin
+            WHERE s.status IN ('pending', 'done')
+               OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)
+            ORDER BY r.position
+            FOR UPDATE OF s SKIP LOCKED
+        )
+        UPDATE amazon_check_stats s
+        SET status = 'processing', worker_id = %(worker_id)s,
+            locked_at = CURRENT_TIMESTAMP,
+            lock_expires_at = CURRENT_TIMESTAMP + (%(lock_minutes)s || ' minutes')::interval,
+            updated_at = CURRENT_TIMESTAMP
+        FROM target_rows t
+        WHERE s.asin = t.asin
+        RETURNING s.asin, s.status, t.old_status, t.old_next_check_at, s.worker_id,
+                  t.current_ng_reason, t.old_checked_at
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, {"asins": requested, "worker_id": worker_id, "lock_minutes": lock_minutes})
+            rows = cur.fetchall()
+        conn.commit()
+        return [{
+            "asin": row[0], "status": row[1], "old_status": row[2],
+            "old_next_check_at": row[3], "worker_id": row[4],
+            "current_ng_reason": row[5], "old_checked_at": row[6],
+        } for row in rows]
+    finally:
+        conn.close()
+
+
 def get_previous_amazon_state(asin: str) -> dict[str, Any] | None:
     sql = """
         SELECT
@@ -1672,8 +1729,8 @@ async def main() -> int:
 
         return 2
 
-    if args.asin_file and (args.use_stats or args.system_error_only or args.reason_contains):
-        print("--asin-file cannot be combined with stats/system-error target options")
+    if args.asin_file and (args.system_error_only or args.reason_contains):
+        print("--asin-file cannot be combined with system-error target options")
         return 2
     if args.listed_only and not args.store_code.strip():
         print("--listed-only requires --store-code")
@@ -1743,8 +1800,22 @@ async def main() -> int:
     claimed_rows: list[dict[str, Any]] = []
 
     if args.asin_file:
-        asins = load_asins_from_file(args.asin_file)
-        claimed_rows = [{"asin": asin, "current_ng_reason": "", "old_checked_at": ""} for asin in asins]
+        requested_asins = load_asins_from_file(args.asin_file)
+        if args.use_stats and not args.dry_run:
+            ensure_amazon_check_stats_schema()
+            ensure_amazon_check_stats_rows()
+            ensure_amazon_check_worker_runs_schema()
+            released_count = release_expired_processing_locks()
+            if released_count > 0:
+                print(f"期限切れprocessingを自動解除しました: {released_count}件")
+            claimed_rows = claim_explicit_asins_by_stats(requested_asins, worker_id)
+            asins = [row["asin"] for row in claimed_rows]
+            skipped_count = len(requested_asins) - len(asins)
+            if skipped_count > 0:
+                print(f"他ワーカーが処理中・未登録のため今回見送ったASIN: {skipped_count}件")
+        else:
+            asins = requested_asins
+            claimed_rows = [{"asin": asin, "current_ng_reason": "", "old_checked_at": ""} for asin in asins]
     elif args.dry_run and args.system_error_only:
 
         claimed_rows = preview_system_error_targets(args.limit, args.reason_contains)
