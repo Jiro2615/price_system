@@ -79,6 +79,14 @@ def is_explicit_new_offer_text(in_text: str) -> bool:
     return bool(match and match.group(0) == "新品")
 
 
+def is_eligible_buybox_condition_text(in_text: str) -> bool:
+    """Treat an unmarked offer as new, but never a visibly non-new one."""
+    primary_text = re.split(r"Amazonの他の出品者|すべての出品", str(in_text or ""), maxsplit=1)[0]
+    if is_explicit_new_offer_text(primary_text):
+        return True
+    return not any(marker in primary_text for marker in _NON_NEW_CONDITION_MARKERS)
+
+
 def extract_asin(url: str) -> str:
     m = re.search(r"/(?:dp|gp/product)/([A-Z0-9]{10})", url, re.I)
     return m.group(1).upper() if m else ""
@@ -108,6 +116,20 @@ def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
             return None
 
     return (target - today).days
+
+
+def delivery_within_one_week(text: str) -> bool:
+    """Return whether Amazon's displayed delivery promise is no later than 7 days."""
+    normalized = re.sub(r"\s+", "", text or "")
+    if any(word in normalized for word in ("本日", "今日", "明日", "翌日")):
+        return True
+
+    match = re.search(r"(\d{1,2})月(\d{1,2})日", normalized)
+    if not match:
+        return False
+
+    diff_days = calc_diff_days(int(match.group(1)), int(match.group(2)))
+    return diff_days is not None and 0 <= diff_days <= 7
 
 
 def is_prime_amazon_official_offer_text(in_text: str) -> bool:
@@ -775,6 +797,21 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
         await offers.first.wait_for(state="visible", timeout=10000)
     except Exception:
         return None, False
+    # Amazon adds a variable number of offers on each request.  Keep loading
+    # until the control disappears or no additional offer is appended.
+    while True:
+        more = page.locator("#aod-show-more-offers")
+        try:
+            if await more.count() == 0 or not await more.first.is_visible(timeout=500):
+                break
+            before = await offers.count()
+            await more.first.click(timeout=5000)
+            await page.wait_for_timeout(700)
+            if await offers.count() <= before:
+                break
+        except Exception:
+            break
+
     candidates: list[dict[str, Any]] = []
     for index in range(await offers.count()):
         offer = offers.nth(index)
@@ -787,8 +824,17 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
                 price = parse_yen_price(await safe_inner_text(offer.locator(".apex-pricetopay-accessibility-label").first))
             delivery = offer.locator("[data-csa-c-delivery-price]").first
             delivery_price = await delivery.get_attribute("data-csa-c-delivery-price") if await delivery.count() else ""
+            delivery_time = await delivery.get_attribute("data-csa-c-delivery-time") if await delivery.count() else ""
             offer_text = await safe_inner_text(offer)
-            if not is_explicit_new_offer_text(offer_text) or price <= 0 or delivery_price != "無料":
+            if (
+                not is_eligible_buybox_condition_text(offer_text)
+                or price <= 0
+                or delivery_price != "無料"
+                or not delivery_within_one_week(delivery_time or offer_text)
+            ):
+                continue
+            add_button = offer.locator("input[name='submit.addToCart']").first
+            if await add_button.count() == 0:
                 continue
             candidates.append({
                 "price": price,
@@ -1762,10 +1808,10 @@ async def check_amazon_one_v3(
             in_text = buy_info["in_text"]
             price = int(buy_info["price"] or 0)
 
-            if not is_explicit_new_offer_text(in_text):
-                # A used or condition-unknown Buy Box must never become a
-                # price source. AOD remains usable only when it exposes a
-                # separately labelled new Amazon-fulfilled offer.
+            if not is_eligible_buybox_condition_text(in_text):
+                # A visibly used/refurbished Buy Box must never become a
+                # price source. AOD remains usable when it exposes a
+                # separately eligible Amazon-fulfilled offer.
                 lowest_offer, all_offers_inspected = await read_lowest_amazon_fulfilled_offer_with_status(page)
                 if lowest_offer is not None:
                     result["amazon_price"] = lowest_offer["price"]
