@@ -797,9 +797,8 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
         await offers.first.wait_for(state="visible", timeout=10000)
     except Exception:
         return None, False
-    # ``すべての出品`` is a virtual scroller on some product pages.  It can
-    # contain hundreds of offers even when no visible "もっと見る" control is
-    # present, so use Amazon's declared total and scroll to load every card.
+    # ``すべての出品`` is a virtual scroller on some product pages.  Check the
+    # first 20 price-sorted offers to keep price checks responsive.
     expected_count = 0
     total = page.locator("#aod-total-offer-count").first
     try:
@@ -807,8 +806,9 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
     except (TypeError, ValueError):
         pass
 
+    max_offer_inspection = min(expected_count, 20) if expected_count > 0 else 20
     stalled_loads = 0
-    while expected_count <= 0 or await offers.count() < expected_count:
+    while await offers.count() < max_offer_inspection:
         more = page.locator("#aod-show-more-offers")
         try:
             before = await offers.count()
