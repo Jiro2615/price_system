@@ -578,9 +578,8 @@ async def open_all_offers(page) -> None:
     except Exception:
         return
 
-    # ``すべての出品`` is a virtual scroller on some product pages.  It can
-    # contain hundreds of offers even when no visible "もっと見る" control is
-    # present, so use Amazon's declared total and scroll to load every card.
+    # ``すべての出品`` is a virtual scroller on some product pages.  Check the
+    # first 20 price-sorted offers to keep listing checks responsive.
     expected_count = 0
     total = page.locator("#aod-total-offer-count").first
     try:
@@ -588,8 +587,9 @@ async def open_all_offers(page) -> None:
     except (TypeError, ValueError):
         pass
 
+    max_offer_inspection = min(expected_count, 20) if expected_count > 0 else 20
     stalled_loads = 0
-    while expected_count <= 0 or await offers.count() < expected_count:
+    while await offers.count() < max_offer_inspection:
         more = page.locator("#aod-show-more-offers")
         try:
             before = await offers.count()
