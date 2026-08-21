@@ -282,7 +282,9 @@ def write_normal_item_csv(path: Path, rows: list[dict[str, Any]], include_stock:
         include_product_rows=include_product_rows,
     )
 
-    with path.open("w", encoding="cp932", newline="") as f:
+    # RMSのCSVはCP932が必要です。商品名などにCP932外の文字が混ざっても、
+    # CSV全体の出力を止めず置換して続行します。
+    with path.open("w", encoding="cp932", errors="replace", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(csv_rows)
@@ -291,7 +293,7 @@ def write_normal_item_csv(path: Path, rows: list[dict[str, Any]], include_stock:
 def write_check_csv(path: Path, rows: list[dict[str, Any]], include_stock: bool) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    with path.open("w", encoding="cp932", newline="") as f:
+    with path.open("w", encoding="cp932", errors="replace", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(CHECK_HEADERS)
 
@@ -343,7 +345,7 @@ def write_skipped_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "スキップ理由",
     ]
 
-    with path.open("w", encoding="cp932", newline="") as f:
+    with path.open("w", encoding="cp932", errors="replace", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
 
