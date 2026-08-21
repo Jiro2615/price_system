@@ -578,19 +578,38 @@ async def open_all_offers(page) -> None:
     except Exception:
         return
 
-    # Amazon adds a variable number of offers on each request.  Keep loading
-    # until it reports no more offers (or does not append any), rather than
-    # silently limiting the inspection to ten loads.
-    while True:
+    # ``すべての出品`` is a virtual scroller on some product pages.  It can
+    # contain hundreds of offers even when no visible "もっと見る" control is
+    # present, so use Amazon's declared total and scroll to load every card.
+    expected_count = 0
+    total = page.locator("#aod-total-offer-count").first
+    try:
+        expected_count = int(((await total.get_attribute("value")) or "0").strip())
+    except (TypeError, ValueError):
+        pass
+
+    stalled_loads = 0
+    while expected_count <= 0 or await offers.count() < expected_count:
         more = page.locator("#aod-show-more-offers")
         try:
-            if await more.count() == 0 or not await more.first.is_visible(timeout=500):
-                break
             before = await offers.count()
-            await more.first.click(timeout=5000)
+            if await more.count() and await more.first.is_visible(timeout=500):
+                await more.first.click(timeout=5000)
+            else:
+                scroller = page.locator("#all-offers-display-scroller").first
+                if await scroller.count() == 0 or not await scroller.is_visible(timeout=500):
+                    break
+                await scroller.evaluate(
+                    "element => { element.scrollTop = element.scrollHeight; "
+                    "element.dispatchEvent(new Event('scroll', { bubbles: true })); }"
+                )
             await page.wait_for_timeout(700)
-            if await offers.count() <= before:
-                break
+            if await offers.count() > before:
+                stalled_loads = 0
+            else:
+                stalled_loads += 1
+                if stalled_loads >= 3:
+                    break
         except Exception:
             break
 
