@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,9 @@ from rakuten_auth import build_rakuten_auth_header
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 BULK_GET_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/bulk-get"
+DEFAULT_API_INTERVAL_SECONDS = 1.1
+DEFAULT_RETRY_COUNT = 5
+DEFAULT_RETRY_WAIT_SECONDS = 5.0
 
 
 def to_int(value: Any) -> int | None:
@@ -74,7 +78,18 @@ def request_bulk_get(store_code: str, manage_numbers: list[str]) -> list[dict[st
     return [item for item in results if isinstance(item, dict)]
 
 
-def preview(store_code: str, limit: int) -> dict[str, Any]:
+def is_qps_limit_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "status=429" in message or "exceeded qps limitation" in message
+
+
+def preview(
+    store_code: str,
+    limit: int,
+    api_interval_seconds: float = DEFAULT_API_INTERVAL_SECONDS,
+    retry_count: int = DEFAULT_RETRY_COUNT,
+    retry_wait_seconds: float = DEFAULT_RETRY_WAIT_SECONDS,
+) -> dict[str, Any]:
     with connect_db() as conn:
         rows = fetch_db_rows(conn, store_code, limit)
     by_manage: dict[str, list[dict[str, Any]]] = {}
@@ -83,14 +98,35 @@ def preview(store_code: str, limit: int) -> dict[str, Any]:
 
     rms_items: dict[str, dict[str, Any]] = {}
     api_errors: list[dict[str, str]] = []
+    api_request_count = 0
+    api_retry_count = 0
+    last_request_at: float | None = None
     for batch in chunks(list(by_manage), 50):
-        try:
-            for item in request_bulk_get(store_code, batch):
-                manage_number = str(item.get("manageNumber") or "").strip()
-                if manage_number:
-                    rms_items[manage_number] = item
-        except Exception as exc:
-            api_errors.append({"manage_numbers": ",".join(batch), "error": str(exc)})
+        for attempt in range(retry_count + 1):
+            if last_request_at is not None:
+                remaining = api_interval_seconds - (time.monotonic() - last_request_at)
+                if remaining > 0:
+                    time.sleep(remaining)
+            last_request_at = time.monotonic()
+            api_request_count += 1
+            try:
+                for item in request_bulk_get(store_code, batch):
+                    manage_number = str(item.get("manageNumber") or "").strip()
+                    if manage_number:
+                        rms_items[manage_number] = item
+                break
+            except Exception as exc:
+                if is_qps_limit_error(exc) and attempt < retry_count:
+                    api_retry_count += 1
+                    wait_seconds = retry_wait_seconds * (attempt + 1)
+                    print(
+                        f"RMS QPS制限のため再試行します: "
+                        f"batch={','.join(batch[:2])}... attempt={attempt + 1}/{retry_count} wait={wait_seconds:.1f}s"
+                    )
+                    time.sleep(wait_seconds)
+                    continue
+                api_errors.append({"manage_numbers": ",".join(batch), "error": str(exc)})
+                break
 
     differences: list[dict[str, Any]] = []
     unchanged_count = 0
@@ -124,7 +160,10 @@ def preview(store_code: str, limit: int) -> dict[str, Any]:
         "checked_at": datetime.now().isoformat(timespec="seconds"),
         "db_row_count": len(rows),
         "manage_number_count": len(by_manage),
-        "api_request_count": (len(by_manage) + 49) // 50,
+        "api_batch_count": (len(by_manage) + 49) // 50,
+        "api_request_count": api_request_count,
+        "api_interval_seconds": api_interval_seconds,
+        "api_retry_count": api_retry_count,
         "difference_count": len(differences),
         "unchanged_count": unchanged_count,
         "unavailable_count": len(unavailable),
@@ -184,9 +223,18 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     parser.add_argument("--input", default="")
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--api-interval", type=float, default=DEFAULT_API_INTERVAL_SECONDS)
+    parser.add_argument("--retry-count", type=int, default=DEFAULT_RETRY_COUNT)
+    parser.add_argument("--retry-wait", type=float, default=DEFAULT_RETRY_WAIT_SECONDS)
     args = parser.parse_args()
     if args.limit < 0:
         raise RuntimeError("--limit は0（全件）以上で指定してください")
+    if args.api_interval < 1:
+        raise RuntimeError("--api-interval はQPS制限回避のため1秒以上で指定してください")
+    if args.retry_count < 0:
+        raise RuntimeError("--retry-count は0以上で指定してください")
+    if args.retry_wait < 0:
+        raise RuntimeError("--retry-wait は0以上で指定してください")
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     if args.execute:
@@ -194,7 +242,13 @@ def main() -> int:
             raise RuntimeError("DB反映には --input で確認結果JSONが必要です")
         result = apply_preview(Path(args.input), args.store)
     else:
-        result = preview(args.store, args.limit)
+        result = preview(
+            args.store,
+            args.limit,
+            api_interval_seconds=args.api_interval,
+            retry_count=args.retry_count,
+            retry_wait_seconds=args.retry_wait,
+        )
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in result.items() if key not in {"differences", "unavailable"}}, ensure_ascii=False))
     print(f"RMS_PRICE_DB_SYNC_RESULT={output}")
