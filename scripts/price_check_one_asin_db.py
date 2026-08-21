@@ -578,9 +578,10 @@ async def open_all_offers(page) -> None:
     except Exception:
         return
 
-    # The first panel may not contain every seller.  Load a bounded number of
-    # follow-up pages so a hidden late offer is not silently ignored.
-    for _ in range(10):
+    # Amazon adds a variable number of offers on each request.  Keep loading
+    # until it reports no more offers (or does not append any), rather than
+    # silently limiting the inspection to ten loads.
+    while True:
         more = page.locator("#aod-show-more-offers")
         try:
             if await more.count() == 0 or not await more.first.is_visible(timeout=500):
@@ -630,7 +631,10 @@ async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optiona
             delivery_time = await delivery_node.get_attribute("data-csa-c-delivery-time") if await delivery_node.count() else ""
             offer_text = await safe_inner_text(offer)
             if (
-                not is_explicit_new_offer_text(offer_text)
+                # AOD cards can omit the condition label.  As with the Buy
+                # Box, accept an unmarked offer and reject only explicit
+                # used/refurbished conditions.
+                not is_eligible_buybox_condition_text(offer_text)
                 or price <= 0
                 or delivery_price != "無料"
                 or not delivery_within_one_week(delivery_time or offer_text)
