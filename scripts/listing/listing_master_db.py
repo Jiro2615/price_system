@@ -13,6 +13,14 @@ from scripts.listing.prohibited_word_masking import normalize_allowed_phrase_pay
 ACTIVE_SOURCE_KEY = "legacy_listing"
 
 
+class ListingMasterDatabaseReadError(RuntimeError):
+    """The active listing master could not be read from PostgreSQL.
+
+    Listing decisions must fail closed in this case.  Falling back to a local
+    legacy file can silently omit a prohibition added in the central UI.
+    """
+
+
 @dataclass
 class ListingMasterDbSnapshot:
     blacklist: set[str]
@@ -122,53 +130,64 @@ def database_master_active() -> bool:
             cur.execute("SELECT active FROM listing_master_import_state WHERE source_key = %s", (ACTIVE_SOURCE_KEY,))
             row = cur.fetchone()
             return bool(row and row[0])
-    except Exception:
-        return False
+    except Exception as exc:
+        raise ListingMasterDatabaseReadError(
+            "禁止語DBの状態を取得できませんでした。出品を停止しました: "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
 
 
 def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | None:
     if not database_master_active():
         return None
-    with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
-        cur.execute("SELECT id FROM stores WHERE LOWER(store_code) = LOWER(%s)", (store_code,))
-        row = cur.fetchone()
-        store_id = row[0] if row else None
-        scope_where = "(scope = 'global' OR store_id = %s)"
-        cur.execute("SELECT to_regclass('public.listing_past_ng'), to_regclass('public.listing_category_maps'), to_regclass('public.listing_genre_attributes')")
-        extended_tables_ready = all(cur.fetchone())
-        cur.execute(f"SELECT entry_value FROM blacklist_entries WHERE enabled = TRUE AND entry_type = 'asin' AND {scope_where}", (store_id,))
-        blacklist = {str(row[0]).strip().upper() for row in cur.fetchall() if str(row[0]).strip()}
-        cur.execute(f"SELECT keyword, listing_rule_set FROM prohibited_keywords WHERE enabled = TRUE AND match_mode = 'contains' AND severity = 'block' AND {scope_where} ORDER BY id", (store_id,))
-        prohibited_rakuten: list[str] = []
-        prohibited_other: list[str] = []
-        for keyword, rule_set in cur.fetchall():
-            target = prohibited_other if str(rule_set or 'rakuten') == 'other' else prohibited_rakuten
-            value = str(keyword).strip()
-            if value and value not in target:
-                target.append(value)
-        cur.execute(f"SELECT source_text, replacement_text FROM word_replacements WHERE enabled = TRUE AND target_field = 'all' AND {scope_where} ORDER BY priority, id", (store_id,))
-        replacements = [(str(source), str(target)) for source, target in cur.fetchall() if str(source).strip()]
-        cur.execute(f"SELECT forbidden_word, allowed_phrase, separate_checks FROM listing_allowed_phrases WHERE enabled = TRUE AND {scope_where} ORDER BY id", (store_id,))
-        rules: dict[str, list[str]] = {}
-        separate_checks: dict[str, list[dict[str, Any]]] = {}
-        for forbidden_word, allowed_phrase, checks in cur.fetchall():
-            word = str(forbidden_word).strip()
-            phrase = str(allowed_phrase).strip()
-            if not word or not phrase:
-                continue
-            rules.setdefault(word, []).append(phrase)
-            if isinstance(checks, list) and checks:
-                separate_checks.setdefault(phrase, []).extend(check for check in checks if isinstance(check, dict))
-        attribute_definitions: dict[int, list[str]] = {}; genre_paths: dict[int, str] = {}
-        kako_ng: dict[str, str] = {}; category_map: dict[int, int] = {}
-        if extended_tables_ready:
-            cur.execute("SELECT asin, reason FROM listing_past_ng WHERE enabled = TRUE AND scope = 'store' AND store_id = %s", (store_id,))
-            kako_ng = {str(asin).upper(): str(reason or '過去NG') for asin, reason in cur.fetchall()}
-            cur.execute("SELECT keepa_category_id, rakuten_genre_id FROM listing_category_maps WHERE enabled = TRUE")
-            category_map = {int(source): int(target) for source, target in cur.fetchall()}
-            cur.execute("SELECT genre_id, attribute_order, attribute_name, genre_path FROM listing_genre_attributes WHERE enabled = TRUE ORDER BY genre_id, attribute_order")
-            for genre_id, _order, name, genre_path in cur.fetchall():
-                attribute_definitions.setdefault(int(genre_id), []).append(str(name)); genre_paths.setdefault(int(genre_id), str(genre_path or ''))
+    try:
+        with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
+            cur.execute("SELECT id FROM stores WHERE LOWER(store_code) = LOWER(%s)", (store_code,))
+            row = cur.fetchone()
+            store_id = row[0] if row else None
+            scope_where = "(scope = 'global' OR store_id = %s)"
+            cur.execute("SELECT to_regclass('public.listing_past_ng'), to_regclass('public.listing_category_maps'), to_regclass('public.listing_genre_attributes')")
+            extended_tables_ready = all(cur.fetchone())
+            cur.execute(f"SELECT entry_value FROM blacklist_entries WHERE enabled = TRUE AND entry_type = 'asin' AND {scope_where}", (store_id,))
+            blacklist = {str(row[0]).strip().upper() for row in cur.fetchall() if str(row[0]).strip()}
+            cur.execute(f"SELECT keyword, listing_rule_set FROM prohibited_keywords WHERE enabled = TRUE AND match_mode = 'contains' AND severity = 'block' AND {scope_where} ORDER BY id", (store_id,))
+            prohibited_rakuten: list[str] = []
+            prohibited_other: list[str] = []
+            for keyword, rule_set in cur.fetchall():
+                target = prohibited_other if str(rule_set or 'rakuten') == 'other' else prohibited_rakuten
+                value = str(keyword).strip()
+                if value and value not in target:
+                    target.append(value)
+            cur.execute(f"SELECT source_text, replacement_text FROM word_replacements WHERE enabled = TRUE AND target_field = 'all' AND {scope_where} ORDER BY priority, id", (store_id,))
+            replacements = [(str(source), str(target)) for source, target in cur.fetchall() if str(source).strip()]
+            cur.execute(f"SELECT forbidden_word, allowed_phrase, separate_checks FROM listing_allowed_phrases WHERE enabled = TRUE AND {scope_where} ORDER BY id", (store_id,))
+            rules: dict[str, list[str]] = {}
+            separate_checks: dict[str, list[dict[str, Any]]] = {}
+            for forbidden_word, allowed_phrase, checks in cur.fetchall():
+                word = str(forbidden_word).strip()
+                phrase = str(allowed_phrase).strip()
+                if not word or not phrase:
+                    continue
+                rules.setdefault(word, []).append(phrase)
+                if isinstance(checks, list) and checks:
+                    separate_checks.setdefault(phrase, []).extend(check for check in checks if isinstance(check, dict))
+            attribute_definitions: dict[int, list[str]] = {}; genre_paths: dict[int, str] = {}
+            kako_ng: dict[str, str] = {}; category_map: dict[int, int] = {}
+            if extended_tables_ready:
+                cur.execute("SELECT asin, reason FROM listing_past_ng WHERE enabled = TRUE AND scope = 'store' AND store_id = %s", (store_id,))
+                kako_ng = {str(asin).upper(): str(reason or '過去NG') for asin, reason in cur.fetchall()}
+                cur.execute("SELECT keepa_category_id, rakuten_genre_id FROM listing_category_maps WHERE enabled = TRUE")
+                category_map = {int(source): int(target) for source, target in cur.fetchall()}
+                cur.execute("SELECT genre_id, attribute_order, attribute_name, genre_path FROM listing_genre_attributes WHERE enabled = TRUE ORDER BY genre_id, attribute_order")
+                for genre_id, _order, name, genre_path in cur.fetchall():
+                    attribute_definitions.setdefault(int(genre_id), []).append(str(name)); genre_paths.setdefault(int(genre_id), str(genre_path or ''))
+    except ListingMasterDatabaseReadError:
+        raise
+    except Exception as exc:
+        raise ListingMasterDatabaseReadError(
+            "禁止語DBを読み込めませんでした。出品を停止しました: "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
     return ListingMasterDbSnapshot(blacklist, prohibited_rakuten, prohibited_other, replacements, normalize_allowed_phrase_payload(rules)["rules"], separate_checks, kako_ng, category_map, attribute_definitions, genre_paths)
 
 
