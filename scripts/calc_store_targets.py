@@ -196,6 +196,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
 
     has_competitor_setting = has_table_column(conn, "store_settings", "rakuten_competitor_price_enabled")
     has_competitor_snapshots = has_table(conn, "rakuten_competitor_price_snapshots")
+    has_fixed_price_settings = has_table(conn, "asin_fixed_price_settings")
     competitor_setting_select = (
         "COALESCE(ss.rakuten_competitor_price_enabled, FALSE)"
         if has_competitor_setting
@@ -215,6 +216,13 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             LIMIT 1
         ) rcp ON TRUE
     """ if has_competitor_snapshots else ""
+    fixed_price_select = "afps.fixed_price" if has_fixed_price_settings else "NULL::integer"
+    fixed_price_join = """
+        LEFT JOIN asin_fixed_price_settings afps
+          ON afps.store_id = sp.store_id
+         AND afps.asin = sp.asin
+         AND afps.enabled = TRUE
+    """ if has_fixed_price_settings else ""
     def setting_select(column_name: str, default: str) -> str:
         return f"COALESCE(ss.{column_name}, {default})" if has_table_column(conn, "store_settings", column_name) else default
 
@@ -258,7 +266,8 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             {setting_select('rakuten_competitor_floor_enabled', 'FALSE')} AS rakuten_competitor_floor_enabled,
             {setting_select('rakuten_competitor_undercut_enabled', 'FALSE')} AS rakuten_competitor_undercut_enabled,
             {setting_select('rakuten_competitor_undercut_yen', '0')} AS rakuten_competitor_undercut_yen,
-            {setting_select('rakuten_competitor_min_profit_amount', '0')} AS rakuten_competitor_min_profit_amount
+            {setting_select('rakuten_competitor_min_profit_amount', '0')} AS rakuten_competitor_min_profit_amount,
+            {fixed_price_select} AS fixed_price
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         JOIN amazon_products ap ON ap.asin = sp.asin
@@ -285,6 +294,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             LIMIT 1
         ) pr ON TRUE
         {competitor_snapshot_join}
+        {fixed_price_join}
         WHERE {" AND ".join(where)}
         ORDER BY s.store_code, sp.id;
     """
@@ -350,10 +360,12 @@ def calc_target_for_row(row) -> dict:
         rakuten_competitor_undercut_enabled,
         rakuten_competitor_undercut_yen,
         rakuten_competitor_min_profit_amount,
+        fixed_price,
     ) = row
 
     reason = ""
     target_price: Optional[int] = None
+    fixed_price_estimated_profit: Optional[int] = None
     target_stock = current_stock if current_stock is not None else 0
     max_stock = resolve_store_max_stock(store_code, store_max_stock)
 
@@ -374,7 +386,25 @@ def calc_target_for_row(row) -> dict:
     else:
         target_stock = min(int(available_qty or 0), max_stock)
 
-        if not price_modify_enabled:
+        if to_int(fixed_price, 0) > 0:
+            # A fixed price is an operator-managed price.  Amazon checks still
+            # refresh the stock target, but must never enqueue an automatic
+            # RMS price change.  Calculate only the expected profit here so a
+            # loss can be surfaced in the Web settings screen and worker log.
+            fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
+            fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
+            fixed_price_estimated_profit = calculate_profit_amount(
+                selling_price=int(fixed_price),
+                amazon_price=int(amazon_price),
+                amazon_point=int(amazon_point or 0),
+                use_amazon_point=bool(use_amazon_point),
+                fee_rate=fee_rate,
+                fixed_cost=fixed_cost,
+            )
+            reason = f"fixed_price={int(fixed_price)} / price update skipped / estimated_profit={fixed_price_estimated_profit}"
+            if fixed_price_estimated_profit < 0:
+                reason += " / WARNING: fixed price would be unprofitable"
+        elif not price_modify_enabled:
             target_price = None
             reason = "price_modify_enabled=OFF / stock only"
         elif rule_id is None:
@@ -435,6 +465,8 @@ def calc_target_for_row(row) -> dict:
         "current_stock": current_stock,
         "target_price": target_price,
         "target_stock": int(target_stock or 0),
+        "fixed_price": to_int(fixed_price, 0) or None,
+        "fixed_price_estimated_profit": fixed_price_estimated_profit,
         "reason": reason,
     }
 
