@@ -490,6 +490,35 @@ async def detect_buybox_unavailable_reason(page, body_text: str) -> str:
     return ""
 
 
+async def detect_unsupported_direct_purchase_ui(page) -> str:
+    """Return a reason for a Buy Box that cannot use normal Buy Now.
+
+    Amazon sometimes replaces the normal ``#buy-now-button`` with
+    ``購入して配送に追加``.  This joins an existing scheduled delivery and is
+    not equivalent to an ordinary immediate purchase, so it is never a
+    sourcing candidate.
+    """
+    normal_buy_now = page.locator("#buy-now-button")
+    try:
+        if await normal_buy_now.count() > 0 and await normal_buy_now.first.is_visible(timeout=500):
+            return ""
+    except Exception:
+        pass
+
+    special_controls = page.locator(
+        "#add-to-delivery-desktop-button, "
+        "input[title*='配送に追加'], "
+        "input[aria-label*='配送に追加']"
+    )
+    try:
+        for index in range(await special_controls.count()):
+            if await special_controls.nth(index).is_visible(timeout=500):
+                return "購入UIが「購入して配送に追加」のため対象外（今すぐ買うではありません）"
+    except Exception:
+        pass
+    return ""
+
+
 async def read_buybox_info(page) -> dict[str, Any]:
     result = {
         "in_text": "",
@@ -796,6 +825,17 @@ async def check_amazon_one(
             if "この商品の再入荷予定は立っておりません" in out_of_stock_text:
                 result["business_ng"] = True
                 result["ng_reason"] = "再入荷予定なし"
+                result["shipping_status"] = "NG"
+                return result
+
+            unsupported_purchase_ui_reason = await detect_unsupported_direct_purchase_ui(page)
+            if unsupported_purchase_ui_reason:
+                result["business_ng"] = True
+                result["system_error"] = False
+                result["ng_reason"] = unsupported_purchase_ui_reason
+                result["amazon_price"] = None
+                result["available_qty"] = None
+                result["gift_available"] = False
                 result["shipping_status"] = "NG"
                 return result
 
