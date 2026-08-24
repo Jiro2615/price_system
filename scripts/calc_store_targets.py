@@ -387,10 +387,11 @@ def calc_target_for_row(row) -> dict:
         target_stock = min(int(available_qty or 0), max_stock)
 
         if to_int(fixed_price, 0) > 0:
-            # A fixed price is an operator-managed price.  Amazon checks still
-            # refresh the stock target, but must never enqueue an automatic
-            # RMS price change.  Calculate only the expected profit here so a
-            # loss can be surfaced in the Web settings screen and worker log.
+            # A fixed price is an operator-managed price. Amazon checks still
+            # refresh the source price and stock, but the target price remains
+            # fixed instead of being recalculated from those source values.
+            # The separate Rakuten price API is the only stage that sends this
+            # target to RMS.
             fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
             fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
             fixed_price_estimated_profit = calculate_profit_amount(
@@ -401,7 +402,8 @@ def calc_target_for_row(row) -> dict:
                 fee_rate=fee_rate,
                 fixed_cost=fixed_cost,
             )
-            reason = f"fixed_price={int(fixed_price)} / price update skipped / estimated_profit={fixed_price_estimated_profit}"
+            target_price = int(fixed_price)
+            reason = f"fixed_price={target_price} / fixed target / estimated_profit={fixed_price_estimated_profit}"
             if fixed_price_estimated_profit < 0:
                 reason += " / WARNING: fixed price would be unprofitable"
         elif not price_modify_enabled:
