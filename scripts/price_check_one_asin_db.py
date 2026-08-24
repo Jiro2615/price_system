@@ -601,7 +601,7 @@ async def open_all_offers(page) -> None:
         return
 
     try:
-        await ingress.first.click(timeout=5000)
+        await click_force(ingress.first)
         offers = page.locator("#aod-offer-list #aod-offer")
         await offers.first.wait_for(state="visible", timeout=10000)
     except Exception:
@@ -623,7 +623,7 @@ async def open_all_offers(page) -> None:
         try:
             before = await offers.count()
             if await more.count() and await more.first.is_visible(timeout=500):
-                await more.first.click(timeout=5000)
+                await click_force(more.first)
             else:
                 scroller = page.locator("#all-offers-display-scroller").first
                 if await scroller.count() == 0 or not await scroller.is_visible(timeout=500):
