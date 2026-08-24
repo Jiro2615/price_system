@@ -23,6 +23,7 @@ OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers"
 RETRY_STATE_TABLE = "rakuten_price_api_retry_state"
+PENDING_STATE_TABLE = "rakuten_price_api_pending_state"
 
 
 # =========================
@@ -163,6 +164,7 @@ def fetch_price_targets(
     blocked_only: bool = False,
     skip_deferred_retries: bool = False,
     retry_large_change_holds: bool = False,
+    pending_queue: bool = False,
 ) -> list[dict[str, Any]]:
     where = [
         "s.mall = 'rakuten'",
@@ -214,6 +216,17 @@ def fetch_price_targets(
             """
         )
 
+    pending_join = ""
+    order_by = "s.store_code, sp.id"
+    if pending_queue:
+        # Amazon checks update store_products.updated_at frequently.  Queue
+        # order must instead remain tied to the first unresolved price change.
+        pending_join = (
+            f"LEFT JOIN {PENDING_STATE_TABLE} pending_state "
+            "ON pending_state.store_product_id = sp.id"
+        )
+        order_by = "pending_state.pending_since ASC NULLS LAST, s.store_code, sp.id"
+
     sql = f"""
         SELECT
             s.id AS store_id,
@@ -240,8 +253,9 @@ def fetch_price_targets(
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         LEFT JOIN amazon_products ap ON ap.asin = sp.asin
+        {pending_join}
         WHERE {" AND ".join(where)}
-        ORDER BY s.store_code, sp.id
+        ORDER BY {order_by}
     """
     # ``0`` means every matching product.  Do not emulate this with a large
     # arbitrary value: a price-rule change must be able to reach the whole
@@ -604,6 +618,91 @@ def ensure_retry_state_table(conn) -> None:
             )
 
 
+def ensure_pending_state_table(conn) -> None:
+    """Create the durable queue used by the continuous price API worker."""
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS {PENDING_STATE_TABLE} (
+                    store_product_id BIGINT PRIMARY KEY REFERENCES store_products(id) ON DELETE CASCADE,
+                    store_code TEXT NOT NULL,
+                    target_price INTEGER NOT NULL,
+                    pending_since TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            cur.execute(
+                f"""
+                CREATE INDEX IF NOT EXISTS idx_rakuten_price_api_pending_state_order
+                ON {PENDING_STATE_TABLE} (store_code, pending_since, store_product_id)
+                """
+            )
+
+
+def refresh_pending_price_queue(conn, store_code: str | None) -> None:
+    """Keep the durable queue aligned with actual unresolved price changes.
+
+    The timestamp changes only when target_price changes.  Successful updates
+    and recalculations that remove the difference are immediately removed.
+    """
+    store_condition = ""
+    params: list[Any] = []
+    if store_code:
+        store_condition = " AND s.store_code = %s"
+        params.append(store_code)
+
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                INSERT INTO {PENDING_STATE_TABLE} (
+                    store_product_id, store_code, target_price, pending_since, created_at, updated_at
+                )
+                SELECT sp.id, s.store_code, sp.target_price, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                FROM store_products sp
+                JOIN stores s ON s.id = sp.store_id
+                WHERE s.mall = 'rakuten'
+                  AND sp.enabled = TRUE
+                  AND COALESCE(sp.no_price_change, FALSE) = FALSE
+                  AND sp.target_price IS NOT NULL
+                  AND COALESCE(sp.current_price, -1) <> sp.target_price
+                  AND COALESCE(sp.mall_item_code, '') <> ''
+                  {store_condition}
+                ON CONFLICT (store_product_id) DO UPDATE SET
+                    store_code = EXCLUDED.store_code,
+                    target_price = EXCLUDED.target_price,
+                    pending_since = CASE
+                        WHEN {PENDING_STATE_TABLE}.target_price IS DISTINCT FROM EXCLUDED.target_price
+                            THEN CURRENT_TIMESTAMP
+                        ELSE {PENDING_STATE_TABLE}.pending_since
+                    END,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                tuple(params),
+            )
+            cur.execute(
+                f"""
+                DELETE FROM {PENDING_STATE_TABLE} pending_state
+                USING store_products sp
+                JOIN stores s ON s.id = sp.store_id
+                WHERE pending_state.store_product_id = sp.id
+                  AND s.mall = 'rakuten'
+                  AND (%s IS NULL OR s.store_code = %s)
+                  AND (
+                    sp.enabled IS NOT TRUE
+                    OR COALESCE(sp.no_price_change, FALSE) = TRUE
+                    OR sp.target_price IS NULL
+                    OR COALESCE(sp.current_price, -1) = sp.target_price
+                    OR COALESCE(sp.mall_item_code, '') = ''
+                  )
+                """,
+                (store_code, store_code),
+            )
+
+
 def classify_retry_failure(error_message: str, previous_attempts: int, previous_kind: str) -> tuple[str, str, int | None]:
     """Return failure kind, persisted state, and retry delay in seconds."""
     normalized = str(error_message or "").lower()
@@ -912,6 +1011,7 @@ def main() -> int:
     parser.add_argument("--retry-wait", type=float, default=5.0, help="429/一時エラー時の基本待機秒数。再試行ごとに少し伸ばす")
     parser.add_argument("--retry-policy", action="store_true", help="失敗理由別の再試行待機をDBへ記録し、待機中・恒久エラーを今回の対象から除外する")
     parser.add_argument("--retry-large-change-holds", action="store_true", help="--allow-large-change 時、過去の価格変更率だけの手動保留を再試行する")
+    parser.add_argument("--pending-queue", action="store_true", help="価格差分を更新待ち時刻順に再取得する（常駐ワーカー向け）")
 
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="API送信せずJSONだけ出力する")
@@ -936,10 +1036,14 @@ def main() -> int:
         print("--retry-large-change-holds は --retry-policy と --allow-large-change を一緒に指定してください。")
         return 2
 
-    if args.retry_policy:
+    if args.retry_policy or args.pending_queue:
         retry_conn = connect_db()
         try:
-            ensure_retry_state_table(retry_conn)
+            if args.retry_policy:
+                ensure_retry_state_table(retry_conn)
+            if args.pending_queue:
+                ensure_pending_state_table(retry_conn)
+                refresh_pending_price_queue(retry_conn, store_code)
         finally:
             retry_conn.close()
 
@@ -962,6 +1066,7 @@ def main() -> int:
             blocked_only=args.blocked_only,
             skip_deferred_retries=args.retry_policy,
             retry_large_change_holds=args.retry_large_change_holds,
+            pending_queue=args.pending_queue,
         )
     print_targets(rows)
     print(f"楽天価格更新対象件数: {len(rows)}")

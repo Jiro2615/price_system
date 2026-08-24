@@ -44,7 +44,8 @@ def main() -> int:
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--store", default="rakuten_2")
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--cycle-wait", type=int, default=60)
+    parser.add_argument("--cycle-wait", type=int, default=10)
+    parser.add_argument("--batch-size", type=int, default=50)
     parser.add_argument("--max-change-rate", type=float, default=0.5)
     parser.add_argument("--allow-large-change", action="store_true")
     parser.add_argument("--api-interval", type=float, default=1.5)
@@ -56,8 +57,13 @@ def main() -> int:
     store_code = args.store.strip().lower()
     if not store_code:
         raise SystemExit("store is required")
-    if args.limit < 0 or args.cycle_wait < 1:
-        raise SystemExit("limit must be >= 0 and cycle-wait must be >= 1")
+    if args.limit < 0 or args.cycle_wait < 1 or args.batch_size < 1:
+        raise SystemExit("limit must be >= 0, cycle-wait must be >= 1, and batch-size must be >= 1")
+
+    # A continuous run must never keep a many-thousand-row price snapshot in
+    # memory.  ``limit=0`` still means that every pending target is eventually
+    # processed, but each cycle refreshes only this oldest batch from the DB.
+    batch_limit = min(args.limit, args.batch_size) if args.limit > 0 else args.batch_size
 
     cycle = 0
     while run_is_enabled(args.run_id):
@@ -70,7 +76,7 @@ def main() -> int:
             "--store",
             store_code,
             "--limit",
-            str(args.limit),
+            str(batch_limit),
             "--max-change-rate",
             str(args.max_change_rate),
             "--api-interval",
@@ -80,13 +86,18 @@ def main() -> int:
             "--retry-wait",
             str(args.retry_wait),
             "--retry-policy",
+            "--pending-queue",
         ]
         if args.allow_large_change:
             command.append("--allow-large-change")
             command.append("--retry-large-change-holds")
         if args.verify:
             command.append("--verify")
-        print(f"[continuous-price] cycle={cycle} start store={store_code} limit={args.limit}", flush=True)
+        print(
+            f"[continuous-price] cycle={cycle} start store={store_code} "
+            f"batch_limit={batch_limit} requested_limit={args.limit}",
+            flush=True,
+        )
         result = subprocess.run(command, cwd=SCRIPT_DIR.parent, check=False)
         print(f"[continuous-price] cycle={cycle} finished exit_code={result.returncode}", flush=True)
         if not wait_until_next_cycle(args.run_id, args.cycle_wait):
