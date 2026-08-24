@@ -823,11 +823,11 @@ def _claim_next_scheduled_active_listed_store_asins_without_retry(
     lock_minutes: int,
     store_code: str,
 ) -> list[dict[str, Any]]:
-    """Claim the nearest future checks when no store ASIN is currently due.
+    """Claim the nearest future checks to fill a partly due worker batch.
 
-    Normal operation always claims due ASINs first.  This fallback keeps a
-    continuous worker busy instead of waiting for the next scheduled time.
-    The row locks still prevent the other worker from taking the same ASIN.
+    Due ASINs are claimed first.  When they do not fill the requested worker
+    limit, this query supplies the nearest scheduled rows.  The row locks still
+    prevent another PC or worker from taking the same ASIN.
     """
     sql = """
         WITH target_rows AS (
@@ -902,22 +902,27 @@ def claim_target_asins_by_stats(
         description=f"claim listed store ASINs limit={limit} worker_id={worker_id} store={store_code}",
         logger=print,
     )
-    if due_rows or system_error_only:
+    if system_error_only:
+        return due_rows
+
+    remaining = max(0, limit - len(due_rows))
+    if remaining == 0:
         return due_rows
 
     scheduled_rows = run_with_db_retry(
         lambda: _claim_next_scheduled_active_listed_store_asins_without_retry(
-            limit, worker_id, lock_minutes, store_code,
+            remaining, worker_id, lock_minutes, store_code,
         ),
-        description=f"claim next scheduled listed ASINs limit={limit} worker_id={worker_id} store={store_code}",
+        description=f"claim next scheduled listed ASINs limit={remaining} worker_id={worker_id} store={store_code}",
         logger=print,
     )
     if scheduled_rows:
         print(
-            "期限到来済みASINがないため、次回予定が近いASINを前倒し取得: "
-            f"count={len(scheduled_rows)} worker_id={worker_id}"
+            "期限到来済みASINに次回予定が近いASINを補充して取得: "
+            f"due={len(due_rows)} scheduled={len(scheduled_rows)} "
+            f"total={len(due_rows) + len(scheduled_rows)} worker_id={worker_id}"
         )
-    return scheduled_rows
+    return due_rows + scheduled_rows
 
 
 def claim_explicit_asins_by_stats(
