@@ -128,6 +128,52 @@ def fetch_inventory_targets(store_code: str | None, limit: int) -> list[dict[str
         conn.close()
 
 
+def fetch_inventory_zero_target(store_code: str, asin: str) -> list[dict[str, Any]]:
+    """Return one explicit manual zero-stock target without changing its price."""
+    sql = """
+        SELECT
+            s.id AS store_id,
+            s.store_code,
+            s.max_stock,
+            sp.id AS store_product_id,
+            sp.asin,
+            sp.mall_item_code,
+            COALESCE(NULLIF(sp.sku_code, ''), sp.mall_item_code) AS sku_code,
+            sp.current_price,
+            sp.target_price,
+            sp.current_stock,
+            0 AS target_stock,
+            sp.force_stop,
+            ap.amazon_price,
+            ap.amazon_point,
+            ap.available_qty,
+            ap.business_ng,
+            ap.system_error,
+            ap.ng_reason,
+            ap.checked_at,
+            TRUE AS force_zero
+        FROM store_products sp
+        JOIN stores s ON s.id = sp.store_id
+        LEFT JOIN amazon_products ap ON ap.asin = sp.asin
+        WHERE s.mall = 'rakuten'
+          AND s.store_code = %s
+          AND UPPER(sp.asin) = UPPER(%s)
+          AND sp.enabled = TRUE
+          AND COALESCE(sp.mall_item_code, '') <> ''
+        ORDER BY sp.updated_at DESC NULLS LAST
+        LIMIT 1
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (store_code, asin))
+            rows = cur.fetchall()
+            col_names = [desc.name for desc in cur.description]
+            return [dict(zip(col_names, row)) for row in rows]
+    finally:
+        conn.close()
+
+
 def validate_target_stock_for_store(row: dict[str, Any]) -> str | None:
     store_code = str(row.get("store_code") or "").strip()
     asin = str(row.get("asin") or "").strip()
@@ -270,6 +316,22 @@ def get_table_columns(cur, table_name: str) -> set[str]:
 
 
 def update_success(cur, row: dict[str, Any]) -> None:
+    if row.get("force_zero"):
+        cur.execute(
+            """
+            UPDATE store_products
+            SET
+                current_stock = 0,
+                target_stock = 0,
+                current_status = 'synced',
+                api_last_synced_at = CURRENT_TIMESTAMP,
+                api_last_error = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            """,
+            (row["store_product_id"],),
+        )
+        return
     cur.execute(
         """
         UPDATE store_products
@@ -472,6 +534,8 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=10, help="対象最大件数。0は全件")
     parser.add_argument("--batch-size", type=int, default=400, help="bulk-upsert 1回あたりの最大件数（楽天API上限: 400）")
     parser.add_argument("--output", default="", help="送信予定JSON/結果JSONの保存先。空なら自動")
+    parser.add_argument("--asin", default="", help="指定ASINだけを対象にします（--force-zeroと組み合わせ）")
+    parser.add_argument("--force-zero", action="store_true", help="指定ASINのRMS在庫とDB目標在庫を0にします")
 
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="API送信せずJSONだけ出力する")
@@ -487,15 +551,30 @@ def main() -> int:
         print("--batch-size は 1以上にしてください。")
         return 2
 
+    if args.force_zero and not args.asin.strip():
+        print("--force-zero には --asin が必要です。")
+        return 2
+    if args.asin.strip() and not args.force_zero:
+        print("--asin は --force-zero と組み合わせてください。")
+        return 2
+
     store_code = args.store.strip() or None
     dry_run = not args.execute
 
-    rows = fetch_inventory_targets(store_code=store_code, limit=args.limit)
+    if args.force_zero:
+        if not store_code:
+            print("--force-zero には --store が必要です。")
+            return 2
+        rows = fetch_inventory_zero_target(store_code=store_code, asin=args.asin.strip().upper())
+    else:
+        rows = fetch_inventory_targets(store_code=store_code, limit=args.limit)
     safe_rows, skipped_rows = split_safe_and_skipped_rows(rows)
 
     print_targets(safe_rows)
     print_skipped_rows(skipped_rows)
     print(f"inventory_target_count: {len(safe_rows)}")
+    if args.force_zero:
+        print("manual_stock_zero: true")
     if skipped_rows:
         print(f"inventory_skipped_count: {len(skipped_rows)}")
 
