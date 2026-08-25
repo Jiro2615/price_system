@@ -690,7 +690,7 @@ def refresh_pending_price_queue(conn, store_code: str | None) -> None:
                 JOIN stores s ON s.id = sp.store_id
                 WHERE pending_state.store_product_id = sp.id
                   AND s.mall = 'rakuten'
-                  AND (%s IS NULL OR s.store_code = %s)
+                  AND (%s::text IS NULL OR s.store_code = %s)
                   AND (
                     sp.enabled IS NOT TRUE
                     OR COALESCE(sp.no_price_change, FALSE) = TRUE
