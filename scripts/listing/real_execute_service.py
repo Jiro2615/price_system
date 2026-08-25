@@ -39,6 +39,7 @@ class RealExecuteRequest:
     manual_image_cleanup_completed: bool = False
     resume_after_image_upload: bool = False
     resume_after_item_upsert: bool = False
+    content_refresh: bool = False
 
 
 def _compact_text_validation_issues(issues: Any) -> list[str]:
@@ -113,7 +114,8 @@ def _validate_readiness_inputs(
     require(list(readiness_result.get("unresolved_specifications") or []) == [], "unresolved_specifications must be empty")
     require(bool(readiness_result.get("real_execute_spec_ready")) is True, "real_execute_spec_ready must be true")
     require(bool(readiness_result.get("human_confirmation_required")) is False, "human_confirmation_required must be false")
-    require(bool((readiness_result.get("duplicate_execution_guard") or {}).get("duplicate_blocked")) is False, "duplicate execution guard must not be blocked")
+    if not request.content_refresh:
+        require(bool((readiness_result.get("duplicate_execution_guard") or {}).get("duplicate_blocked")) is False, "duplicate execution guard must not be blocked")
     require(bool(readiness_result.get("secrets_exposed")) is False, "secrets_exposed must be false")
     require(bool(readiness_result.get("external_actions_performed")) is False, "external_actions_performed must be false")
     require(isinstance(dry_run_result.get("item_payload"), dict), "item_payload must be present")
@@ -373,7 +375,7 @@ def build_real_execute_result(
         result["final_status"] = "blocked"
         return result
 
-    current_history_block = _current_history_block_reason(
+    current_history_block = None if request.content_refresh else _current_history_block_reason(
         history_path,
         expected_image_count=_expected_image_count(dry_run_result),
         manual_image_cleanup_completed=request.manual_image_cleanup_completed,
@@ -442,6 +444,7 @@ def build_real_execute_result(
             inventory_headers=request.inventory_headers,
             resume_after_image_upload=request.resume_after_image_upload,
             resume_after_item_upsert=request.resume_after_item_upsert,
+            content_refresh=request.content_refresh,
         ),
         http_get=http_get,
         image_downloader=image_downloader,

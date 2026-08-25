@@ -311,6 +311,7 @@ def build_real_readiness_result(
     asin: str,
     management_number: str,
     store: str,
+    allow_existing_update: bool = False,
 ) -> dict[str, Any]:
     dry_run_result = load_json(dry_run_json)
     preflight_result = load_json(preflight_json)
@@ -338,6 +339,12 @@ def build_real_readiness_result(
         )
     auth_summary = _build_auth_configuration_summary(store)
     duplicate_guard = _build_duplicate_execution_guard(management_number)
+    if allow_existing_update:
+        duplicate_guard = {
+            **duplicate_guard,
+            "duplicate_blocked": False,
+            "reason": "existing listing content refresh is allowed",
+        }
     checks = _build_checks(
         dry_run_result,
         preflight_result,

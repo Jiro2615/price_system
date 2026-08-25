@@ -34,6 +34,7 @@ class PrepareListingRequest:
     skip_amazon: bool = False
     skip_keepa: bool = False
     management_number: str = ""
+    update_existing: bool = False
     allow_missing_master: bool = False
     page_timeout_ms: int = 15000
     store_settings_json: Path | None = None
@@ -89,7 +90,7 @@ def fetch_amazon_result_for_listing(asin: str, page_timeout_ms: int) -> AmazonCh
     return fetch_amazon_result_sync(asin, page_timeout_ms=page_timeout_ms)
 
 
-def find_existing_listing_for_store(asin: str, store_code: str) -> dict[str, str] | None:
+def find_existing_listing_for_store(asin: str, store_code: str) -> dict[str, Any] | None:
     from scripts.listing.listing_duplicate_check import find_existing_listing
     return find_existing_listing(asin, store_code)
 
@@ -100,7 +101,7 @@ def precheck_local_listing_exclusion(
     store_settings_loader: Callable[[str], StoreSettings] = load_store_settings,
     master_data_loader: Callable[[Path, bool], MasterData] = load_master_records,
     common_settings_loader: Callable[..., tuple[ListingCommonSettings, list[str]]] = load_common_settings,
-    existing_listing_lookup: Callable[[str, str], dict[str, str] | None] = find_existing_listing_for_store,
+    existing_listing_lookup: Callable[[str, str], dict[str, Any] | None] = find_existing_listing_for_store,
 ) -> dict[str, object] | None:
     """Return a local-only exclusion result before opening an Amazon page."""
     asin = request.asin.strip().upper()
@@ -114,7 +115,7 @@ def precheck_local_listing_exclusion(
     master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
 
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
-    if existing_listing:
+    if existing_listing and not request.update_existing:
         management_number = str(existing_listing.get("management_number") or "")
         source = str(existing_listing.get("source") or "store_products")
         return _base_result(
@@ -460,7 +461,7 @@ def prepare_listing(
     image_plan_builder: Callable[..., dict[str, object]] = build_image_download_plan,
     evaluator: Callable[..., EvaluationResult] = evaluate_listing,
     common_settings_loader: Callable[..., tuple[ListingCommonSettings, list[str]]] = load_common_settings,
-    existing_listing_lookup: Callable[[str, str], dict[str, str] | None] = find_existing_listing_for_store,
+    existing_listing_lookup: Callable[[str, str], dict[str, Any] | None] = find_existing_listing_for_store,
     management_number_builder: Callable[[str], object] = generate_management_number_bundle,
     item_payload_builder: Callable[..., dict[str, object]] = build_item_payload,
     inventory_payload_builder: Callable[..., dict[str, object]] = build_inventory_payload,
@@ -486,7 +487,7 @@ def prepare_listing(
     master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
 
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
-    if existing_listing:
+    if existing_listing and not request.update_existing:
         existing_management_number = str(existing_listing.get("management_number") or "")
         existing_source = str(existing_listing.get("source") or "store_products")
         return _base_result(
@@ -503,6 +504,13 @@ def prepare_listing(
             common_settings=common_settings,
             existing_management_number=existing_management_number,
         )
+
+    if existing_listing and request.update_existing:
+        existing_management_number = str(existing_listing.get("management_number") or "").strip()
+        if not existing_management_number:
+            raise RuntimeError("既出品の管理番号が取得できないため最新化できません")
+        request.management_number = existing_management_number
+        warnings.append(f"既出品を最新化します: {existing_management_number}")
 
     # A blacklist decision is entirely local.  Do not open Amazon or call
     # Keepa for an ASIN that is already disallowed by the active master.
@@ -750,6 +758,27 @@ def prepare_listing(
         quantity=int(amazon_result.available_qty or 0),
         store_settings=store_settings,
     )
+    if existing_listing and request.update_existing:
+        existing_price = existing_listing.get("current_price")
+        try:
+            existing_price_int = int(existing_price) if existing_price is not None else None
+        except (TypeError, ValueError):
+            existing_price_int = None
+        if existing_price_int is not None and existing_price_int >= 0:
+            variants = item_payload.get("variants") if isinstance(item_payload, dict) else None
+            variant = variants.get(management_number) if isinstance(variants, dict) else None
+            if isinstance(variant, dict):
+                variant["standardPrice"] = str(existing_price_int)
+        existing_stock = existing_listing.get("current_stock")
+        try:
+            existing_stock_int = int(existing_stock) if existing_stock is not None else 0
+        except (TypeError, ValueError):
+            existing_stock_int = 0
+        inventory_payload = inventory_payload_builder(
+            management_number=management_number,
+            quantity=max(existing_stock_int, 0),
+            store_settings=store_settings,
+        )
     representative_color_mapping = _build_representative_color_mapping(evaluation.resolved_attributes, item_payload)
 
     return _base_result(

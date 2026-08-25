@@ -39,6 +39,7 @@ class ExecuteListingRequest:
     inventory_headers: dict[str, str] | None = None
     resume_after_image_upload: bool = False
     resume_after_item_upsert: bool = False
+    content_refresh: bool = False
 
 
 def _payload_hash(payload: dict[str, Any] | None) -> str | None:
@@ -444,6 +445,16 @@ def execute_listing(
             return _fail(result, status="item_failed", message=item_result.error_message or "item API failed", final_state="partial_failure")
 
     result["execute_status"] = "item_succeeded"
+
+    if request.content_refresh:
+        result["inventory_result"] = {
+            "success": True,
+            "skipped": True,
+            "reason": "content_refresh does not change inventory",
+        }
+        result["execute_status"] = "completed"
+        result["final_state"] = "completed"
+        return result
 
     # Shop display categories are managed by Category API, not Item API
     # ``genreId``.  A category failure must not cause a second Item API write:

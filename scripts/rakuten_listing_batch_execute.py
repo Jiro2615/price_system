@@ -43,6 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--approved", action="store_true")
     parser.add_argument("--confirm-real-api", action="store_true")
     parser.add_argument("--allow-live-transport", action="store_true")
+    parser.add_argument("--update-existing", action="store_true", help="既出品のタイトル・説明・画像だけを最新化する")
     return parser.parse_args()
 
 
@@ -66,7 +67,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             item_dir = args.output_dir / asin
             item_dir.mkdir(exist_ok=True)
             try:
-                request = PrepareListingRequest(asin=asin, store_code=args.store, master_dir=args.master_dir, dry_run=True, allow_missing_master=args.allow_missing_master, page_timeout_ms=args.page_timeout)
+                request = PrepareListingRequest(asin=asin, store_code=args.store, master_dir=args.master_dir, dry_run=True, allow_missing_master=args.allow_missing_master, page_timeout_ms=args.page_timeout, update_existing=args.update_existing)
                 dry = precheck_local_listing_exclusion(request)
                 if dry is None:
                     now = asyncio.get_running_loop().time()
@@ -92,7 +93,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 preflight_path = item_dir / "preflight.json"; save_json(preflight_path, preflight)
                 mock = build_mock_execute_result(dry, preflight, asin=asin, management_number=management, approved=True)
                 mock_path = item_dir / "mock.json"; save_json(mock_path, mock)
-                readiness = build_real_readiness_result(dry_run_json=dry_path, preflight_json=preflight_path, mock_result_json=mock_path, api_spec_json=API_SPEC, asin=asin, management_number=management, store=args.store)
+                readiness = build_real_readiness_result(dry_run_json=dry_path, preflight_json=preflight_path, mock_result_json=mock_path, api_spec_json=API_SPEC, asin=asin, management_number=management, store=args.store, allow_existing_update=args.update_existing)
                 readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
                 result = build_real_execute_result(
                     RealExecuteRequest(
@@ -110,11 +111,12 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                         confirm_management_number=management,
                         confirm_store=args.store,
                         allow_live_transport=True,
+                        content_refresh=args.update_existing,
                     ),
                     cabinet_folder_resolver=cabinet_folder_resolver,
                 )
                 save_json(item_dir / "execute.json", result)
-                if result.get("final_status") == "completed":
+                if result.get("final_status") == "completed" and not args.update_existing:
                     db_sync = sync_listing_result_to_db(ListingDbSyncRequest(result_json=item_dir / "execute.json", dry_run_json=dry_path, store=args.store, execute=True))
                     result["db_sync"] = db_sync
                     if not db_sync.get("external_db_writes_performed"):
