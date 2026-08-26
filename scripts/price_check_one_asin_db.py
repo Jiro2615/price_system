@@ -840,11 +840,23 @@ async def check_amazon_one(
                 if not is_amazon_confirmation_page(current_url, body):
                     break
 
+                # ← この位置でボタンを探して押下する
+                continue_button = page.locator(
+                    'form[action="/errors_page/validateCaptcha"] button[type="submit"]'
+                )
+
+                await continue_button.wait_for(state="visible", timeout=5_000)
+
+                async with page.expect_navigation(wait_until="domcontentloaded"):
+                    await continue_button.click()
+
                 print(
                     "amazon_confirmation_page "
                     f"asin={asin} attempt={confirmation_attempt}/{AMAZON_CONFIRMATION_RETRY_LIMIT} "
-                    "action=do_not_click"
+                    "action=clicked"
                 )
+
+                # 現行どおり、元の商品URLを再度開いて確認するならここで次の周回へ
                 if confirmation_attempt < AMAZON_CONFIRMATION_RETRY_LIMIT:
                     await page.wait_for_timeout(AMAZON_CONFIRMATION_RETRY_WAIT_MS)
                     continue
