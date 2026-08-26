@@ -93,6 +93,8 @@ async def fetch_amazon_result(
         shipping_status=str(result.get("shipping_status", "") or ""),
         business_ng=bool(result.get("business_ng")),
         system_error=bool(result.get("system_error")),
+        amazon_confirmation_waiting=bool(result.get("amazon_confirmation_waiting")),
+        defer_retry_seconds=int(result.get("defer_retry_seconds") or 0),
         ng_reason=str(result.get("ng_reason", "") or ""),
         current_url=str(captured.get("current_url", result.get("current_url", "")) or ""),
     )

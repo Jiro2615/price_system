@@ -78,6 +78,27 @@ def extract_asin(url: str) -> str:
     return m.group(1).upper() if m else ""
 
 
+AMAZON_CONFIRMATION_RETRY_LIMIT = 5
+AMAZON_CONFIRMATION_RETRY_WAIT_MS = 2000
+AMAZON_CONFIRMATION_RETRY_AFTER_SECONDS = 15 * 60
+
+
+def is_amazon_confirmation_page(page_url: str, body: str) -> bool:
+    """Detect Amazon's continue-shopping interstitial without interacting with it.
+
+    This is deliberately a detection-only path.  The page asks the customer to
+    confirm access, so the worker must not press its button.  A later normal
+    page load can resume the same ASIN safely.
+    """
+    normalized_url = str(page_url or "").lower()
+    normalized_body = str(body or "")
+    return (
+        "/errors_page/validatecaptcha" in normalized_url
+        or "下のボタンをクリックしてショッピングを続けてください" in normalized_body
+        or "ショッピングを続ける" in normalized_body and "field-keywords" in normalized_body
+    )
+
+
 def build_amazon_product_url(asin: str) -> str:
     return f"https://www.amazon.co.jp/dp/{asin.strip().upper()}?th=1&psc=1"
 
@@ -789,6 +810,9 @@ async def check_amazon_one(
         "ng_reason": "",
         "checked_at": now_dt(),
         "page_needs_reset": False,
+        "amazon_confirmation_waiting": False,
+        "defer_retry_seconds": 0,
+        "skip_product_persistence": False,
     }
 
     own_page = page is None
@@ -804,10 +828,35 @@ async def check_amazon_one(
             url = build_amazon_product_url(asin)
             print(f"Amazon確認開始: {url}")
 
-            await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
-            await page.wait_for_timeout(settle_timeout_ms)
+            body = ""
+            for confirmation_attempt in range(1, AMAZON_CONFIRMATION_RETRY_LIMIT + 1):
+                await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
+                await page.wait_for_timeout(settle_timeout_ms)
+                body = await get_first_text(page, "body")
+                current_url = str(getattr(page, "url", "") or "")
+                if not is_amazon_confirmation_page(current_url, body):
+                    break
 
-            body = await get_first_text(page, "body")
+                print(
+                    "amazon_confirmation_page "
+                    f"asin={asin} attempt={confirmation_attempt}/{AMAZON_CONFIRMATION_RETRY_LIMIT} "
+                    "action=do_not_click"
+                )
+                if confirmation_attempt < AMAZON_CONFIRMATION_RETRY_LIMIT:
+                    await page.wait_for_timeout(AMAZON_CONFIRMATION_RETRY_WAIT_MS)
+                    continue
+
+                result["system_error"] = True
+                result["amazon_confirmation_waiting"] = True
+                result["defer_retry_seconds"] = AMAZON_CONFIRMATION_RETRY_AFTER_SECONDS
+                result["skip_product_persistence"] = True
+                result["ng_reason"] = (
+                    "Amazon確認待ち: ショッピング継続確認画面が5回続いたため、"
+                    "15分後の巡回で再試行"
+                )
+                result["current_url"] = current_url
+                return result
+
             if "下に表示されている文字を入力してください" in body:
                 result["system_error"] = True
                 result["ng_reason"] = "画像認証"
@@ -1051,6 +1100,13 @@ async def check_amazon_one(
 
 
 def save_to_db(data: dict[str, Any]) -> None:
+    if data.get("skip_product_persistence"):
+        print(
+            "amazon_products save: skipped "
+            f"asin={data.get('asin')} reason={data.get('ng_reason', '')}"
+        )
+        return
+
     data = dict(data)
     jan_code = re.sub(r"\D", "", str(data.get("jan_code") or data.get("ean") or ""))
     check_total = sum(int(digit) * (3 if position % 2 else 1) for position, digit in enumerate(jan_code[-2::-1], start=1)) if jan_code.isdigit() else -1

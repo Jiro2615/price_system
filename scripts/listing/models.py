@@ -29,6 +29,8 @@ class AmazonCheckResult:
     shipping_status: str = ""
     business_ng: bool = False
     system_error: bool = False
+    amazon_confirmation_waiting: bool = False
+    defer_retry_seconds: int = 0
     ng_reason: str = ""
     current_url: str = ""
 

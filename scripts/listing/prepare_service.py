@@ -435,6 +435,8 @@ def _build_representative_color_mapping(
 def _classify_amazon_result(asin: str, amazon_result: AmazonCheckResult | None) -> tuple[str, str] | None:
     if amazon_result is None:
         return None
+    if amazon_result.amazon_confirmation_waiting:
+        return ("amazon_confirmation_waiting", amazon_result.ng_reason or "Amazon確認待ち")
     if amazon_result.system_error:
         return ("system_error", amazon_result.ng_reason or "Amazon確認でシステムエラー")
     if amazon_result.business_ng:
