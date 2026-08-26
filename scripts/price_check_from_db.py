@@ -752,7 +752,7 @@ def _claim_active_listed_store_asins_without_retry(
     reason_contains: str,
     store_code: str,
 ) -> list[dict[str, Any]]:
-    """Claim due ASINs that still have an active item in the selected store."""
+    """Claim due ASINs that still have an active item in one or all stores."""
     sql = """
         WITH target_rows AS (
             SELECT s.asin, s.status AS old_status, s.next_check_at AS old_next_check_at,
@@ -764,7 +764,7 @@ def _claim_active_listed_store_asins_without_retry(
                 FROM store_products sp
                 JOIN stores st ON st.id = sp.store_id
                 WHERE sp.asin = s.asin
-                  AND LOWER(st.store_code) = LOWER(%(store_code)s)
+                  AND (%(store_code)s = '' OR LOWER(st.store_code) = LOWER(%(store_code)s))
                   AND COALESCE(sp.enabled, FALSE) = TRUE
                   AND COALESCE(sp.force_stop, FALSE) = FALSE
                   AND COALESCE(sp.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
@@ -840,7 +840,7 @@ def _claim_next_scheduled_active_listed_store_asins_without_retry(
                 FROM store_products sp
                 JOIN stores st ON st.id = sp.store_id
                 WHERE sp.asin = s.asin
-                  AND LOWER(st.store_code) = LOWER(%(store_code)s)
+                  AND (%(store_code)s = '' OR LOWER(st.store_code) = LOWER(%(store_code)s))
                   AND COALESCE(sp.enabled, FALSE) = TRUE
                   AND COALESCE(sp.force_stop, FALSE) = FALSE
                   AND COALESCE(sp.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
@@ -890,14 +890,18 @@ def claim_target_asins_by_stats(
     store_code: str = "",
     listed_only: bool = False,
 ) -> list[dict[str, Any]]:
-    if not listed_only:
+    # Direct system-error retries remain intentionally global: their purpose is
+    # investigation/recovery, including ASINs no longer listed in a store.
+    # Normal pending checks must not spend browser time on soft-deleted rows.
+    if system_error_only and not listed_only:
         return _claim_target_asins_by_stats_unfiltered(
             limit, worker_id, lock_minutes=lock_minutes,
             system_error_only=system_error_only, reason_contains=reason_contains,
         )
+    active_store_code = store_code if listed_only else ""
     due_rows = run_with_db_retry(
         lambda: _claim_active_listed_store_asins_without_retry(
-            limit, worker_id, lock_minutes, system_error_only, reason_contains, store_code,
+            limit, worker_id, lock_minutes, system_error_only, reason_contains, active_store_code,
         ),
         description=f"claim listed store ASINs limit={limit} worker_id={worker_id} store={store_code}",
         logger=print,
@@ -911,7 +915,7 @@ def claim_target_asins_by_stats(
 
     scheduled_rows = run_with_db_retry(
         lambda: _claim_next_scheduled_active_listed_store_asins_without_retry(
-            remaining, worker_id, lock_minutes, store_code,
+            remaining, worker_id, lock_minutes, active_store_code,
         ),
         description=f"claim next scheduled listed ASINs limit={remaining} worker_id={worker_id} store={store_code}",
         logger=print,
