@@ -19,6 +19,12 @@ INVENTORY_BULK_GET_URL = "https://api.rms.rakuten.co.jp/es/2.1/inventories/bulk-
 ITEM_SEARCH_HITS = 100
 INVENTORY_BATCH_SIZE = 1000
 DEFAULT_API_INTERVAL_SECONDS = 1.1
+# A catalog sync can run outside the Web Orchestrator process, where the
+# per-store UI settings are not available.  Keep the known default here so a
+# missing optional SHOP_URL env var does not discard Item API image paths.
+DEFAULT_SHOP_SLUGS: dict[str, str] = {
+    "rakuten_1": "ecprime500",
+}
 
 
 def to_int(value: Any) -> int | None:
@@ -107,7 +113,11 @@ def shop_slug_from_env(store_code: str) -> str:
     import os
 
     prefix = re.sub(r"[^A-Za-z0-9]+", "_", store_code).strip("_").upper()
-    value = str(os.getenv(f"{prefix}_SHOP_URL") or "").strip()
+    value = str(
+        os.getenv(f"{prefix}_SHOP_URL")
+        or os.getenv(f"{prefix}_CABINET_SHOP_URL")
+        or DEFAULT_SHOP_SLUGS.get(str(store_code or "").strip().lower(), "")
+    ).strip()
     if not value:
         return ""
     parsed = urlparse(value if "://" in value else f"https://{value}")
