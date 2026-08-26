@@ -251,15 +251,27 @@ def store_id_and_existing(conn, store_code: str) -> tuple[int, dict[tuple[str, s
         store_id = int(row[0])
         cur.execute(
             """
-            SELECT id, mall_item_code, COALESCE(sku_code, ''), asin
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'store_products' AND column_name = 'stock_zero_since'
+            """
+        )
+        stock_zero_since_expr = "stock_zero_since" if cur.fetchone() else "NULL::TIMESTAMPTZ"
+        cur.execute(
+            f"""
+            SELECT id, mall_item_code, COALESCE(sku_code, ''), asin, {stock_zero_since_expr}
             FROM store_products
             WHERE store_id = %s
             """,
             (store_id,),
         )
         existing = {
-            (str(manage or ""), str(sku or "")): {"id": int(product_id), "asin": str(asin or "").strip()}
-            for product_id, manage, sku, asin in cur.fetchall()
+            (str(manage or ""), str(sku or "")): {
+                "id": int(product_id),
+                "asin": str(asin or "").strip(),
+                "stock_zero_since": stock_zero_since,
+            }
+            for product_id, manage, sku, asin, stock_zero_since in cur.fetchall()
         }
     return store_id, existing
 
@@ -345,6 +357,7 @@ def apply_rows(
                 updated += 1
                 continue
             asin = asin_map.get(row["manage_number"], "") or (str(previous.get("asin") or "").strip() if previous else "")
+            stock_zero_since = previous.get("stock_zero_since") if previous and stock == 0 else None
             if asin:
                 restored_asin += 1
             cur.execute(
@@ -352,9 +365,9 @@ def apply_rows(
                 INSERT INTO store_products (
                     store_id, asin, mall_item_code, sku_code, current_price, current_stock,
                     current_status, enabled, force_stop, item_name, rakuten_image_url,
-                    rakuten_image_path, rakuten_image_type, api_last_synced_at, created_at, updated_at
+                    rakuten_image_path, rakuten_image_type, stock_zero_since, api_last_synced_at, created_at, updated_at
                 )
-                VALUES (%s, NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, FALSE, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                VALUES (%s, NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, FALSE, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """,
                 (
                     store_id,
@@ -369,6 +382,7 @@ def apply_rows(
                     row["rakuten_image_url"],
                     row["rakuten_image_path"],
                     row["rakuten_image_type"],
+                    stock_zero_since,
                 ),
             )
             inserted += 1
