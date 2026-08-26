@@ -1098,6 +1098,11 @@ def apply_repeated_system_error_stock_stop(
     The original ``system_error`` remains true for diagnostics and retry
     priority.  ``business_ng`` makes target calculation set RMS stock to zero.
     """
+    # Amazon's continue-shopping page is not an inventory/price failure.  It
+    # is retried on the next scheduled pass and must never turn RMS stock off.
+    if current.get("amazon_confirmation_waiting"):
+        return 0
+
     streak = consecutive_system_error_count(current, existing)
     if streak < threshold:
         return streak
@@ -1159,6 +1164,15 @@ def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, A
         "consecutive_system_error_count": consecutive_system_error_count(current, stats),
         "last_system_error_reason": system_error_reason(current) if current.get("system_error") else "",
     }
+
+    if current.get("amazon_confirmation_waiting"):
+        retry_seconds = max(1, int(current.get("defer_retry_seconds") or 15 * 60))
+        result["stable_count"] = 0
+        result["check_interval_hours"] = 0
+        result["priority_score"] = 250
+        result["next_check_at"] = now + timedelta(seconds=retry_seconds)
+        result["last_system_error_reason"] = ""
+        return result
 
     if current.get("system_error"):
         result["error_count"] += 1
@@ -1998,10 +2012,18 @@ async def main() -> int:
                 print(f"  system_error   : {data.get('system_error')}")
                 print(f"  ng_reason      : {data.get('ng_reason')}")
 
-                save_to_db(data)
-                print("amazon_products save: OK")
+                if data.get("amazon_confirmation_waiting"):
+                    print(
+                        "Amazon確認待ち: 既存のAmazon価格・在庫は保持し、"
+                        "RMS在庫・価格の再計算も行いません。"
+                    )
+                else:
+                    save_to_db(data)
+                    print("amazon_products save: OK")
 
-                if data.get("system_error") and not data.get("business_ng"):
+                if data.get("amazon_confirmation_waiting"):
+                    print(f"target recalc skipped: asin={asin} reason=amazon_confirmation_waiting")
+                elif data.get("system_error") and not data.get("business_ng"):
                     print(f"target recalc skipped: asin={asin} reason=system_error")
                 else:
                     recalc_store_codes = fetch_store_codes_for_asin(asin)
@@ -2040,12 +2062,16 @@ async def main() -> int:
                     elif stats_update["stable_detected"]:
                         stable_count += 1
 
-                if data.get("system_error"):
+                if data.get("amazon_confirmation_waiting"):
+                    print("result_status: Amazon確認待ち")
+                elif data.get("system_error"):
                     error_count += 1
                 else:
                     success_count += 1
 
-                if data.get("system_error"):
+                if data.get("amazon_confirmation_waiting"):
+                    pass
+                elif data.get("system_error"):
                     system_error_continued_count += 1
                 elif data.get("business_ng"):
                     business_ng_changed_count += 1

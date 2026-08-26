@@ -2006,6 +2006,13 @@ _save_to_db_without_retry = save_to_db
 
 def save_to_db(data: dict[str, Any]) -> None:
 
+    if data.get("skip_product_persistence"):
+        print(
+            "amazon_products save: skipped "
+            f"asin={data.get('asin')} reason={data.get('ng_reason', '')}"
+        )
+        return
+
     run_with_db_retry(
         lambda: _save_to_db_without_retry(data),
         description=f"save_to_db asin={data.get('asin')}",
