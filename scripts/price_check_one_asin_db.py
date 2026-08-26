@@ -132,16 +132,19 @@ def delivery_within_one_week(text: str) -> bool:
     return diff_days is not None and 0 <= diff_days <= 7
 
 
-def is_prime_amazon_official_offer_text(in_text: str) -> bool:
+def is_amazon_official_offer_text(in_text: str) -> bool:
+    """Recognize a direct Amazon.co.jp offer without requiring Prime labels.
+
+    A current direct-sale Buy Box can show only ``出荷元 / 販売元 Amazon.co.jp``;
+    Prime and customer-service text are not consistently rendered in the
+    offer block.  This is the same direct-Amazon exception used for listing.
+    """
     normalized = re.sub(r"\s+", " ", str(in_text or "")).strip()
-    if "prime" not in normalized.lower():
-        return False
     direct_amazon = bool(re.search(r"出荷元\s*/\s*販売元\s*Amazon\.co\.jp", normalized, re.I))
     separate_amazon = bool(re.search(r"出荷元\s*Amazon\.co\.jp", normalized, re.I)) and bool(
         re.search(r"販売元\s*Amazon\.co\.jp", normalized, re.I)
     )
-    customer_service_amazon = bool(re.search(r"カスタマーサービス\s*Amazon\.co\.jp", normalized, re.I))
-    return (direct_amazon or separate_amazon) and customer_service_amazon
+    return direct_amazon or separate_amazon
 
 
 def is_amazon_delivery_origin_offer_text(in_text: str) -> bool:
@@ -155,7 +158,7 @@ def judge_basic_ng(in_text: str) -> str:
         return "在庫切れ"
     if is_amazon_delivery_origin_offer_text(in_text):
         return "配送元Amazonは対象外（出荷元Amazonのみ採用）"
-    if "ギフト" not in in_text and not is_prime_amazon_official_offer_text(in_text):
+    if "ギフト" not in in_text and not is_amazon_official_offer_text(in_text):
         return "ギフト不可"
     return ""
 
