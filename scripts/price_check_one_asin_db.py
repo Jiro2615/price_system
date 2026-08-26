@@ -95,7 +95,10 @@ def is_amazon_confirmation_page(page_url: str, body: str) -> bool:
     return (
         "/errors_page/validatecaptcha" in normalized_url
         or "下のボタンをクリックしてショッピングを続けてください" in normalized_body
-        or "ショッピングを続ける" in normalized_body and "field-keywords" in normalized_body
+        or (
+            "ショッピングを続ける" in normalized_body
+            and "field-keywords" in normalized_body
+        )
     )
 
 
