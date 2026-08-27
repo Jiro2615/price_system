@@ -73,57 +73,113 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     for _ in range(1, args.prepare_workers):
         prepare_pages.append(await context.new_page())
 
-    # Keepa の開始間隔だけは従来どおり守る。Amazon のページ取得は別タブで
-    # 並列に進め、RMS/Cabinet への更新は下の consumer で必ず直列化する。
-    keepa_lock = asyncio.Lock()
+    # Keepa は従来どおり一定間隔で取得する。一方で Keepa を通った候補は
+    # prepare_workers 件ずつまとめ、Amazon を実際に同時に別タブで確認する。
+    # RMS/Cabinet への更新は下の consumer で必ず直列化する。
     next_keepa_precheck_at = 0.0
     prepared_queue: asyncio.Queue[tuple[int, str, dict[str, object]] | None] = asyncio.Queue(
         maxsize=max(args.prepare_workers * 2, 4)
     )
+    amazon_candidate_queue: asyncio.Queue[tuple[int, str, PrepareListingRequest, object] | None] = asyncio.Queue(
+        maxsize=max(args.prepare_workers * 2, 4)
+    )
 
-    async def prepare_one(index: int, asin: str, amazon_page) -> dict[str, object]:
-        nonlocal next_keepa_precheck_at
-        request = PrepareListingRequest(
-            asin=asin,
-            store_code=args.store,
-            master_dir=args.master_dir,
-            dry_run=True,
-            allow_missing_master=args.allow_missing_master,
-            page_timeout_ms=args.page_timeout,
-            update_existing=args.update_existing,
-        )
+    async def prepare_amazon_candidate(
+        index: int,
+        asin: str,
+        request: PrepareListingRequest,
+        keepa_result: object,
+        amazon_page,
+        tab_number: int,
+    ) -> dict[str, object]:
+        """Use one visible tab for a Keepa-approved candidate."""
         try:
-            dry = await asyncio.to_thread(precheck_local_listing_exclusion, request)
-            if dry is None:
-                async with keepa_lock:
-                    now = asyncio.get_running_loop().time()
-                    if now < next_keepa_precheck_at:
-                        await asyncio.sleep(next_keepa_precheck_at - now)
-                    next_keepa_precheck_at = asyncio.get_running_loop().time() + KEEPA_PRECHECK_MIN_INTERVAL_SECONDS
-                keepa_block, keepa_result = await asyncio.to_thread(precheck_keepa_before_amazon, request)
-                if keepa_block is not None:
-                    dry = keepa_block
-                else:
-                    amazon_result = await fetch_amazon_result(
-                        asin,
-                        page_timeout_ms=args.page_timeout,
-                        page=amazon_page,
-                    )
-                    dry = await asyncio.to_thread(
-                        prepare_listing,
-                        request,
-                        amazon_fetcher=lambda _asin, _timeout: amazon_result,
-                        keepa_fetcher=lambda _asin: keepa_result,
-                    )
+            print(
+                f"LISTING_PREPARE_TAB_START tab={tab_number}/{args.prepare_workers} "
+                f"index={index} asin={asin}",
+                flush=True,
+            )
+            amazon_result = await fetch_amazon_result(
+                asin,
+                page_timeout_ms=args.page_timeout,
+                page=amazon_page,
+            )
+            dry = await asyncio.to_thread(
+                prepare_listing,
+                request,
+                amazon_fetcher=lambda _asin, _timeout: amazon_result,
+                keepa_fetcher=lambda _asin: keepa_result,
+            )
+            print(
+                f"LISTING_PREPARE_TAB_DONE tab={tab_number}/{args.prepare_workers} "
+                f"index={index} asin={asin}",
+                flush=True,
+            )
             return dry
         except Exception as exc:
             return {"asin": asin, "final_status": "system_error", "error": str(exc)}
 
-    async def prepare_worker(worker_index: int, amazon_page) -> None:
-        for index in range(worker_index, len(asins), args.prepare_workers):
-            asin = asins[index]
-            prepared = await prepare_one(index + 1, asin, amazon_page)
-            await prepared_queue.put((index + 1, asin, prepared))
+    async def produce_local_and_keepa_prechecks() -> None:
+        nonlocal next_keepa_precheck_at
+        for index, asin in enumerate(asins, start=1):
+            request = PrepareListingRequest(
+                asin=asin,
+                store_code=args.store,
+                master_dir=args.master_dir,
+                dry_run=True,
+                allow_missing_master=args.allow_missing_master,
+                page_timeout_ms=args.page_timeout,
+                update_existing=args.update_existing,
+            )
+            try:
+                dry = await asyncio.to_thread(precheck_local_listing_exclusion, request)
+                if dry is not None:
+                    await prepared_queue.put((index, asin, dry))
+                    continue
+
+                now = asyncio.get_running_loop().time()
+                if now < next_keepa_precheck_at:
+                    await asyncio.sleep(next_keepa_precheck_at - now)
+                next_keepa_precheck_at = asyncio.get_running_loop().time() + KEEPA_PRECHECK_MIN_INTERVAL_SECONDS
+                keepa_block, keepa_result = await asyncio.to_thread(precheck_keepa_before_amazon, request)
+                if keepa_block is not None:
+                    await prepared_queue.put((index, asin, keepa_block))
+                else:
+                    await amazon_candidate_queue.put((index, asin, request, keepa_result))
+            except Exception as exc:
+                await prepared_queue.put((index, asin, {"asin": asin, "final_status": "system_error", "error": str(exc)}))
+        await amazon_candidate_queue.put(None)
+
+    async def dispatch_amazon_batch(
+        candidates: list[tuple[int, str, PrepareListingRequest, object]],
+    ) -> None:
+        print(
+            "LISTING_PREPARE_TAB_BATCH "
+            f"tabs={len(candidates)}/{args.prepare_workers} "
+            f"asins={','.join(item[1] for item in candidates)}",
+            flush=True,
+        )
+        prepared = await asyncio.gather(
+            *(
+                prepare_amazon_candidate(index, asin, request, keepa_result, prepare_pages[tab_index], tab_index + 1)
+                for tab_index, (index, asin, request, keepa_result) in enumerate(candidates)
+            )
+        )
+        for (index, asin, _request, _keepa_result), dry in zip(candidates, prepared):
+            await prepared_queue.put((index, asin, dry))
+
+    async def dispatch_amazon_prechecks() -> None:
+        pending: list[tuple[int, str, PrepareListingRequest, object]] = []
+        while True:
+            candidate = await amazon_candidate_queue.get()
+            if candidate is None:
+                if pending:
+                    await dispatch_amazon_batch(pending)
+                break
+            pending.append(candidate)
+            if len(pending) >= args.prepare_workers:
+                await dispatch_amazon_batch(pending)
+                pending = []
         await prepared_queue.put(None)
 
     async def execute_one(index: int, asin: str, dry: dict[str, object]) -> dict[str, object]:
@@ -199,23 +255,19 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         f"LISTING_BATCH_EXECUTE_PIPELINE prepare_workers={args.prepare_workers} rms_execute_workers=1",
         flush=True,
     )
-    workers = [
-        asyncio.create_task(prepare_worker(worker_index, prepare_pages[worker_index]))
-        for worker_index in range(args.prepare_workers)
-    ]
+    precheck_producer = asyncio.create_task(produce_local_and_keepa_prechecks())
+    amazon_dispatcher = asyncio.create_task(dispatch_amazon_prechecks())
     with results_path.open("w", encoding="utf-8") as handle:
-        finished_workers = 0
-        while finished_workers < args.prepare_workers:
+        while True:
             prepared_item = await prepared_queue.get()
             if prepared_item is None:
-                finished_workers += 1
-                continue
+                break
             index, asin, dry = prepared_item
             result = await execute_one(index, asin, dry)
             result["batch_index"] = index
             handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
             print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)
-    await asyncio.gather(*workers)
+    await asyncio.gather(precheck_producer, amazon_dispatcher)
     summary = {"mode": "real_execute", "store": args.store, "input_count": len(asins), "completed_count": completed, "results_jsonl": str(results_path), "completed_at": datetime.now(timezone.utc).isoformat()}
     save_json(args.output_dir / "summary.json", summary)
     print("LISTING_BATCH_EXECUTE_SUMMARY " + json.dumps(summary, ensure_ascii=False), flush=True)
