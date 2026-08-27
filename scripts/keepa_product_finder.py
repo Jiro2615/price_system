@@ -42,6 +42,10 @@ ASIN_PATTERN = re.compile(r"^[A-Z0-9]{10}$")
 # UI warns about the matching product-metadata token cost before such a large
 # request is started.
 MAX_CANDIDATE_LIMIT = 10000
+MAX_FULL_SCAN_CANDIDATE_LIMIT = 1_000_000
+FULL_SCAN_PAGE_SIZE = 10000
+MAX_CATEGORY_FILTER_SIZE = 50
+FULL_SCAN_MAX_QUERY_COST = 10 + math.ceil(FULL_SCAN_PAGE_SIZE / 100)
 
 
 def comma_values(value: object) -> list[str]:
@@ -302,13 +306,14 @@ def asin_only_candidates(asins: list[str], selection: dict[str, Any]) -> list[di
     ]
 
 
-def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]]) -> None:
+def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]], *, replace: bool = True) -> None:
     conn = connect_db()
     try:
         with conn:
             with conn.cursor() as cur:
                 ensure_candidate_table(cur)
-                cur.execute("DELETE FROM keepa_product_finder_candidates WHERE run_id = %s", (run_id,))
+                if replace:
+                    cur.execute("DELETE FROM keepa_product_finder_candidates WHERE run_id = %s", (run_id,))
                 for row in rows:
                     cur.execute(
                         """
@@ -319,6 +324,9 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]]) ->
                         ) VALUES (
                             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                         )
+                        ON CONFLICT (run_id, asin) DO UPDATE SET
+                            finder_selection_json = EXCLUDED.finder_selection_json,
+                            updated_at = CURRENT_TIMESTAMP
                         """,
                         (
                             run_id,
@@ -339,6 +347,301 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]]) ->
                     )
     finally:
         conn.close()
+
+
+def category_nodes_for_full_scan(root_category_id: int) -> list[int]:
+    """Return every direct category node under one cached root.
+
+    ``categories_include`` only matches products directly assigned to a node.
+    Keeping intermediate nodes as well as leaves prevents a full scan from
+    losing products that are assigned to a parent node only.
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT category_id
+                FROM keepa_category_catalog
+                WHERE domain_id = 5
+                  AND (root_category_id = %s OR category_id = %s)
+                ORDER BY category_id
+                """,
+                (root_category_id, root_category_id),
+            )
+            return list(dict.fromkeys(int(row[0]) for row in cur.fetchall() if int(row[0]) > 0))
+    except Exception as exc:
+        raise RuntimeError(
+            "対象ルートのカテゴリ一覧が共有DBにありません。"
+            "先に「対象カテゴリ一覧を取得」を完了してください"
+        ) from exc
+    finally:
+        conn.close()
+
+
+def token_snapshot(payload: dict[str, Any]) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for key in ("tokensLeft", "tokensConsumed", "refillRate", "refillIn"):
+        try:
+            value = payload.get(key)
+            if value is not None:
+                result[key] = int(value)
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def wait_for_full_scan_budget(tokens: dict[str, int], reserve: int) -> None:
+    """Keep enough room for a 10,000-ASIN query without burning the bucket."""
+    left = tokens.get("tokensLeft")
+    rate = tokens.get("refillRate")
+    if left is None or not rate or rate <= 0:
+        return
+    required = reserve + FULL_SCAN_MAX_QUERY_COST
+    while left < required:
+        seconds = min(30, max(1, math.ceil((required - left) * 60 / rate)))
+        print(
+            "KEEPA_FULL_SCAN_WAIT "
+            + json.dumps(
+                {"tokens_left": left, "required_tokens": required, "refill_rate": rate, "wait_seconds": seconds},
+                ensure_ascii=False,
+            ),
+            flush=True,
+        )
+        time.sleep(seconds)
+        left += math.floor(rate * seconds / 60)
+    tokens["tokensLeft"] = left
+
+
+def full_scan_selection(base_selection: dict[str, Any], category_ids: list[int], rank_min: int, rank_max: int) -> dict[str, Any]:
+    selection = dict(base_selection)
+    # A root filter would make every category shard overlap with the whole
+    # tree.  ``categories_include`` gives exact direct-node coverage instead.
+    selection.pop("rootCategory", None)
+    selection["categories_include"] = category_ids
+    selection["page"] = 0
+    selection["perPage"] = FULL_SCAN_PAGE_SIZE
+    selection["current_SALES_gte"] = rank_min
+    selection["current_SALES_lte"] = rank_max
+    return selection
+
+
+def ensure_full_scan_checkpoint_schema(cur: Any) -> None:
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS keepa_product_finder_full_scan_checkpoints (
+            run_id TEXT NOT NULL,
+            shard_key TEXT NOT NULL,
+            status TEXT NOT NULL,
+            matched_total INTEGER NOT NULL DEFAULT 0,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (run_id, shard_key)
+        )
+        """
+    )
+
+
+def full_scan_checkpoint_status(run_id: str, shard_key: str) -> str:
+    conn = connect_db()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                ensure_full_scan_checkpoint_schema(cur)
+                cur.execute(
+                    "SELECT status FROM keepa_product_finder_full_scan_checkpoints WHERE run_id = %s AND shard_key = %s",
+                    (run_id, shard_key),
+                )
+                row = cur.fetchone()
+                return str(row[0]) if row else ""
+    finally:
+        conn.close()
+
+
+def save_full_scan_checkpoint(run_id: str, shard_key: str, status: str, matched_total: int = 0) -> None:
+    conn = connect_db()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                ensure_full_scan_checkpoint_schema(cur)
+                cur.execute(
+                    """
+                    INSERT INTO keepa_product_finder_full_scan_checkpoints (run_id, shard_key, status, matched_total, updated_at)
+                    VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (run_id, shard_key) DO UPDATE SET
+                        status = EXCLUDED.status,
+                        matched_total = EXCLUDED.matched_total,
+                        updated_at = CURRENT_TIMESTAMP
+                    """,
+                    (run_id, shard_key, status, matched_total),
+                )
+    finally:
+        conn.close()
+
+
+def full_scan_has_checkpoint(run_id: str) -> bool:
+    conn = connect_db()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                ensure_full_scan_checkpoint_schema(cur)
+                cur.execute(
+                    "SELECT EXISTS(SELECT 1 FROM keepa_product_finder_full_scan_checkpoints WHERE run_id = %s)",
+                    (run_id,),
+                )
+                return bool((cur.fetchone() or [False])[0])
+    finally:
+        conn.close()
+
+
+def existing_candidate_asins(run_id: str) -> set[str]:
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            ensure_candidate_table(cur)
+            cur.execute("SELECT asin FROM keepa_product_finder_candidates WHERE run_id = %s", (run_id,))
+            return {str(row[0]).strip().upper() for row in cur.fetchall() if ASIN_PATTERN.fullmatch(str(row[0]).strip().upper())}
+    finally:
+        conn.close()
+
+
+def full_category_scan(
+    session: requests.Session,
+    api_key: str,
+    args: argparse.Namespace,
+    base_selection: dict[str, Any],
+) -> dict[str, Any]:
+    root_categories = integer_values(args.root_categories, "ルートカテゴリ")
+    if len(root_categories) != 1:
+        raise ValueError("全件カテゴリ走査はルートカテゴリを1つ選択してください")
+    if integer_values(args.include_categories, "対象カテゴリ"):
+        raise ValueError("全件カテゴリ走査では対象カテゴリを指定せず、ルートカテゴリだけを選択してください")
+    if args.fetch_product_metadata:
+        raise ValueError("全件カテゴリ走査では商品情報の追加取得は利用できません。ASIN高速取得のまま実行してください")
+    if args.min_sales_rank is None or args.max_sales_rank is None:
+        raise ValueError("全件カテゴリ走査では販売ランクの下限・上限を指定してください")
+
+    root_category_id = root_categories[0]
+    category_nodes = category_nodes_for_full_scan(root_category_id)
+    if not category_nodes:
+        raise RuntimeError("対象ルートのカテゴリが0件です。対象カテゴリ一覧を再取得してください")
+
+    tokens: dict[str, int] = {}
+    completed_queries = 0
+    split_queries = 0
+    matched_total = 0
+    resuming = full_scan_has_checkpoint(args.run_id)
+    candidate_asins = existing_candidate_asins(args.run_id) if resuming else set()
+    reached_limit = False
+
+    def persist(asins: list[str], selection: dict[str, Any]) -> None:
+        nonlocal reached_limit
+        fresh = [asin for asin in asins if asin not in candidate_asins]
+        remaining = args.candidate_limit - len(candidate_asins)
+        if remaining <= 0:
+            reached_limit = True
+            return
+        fresh = fresh[:remaining]
+        candidate_asins.update(fresh)
+        if fresh:
+            save_candidates(args.run_id, args.store, asin_only_candidates(fresh, selection), replace=False)
+        if len(candidate_asins) >= args.candidate_limit:
+            reached_limit = True
+
+    def scan(category_ids: list[int], rank_min: int, rank_max: int) -> None:
+        nonlocal completed_queries, split_queries, matched_total
+        if reached_limit:
+            return
+        shard_key = f"{','.join(str(category_id) for category_id in category_ids)}@{rank_min}-{rank_max}"
+        checkpoint = full_scan_checkpoint_status(args.run_id, shard_key)
+        if checkpoint == "completed":
+            return
+        if checkpoint == "category_split":
+            split_queries += 1
+            midpoint = len(category_ids) // 2
+            scan(category_ids[:midpoint], rank_min, rank_max)
+            scan(category_ids[midpoint:], rank_min, rank_max)
+            return
+        if checkpoint == "rank_split":
+            split_queries += 1
+            midpoint = rank_min + (rank_max - rank_min) // 2
+            scan(category_ids, rank_min, midpoint)
+            scan(category_ids, midpoint + 1, rank_max)
+            return
+        wait_for_full_scan_budget(tokens, args.token_reserve)
+        selection = full_scan_selection(base_selection, category_ids, rank_min, rank_max)
+        payload = request_json(
+            session,
+            "POST",
+            KEEPA_QUERY_ENDPOINT,
+            params={"key": api_key, "domain": 5},
+            json=selection,
+        )
+        tokens.update(token_snapshot(payload))
+        completed_queries += 1
+        total = int(payload.get("totalResults") or 0)
+        if total > FULL_SCAN_PAGE_SIZE:
+            split_queries += 1
+            if len(category_ids) > 1:
+                save_full_scan_checkpoint(args.run_id, shard_key, "category_split", total)
+                midpoint = len(category_ids) // 2
+                scan(category_ids[:midpoint], rank_min, rank_max)
+                scan(category_ids[midpoint:], rank_min, rank_max)
+                return
+            if rank_min < rank_max:
+                save_full_scan_checkpoint(args.run_id, shard_key, "rank_split", total)
+                midpoint = rank_min + (rank_max - rank_min) // 2
+                scan(category_ids, rank_min, midpoint)
+                scan(category_ids, midpoint + 1, rank_max)
+                return
+            raise RuntimeError(
+                f"カテゴリ {category_ids[0]} は販売ランク {rank_min} だけで10,000件を超えました。"
+                "販売ランクまたは価格の条件を追加して再実行してください"
+            )
+        matched_total += total
+        asins = [str(asin).strip().upper() for asin in (payload.get("asinList") or [])]
+        persist(list(dict.fromkeys(asin for asin in asins if ASIN_PATTERN.fullmatch(asin))), selection)
+        if not reached_limit:
+            save_full_scan_checkpoint(args.run_id, shard_key, "completed", total)
+        print(
+            "KEEPA_FULL_SCAN_PROGRESS "
+            + json.dumps(
+                {
+                    "root_category_id": root_category_id,
+                    "completed_queries": completed_queries,
+                    "split_queries": split_queries,
+                    "candidate_count": len(candidate_asins),
+                    "candidate_limit": args.candidate_limit,
+                    "category_node_count": len(category_nodes),
+                    "tokens": tokens,
+                },
+                ensure_ascii=False,
+            ),
+            flush=True,
+        )
+
+    if not resuming:
+        save_candidates(args.run_id, args.store, [], replace=True)
+    else:
+        print(
+            "KEEPA_FULL_SCAN_RESUME "
+            + json.dumps({"run_id": args.run_id, "existing_candidate_count": len(candidate_asins)}, ensure_ascii=False),
+            flush=True,
+        )
+    for category_group in batched([str(category_id) for category_id in category_nodes], MAX_CATEGORY_FILTER_SIZE):
+        scan([int(category_id) for category_id in category_group], args.min_sales_rank, args.max_sales_rank)
+        if reached_limit:
+            break
+    return {
+        "root_category_id": root_category_id,
+        "category_node_count": len(category_nodes),
+        "completed_queries": completed_queries,
+        "split_queries": split_queries,
+        "matched_total": matched_total,
+        "candidate_count": len(candidate_asins),
+        "candidate_limit": args.candidate_limit,
+        "truncated_by_candidate_limit": reached_limit,
+        "tokens": tokens,
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -366,15 +669,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--page", type=int, default=0)
     parser.add_argument("--amazon-in-stock", action="store_true")
     parser.add_argument("--fetch-product-metadata", action="store_true")
+    parser.add_argument("--full-category-coverage", action="store_true")
+    parser.add_argument("--token-reserve", type=int, default=100)
     args = parser.parse_args()
     args.store = str(args.store).strip().lower()
     args.run_id = str(args.run_id).strip()
     if not args.run_id or not args.store:
         raise ValueError("run_id and store are required")
-    if args.candidate_limit < 50 or args.candidate_limit > MAX_CANDIDATE_LIMIT:
-        raise ValueError(f"candidate-limit must be 50 to {MAX_CANDIDATE_LIMIT}")
-    if args.page < 0 or args.page * args.candidate_limit >= 10000:
+    max_candidate_limit = MAX_FULL_SCAN_CANDIDATE_LIMIT if args.full_category_coverage else MAX_CANDIDATE_LIMIT
+    if args.candidate_limit < 50 or args.candidate_limit > max_candidate_limit:
+        raise ValueError(f"candidate-limit must be 50 to {max_candidate_limit}")
+    if not args.full_category_coverage and (args.page < 0 or args.page * args.candidate_limit >= 10000):
         raise ValueError("page and candidate-limit must stay within Keepa's 10,000-result paging limit")
+    if args.token_reserve < 0 or args.token_reserve > 1000:
+        raise ValueError("token-reserve must be between 0 and 1000")
     for name, label, minimum in (
         ("min_price", "仕入れ価格下限", 0),
         ("max_price", "仕入れ価格上限", 0),
@@ -421,34 +729,47 @@ def main() -> int:
         + json.dumps({"run_id": args.run_id, "store": args.store, "selection": selection}, ensure_ascii=False),
         flush=True,
     )
-    query_response = request_json(
-        session,
-        "POST",
-        KEEPA_QUERY_ENDPOINT,
-        params={"key": api_key, "domain": 5},
-        json=selection,
-    )
-    asins = [str(asin).strip().upper() for asin in (query_response.get("asinList") or [])]
-    asins = list(dict.fromkeys(asin for asin in asins if ASIN_PATTERN.fullmatch(asin)))
-    if args.fetch_product_metadata:
-        candidates, product_tokens = metadata_candidates(session, api_key, asins, args, selection)
+    if args.full_category_coverage:
+        summary = full_category_scan(session, api_key, args, selection)
+        summary.update(
+            {
+                "run_id": args.run_id,
+                "store": args.store,
+                "started_at": started,
+                "selection": selection,
+                "product_metadata_fetched": False,
+                "full_category_coverage": True,
+            }
+        )
     else:
-        candidates = asin_only_candidates(asins, selection)
-        product_tokens = {}
-    save_candidates(args.run_id, args.store, candidates)
-    summary = {
-        "run_id": args.run_id,
-        "store": args.store,
-        "started_at": started,
-        "selection": selection,
-        "matched_total": query_response.get("totalResults"),
-        "finder_returned_count": len(asins),
-        "candidate_count": len(candidates),
-        "product_metadata_fetched": bool(args.fetch_product_metadata),
-        "finder_tokens": {key: query_response.get(key) for key in ("tokensLeft", "tokensConsumed", "refillRate", "refillIn") if key in query_response},
-        "product_tokens": product_tokens,
-        "estimated_product_requests": math.ceil(len(asins) / 100) if asins else 0,
-    }
+        query_response = request_json(
+            session,
+            "POST",
+            KEEPA_QUERY_ENDPOINT,
+            params={"key": api_key, "domain": 5},
+            json=selection,
+        )
+        asins = [str(asin).strip().upper() for asin in (query_response.get("asinList") or [])]
+        asins = list(dict.fromkeys(asin for asin in asins if ASIN_PATTERN.fullmatch(asin)))
+        if args.fetch_product_metadata:
+            candidates, product_tokens = metadata_candidates(session, api_key, asins, args, selection)
+        else:
+            candidates = asin_only_candidates(asins, selection)
+            product_tokens = {}
+        save_candidates(args.run_id, args.store, candidates)
+        summary = {
+            "run_id": args.run_id,
+            "store": args.store,
+            "started_at": started,
+            "selection": selection,
+            "matched_total": query_response.get("totalResults"),
+            "finder_returned_count": len(asins),
+            "candidate_count": len(candidates),
+            "product_metadata_fetched": bool(args.fetch_product_metadata),
+            "finder_tokens": {key: query_response.get(key) for key in ("tokensLeft", "tokensConsumed", "refillRate", "refillIn") if key in query_response},
+            "product_tokens": product_tokens,
+            "estimated_product_requests": math.ceil(len(asins) / 100) if asins else 0,
+        }
     print("KEEPA_PRODUCT_FINDER_RESULT " + json.dumps(summary, ensure_ascii=False), flush=True)
     return 0
 
