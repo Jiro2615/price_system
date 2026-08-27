@@ -126,6 +126,14 @@ def precheck_local_listing_exclusion(
             store_settings=store_settings, common_settings=common_settings,
             existing_management_number=management_number,
         )
+    if asin in master_data.kako_ng:
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=None, keepa_result=None,
+            listing_status="business_ng", listing_reason=f"過去NG: {master_data.kako_ng[asin]}",
+            warnings=warnings + [f"past NG matched before external checks: {asin}"],
+            missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+            store_settings=store_settings, common_settings=common_settings,
+        )
     if asin in master_data.blacklist:
         return _base_result(
             mode=mode, asin=asin, amazon_result=None, keepa_result=None,
@@ -693,6 +701,26 @@ def prepare_listing(
         )
 
     if evaluation.listing_status != "eligible" or amazon_result is None:
+        # Only prohibited-word decisions are durable enough to auto-accumulate.
+        # Stock, price, category mapping and acquisition UI conditions can all
+        # change, so they intentionally remain retryable rather than becoming
+        # a permanent exclusion.
+        if evaluation.listing_status == "business_ng" and evaluation.matched_forbidden_words:
+            try:
+                from scripts.listing.listing_master_db import record_rule_based_past_ng
+
+                record_rule_based_past_ng(
+                    asin=asin,
+                    store_code=store_settings.store_code,
+                    reason=evaluation.listing_reason,
+                    matched_rules=[dict(item) for item in evaluation.matched_forbidden_words],
+                )
+                evaluation.warnings.append("禁止ワード一致を過去NGへ記録しました")
+            except Exception as exc:
+                # The item is already blocked by the prohibited rule.  Keep the
+                # safety decision while surfacing a recording failure instead
+                # of changing it into an unrelated system error.
+                evaluation.warnings.append(f"過去NGの記録に失敗しました: {type(exc).__name__}: {exc}")
         image_download_plan = image_plan_builder(
             asin=asin,
             image_base_name=request.management_number.strip() or asin,

@@ -174,8 +174,31 @@ def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | 
             attribute_definitions: dict[int, list[str]] = {}; genre_paths: dict[int, str] = {}
             kako_ng: dict[str, str] = {}; category_map: dict[int, int] = {}
             if extended_tables_ready:
-                cur.execute("SELECT asin, reason FROM listing_past_ng WHERE enabled = TRUE AND scope = 'store' AND store_id = %s", (store_id,))
-                kako_ng = {str(asin).upper(): str(reason or '過去NG') for asin, reason in cur.fetchall()}
+                # Past-NG records are retained even when a store temporarily
+                # opts out of using them as a listing exclusion.  The switch is
+                # stored with the other store-level operation settings, so the
+                # same master data can safely serve multiple Rakuten stores.
+                cur.execute(
+                    """
+                    SELECT COALESCE(
+                        NULLIF(ss.order_fulfillment_settings_json->>'listing_past_ng_exclude_enabled', '')::BOOLEAN,
+                        TRUE
+                    )
+                    FROM stores s
+                    LEFT JOIN store_settings ss ON ss.store_id = s.id
+                    WHERE s.id = %s
+                    """,
+                    (store_id,),
+                )
+                setting_row = cur.fetchone()
+                past_ng_exclude_enabled = bool(setting_row[0]) if setting_row else True
+                if past_ng_exclude_enabled:
+                    cur.execute(
+                        "SELECT asin, reason FROM listing_past_ng "
+                        "WHERE enabled = TRUE AND scope = 'store' AND store_id = %s",
+                        (store_id,),
+                    )
+                    kako_ng = {str(asin).upper(): str(reason or '過去NG') for asin, reason in cur.fetchall()}
                 cur.execute("SELECT keepa_category_id, rakuten_genre_id FROM listing_category_maps WHERE enabled = TRUE")
                 category_map = {int(source): int(target) for source, target in cur.fetchall()}
                 cur.execute("SELECT genre_id, attribute_order, attribute_name, genre_path FROM listing_genre_attributes WHERE enabled = TRUE ORDER BY genre_id, attribute_order")
