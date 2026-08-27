@@ -73,15 +73,20 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     for _ in range(1, args.prepare_workers):
         prepare_pages.append(await context.new_page())
 
-    # Keepa は従来どおり一定間隔で取得する。一方で Keepa を通った候補は
-    # prepare_workers 件ずつまとめ、Amazon を実際に同時に別タブで確認する。
-    # RMS/Cabinet への更新は下の consumer で必ず直列化する。
-    next_keepa_precheck_at = 0.0
+    # 最速の経路は、ローカル判定・Keepa・Amazon・RMSを独立させること。
+    # Keepa は契約トークンを守るため1本・一定間隔、Amazonはページごとに
+    # 並列、RMS/Cabinetへの更新だけを必ず直列にする。
+    local_precheck_workers = min(4, max(2, args.prepare_workers * 2))
+    pipeline_buffer_size = max(50, args.prepare_workers * 10)
     prepared_queue: asyncio.Queue[tuple[int, str, dict[str, object]] | None] = asyncio.Queue(
-        maxsize=max(args.prepare_workers * 2, 4)
+        maxsize=pipeline_buffer_size
+    )
+    local_input_queue: asyncio.Queue[tuple[int, str] | None] = asyncio.Queue(maxsize=pipeline_buffer_size)
+    keepa_candidate_queue: asyncio.Queue[tuple[int, str, PrepareListingRequest] | None] = asyncio.Queue(
+        maxsize=pipeline_buffer_size
     )
     amazon_candidate_queue: asyncio.Queue[tuple[int, str, PrepareListingRequest, object] | None] = asyncio.Queue(
-        maxsize=max(args.prepare_workers * 2, 4)
+        maxsize=pipeline_buffer_size
     )
 
     async def prepare_amazon_candidate(
@@ -119,9 +124,18 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         except Exception as exc:
             return {"asin": asin, "final_status": "system_error", "error": str(exc)}
 
-    async def produce_local_and_keepa_prechecks() -> None:
-        nonlocal next_keepa_precheck_at
+    async def feed_local_prechecks() -> None:
         for index, asin in enumerate(asins, start=1):
+            await local_input_queue.put((index, asin))
+        for _ in range(local_precheck_workers):
+            await local_input_queue.put(None)
+
+    async def run_local_precheck_worker(worker_number: int) -> None:
+        while True:
+            item = await local_input_queue.get()
+            if item is None:
+                return
+            index, asin = item
             request = PrepareListingRequest(
                 asin=asin,
                 store_code=args.store,
@@ -136,7 +150,18 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 if dry is not None:
                     await prepared_queue.put((index, asin, dry))
                     continue
+                await keepa_candidate_queue.put((index, asin, request))
+            except Exception as exc:
+                await prepared_queue.put((index, asin, {"asin": asin, "final_status": "system_error", "error": str(exc)}))
 
+    async def run_keepa_prechecks() -> None:
+        next_keepa_precheck_at = 0.0
+        while True:
+            candidate = await keepa_candidate_queue.get()
+            if candidate is None:
+                break
+            index, asin, request = candidate
+            try:
                 now = asyncio.get_running_loop().time()
                 if now < next_keepa_precheck_at:
                     await asyncio.sleep(next_keepa_precheck_at - now)
@@ -148,38 +173,39 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                     await amazon_candidate_queue.put((index, asin, request, keepa_result))
             except Exception as exc:
                 await prepared_queue.put((index, asin, {"asin": asin, "final_status": "system_error", "error": str(exc)}))
-        await amazon_candidate_queue.put(None)
+        for _ in range(args.prepare_workers):
+            await amazon_candidate_queue.put(None)
 
-    async def dispatch_amazon_batch(
-        candidates: list[tuple[int, str, PrepareListingRequest, object]],
-    ) -> None:
-        print(
-            "LISTING_PREPARE_TAB_BATCH "
-            f"tabs={len(candidates)}/{args.prepare_workers} "
-            f"asins={','.join(item[1] for item in candidates)}",
-            flush=True,
-        )
-        prepared = await asyncio.gather(
-            *(
-                prepare_amazon_candidate(index, asin, request, keepa_result, prepare_pages[tab_index], tab_index + 1)
-                for tab_index, (index, asin, request, keepa_result) in enumerate(candidates)
-            )
-        )
-        for (index, asin, _request, _keepa_result), dry in zip(candidates, prepared):
-            await prepared_queue.put((index, asin, dry))
-
-    async def dispatch_amazon_prechecks() -> None:
-        pending: list[tuple[int, str, PrepareListingRequest, object]] = []
+    async def run_amazon_precheck_worker(tab_number: int) -> None:
+        amazon_page = prepare_pages[tab_number - 1]
         while True:
             candidate = await amazon_candidate_queue.get()
             if candidate is None:
-                if pending:
-                    await dispatch_amazon_batch(pending)
-                break
-            pending.append(candidate)
-            if len(pending) >= args.prepare_workers:
-                await dispatch_amazon_batch(pending)
-                pending = []
+                return
+            index, asin, request, keepa_result = candidate
+            dry = await prepare_amazon_candidate(
+                index,
+                asin,
+                request,
+                keepa_result,
+                amazon_page,
+                tab_number,
+            )
+            await prepared_queue.put((index, asin, dry))
+
+    async def close_local_stage() -> None:
+        workers = [
+            asyncio.create_task(run_local_precheck_worker(worker_number + 1))
+            for worker_number in range(local_precheck_workers)
+        ]
+        await feed_local_prechecks()
+        await asyncio.gather(*workers)
+        await keepa_candidate_queue.put(None)
+
+    async def close_amazon_stage() -> None:
+        await asyncio.gather(
+            *(run_amazon_precheck_worker(tab_number + 1) for tab_number in range(args.prepare_workers))
+        )
         await prepared_queue.put(None)
 
     async def execute_one(index: int, asin: str, dry: dict[str, object]) -> dict[str, object]:
@@ -252,11 +278,17 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             return {"asin": asin, "final_status": "system_error", "error": str(exc)}
 
     print(
-        f"LISTING_BATCH_EXECUTE_PIPELINE prepare_workers={args.prepare_workers} rms_execute_workers=1",
+        "LISTING_BATCH_EXECUTE_PIPELINE "
+        f"local_precheck_workers={local_precheck_workers} "
+        "keepa_precheck_workers=1 "
+        f"amazon_prepare_workers={args.prepare_workers} "
+        "rms_execute_workers=1 "
+        f"buffer={pipeline_buffer_size}",
         flush=True,
     )
-    precheck_producer = asyncio.create_task(produce_local_and_keepa_prechecks())
-    amazon_dispatcher = asyncio.create_task(dispatch_amazon_prechecks())
+    local_stage = asyncio.create_task(close_local_stage())
+    keepa_stage = asyncio.create_task(run_keepa_prechecks())
+    amazon_stage = asyncio.create_task(close_amazon_stage())
     with results_path.open("w", encoding="utf-8") as handle:
         while True:
             prepared_item = await prepared_queue.get()
@@ -267,7 +299,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             result["batch_index"] = index
             handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
             print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)
-    await asyncio.gather(precheck_producer, amazon_dispatcher)
+    await asyncio.gather(local_stage, keepa_stage, amazon_stage)
     summary = {"mode": "real_execute", "store": args.store, "input_count": len(asins), "completed_count": completed, "results_jsonl": str(results_path), "completed_at": datetime.now(timezone.utc).isoformat()}
     save_json(args.output_dir / "summary.json", summary)
     print("LISTING_BATCH_EXECUTE_SUMMARY " + json.dumps(summary, ensure_ascii=False), flush=True)
