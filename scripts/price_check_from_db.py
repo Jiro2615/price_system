@@ -752,7 +752,13 @@ def _claim_active_listed_store_asins_without_retry(
     reason_contains: str,
     store_code: str,
 ) -> list[dict[str, Any]]:
-    """Claim due ASINs that still have an active item in one or all stores."""
+    """Claim active listed ASINs in a continuous oldest-check-first rotation.
+
+    Normal products do not wait for ``next_check_at``: a continuous checker
+    must eventually make a complete pass even when a large due queue exists.
+    Error and Amazon confirmation-wait rows still honor their short retry
+    schedule, so they cannot be hammered by every circulation.
+    """
     sql = """
         WITH target_rows AS (
             SELECT s.asin, s.status AS old_status, s.next_check_at AS old_next_check_at,
@@ -775,12 +781,19 @@ def _claim_active_listed_store_asins_without_retry(
                  AND (%(reason_contains)s = '' OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s))
                 OR
                 (%(system_error_only)s = FALSE
-                 AND (s.next_check_at IS NULL OR s.next_check_at <= CURRENT_TIMESTAMP)
                  AND (s.status IN ('pending', 'done')
-                      OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)))
+                      OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP))
+                 AND (
+                      s.next_check_at IS NULL
+                      OR s.next_check_at <= CURRENT_TIMESTAMP
+                      OR (
+                          COALESCE(ap.system_error, FALSE) = FALSE
+                          AND COALESCE(s.check_interval_hours, 0) > 0
+                      )
+                 ))
             )
             ORDER BY ap.checked_at ASC NULLS FIRST, s.last_checked_at ASC NULLS FIRST,
-                     s.next_check_at ASC NULLS FIRST, s.priority_score DESC, s.asin
+                     s.priority_score DESC, s.asin
             FOR UPDATE OF s SKIP LOCKED
             LIMIT %(limit)s
         )
@@ -909,24 +922,7 @@ def claim_target_asins_by_stats(
     if system_error_only:
         return due_rows
 
-    remaining = max(0, limit - len(due_rows))
-    if remaining == 0:
-        return due_rows
-
-    scheduled_rows = run_with_db_retry(
-        lambda: _claim_next_scheduled_active_listed_store_asins_without_retry(
-            remaining, worker_id, lock_minutes, active_store_code,
-        ),
-        description=f"claim next scheduled listed ASINs limit={remaining} worker_id={worker_id} store={store_code}",
-        logger=print,
-    )
-    if scheduled_rows:
-        print(
-            "期限到来済みASINに次回予定が近いASINを補充して取得: "
-            f"due={len(due_rows)} scheduled={len(scheduled_rows)} "
-            f"total={len(due_rows) + len(scheduled_rows)} worker_id={worker_id}"
-        )
-    return due_rows + scheduled_rows
+    return due_rows
 
 
 def claim_explicit_asins_by_stats(
