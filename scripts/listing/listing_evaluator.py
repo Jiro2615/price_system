@@ -320,17 +320,13 @@ def evaluate_listing(
             required_separate_checks.append(check)
     matched_separate_check_phrases.extend(prohibited_analysis["matched_separate_check_phrases"])
     if matched_forbidden_words:
-        from scripts.listing.rakuten_marketplace_policy import has_sensitive_forbidden_word, is_cosmetics_category, rakuten_listing_exists_for_jan
-
-        jan_code = str(keepa_result.ean or "").strip()
-        cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
-        if not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category) and rakuten_listing_exists_for_jan(jan_code):
-            warnings.append("Rakuten Ichiba listing found for the same JAN; permitted prohibited words accepted")
-            matched_forbidden_words = []
-        else:
-            word = str(matched_forbidden_words[0]["word"])
-            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-            return EvaluationResult(
+        # A matching JAN on Rakuten Ichiba is product-information evidence only.
+        # It does not establish that this store may resell a restricted brand or
+        # product.  ``allowed_phrase_rules`` above are the sole explicit
+        # exception mechanism for prohibited-word matches.
+        word = str(matched_forbidden_words[0]["word"])
+        matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+        return EvaluationResult(
                 "business_ng",
                 f"prohibited word matched: {word}",
                 matched_rules,
@@ -438,16 +434,9 @@ def evaluate_listing(
                 required_separate_checks.append(check)
         matched_separate_check_phrases.extend(attribute_analysis["matched_separate_check_phrases"])
         if matched_forbidden_words:
-            from scripts.listing.rakuten_marketplace_policy import has_sensitive_forbidden_word, is_cosmetics_category, rakuten_listing_exists_for_jan
-            jan_code = str(keepa_result.ean or "").strip()
-            cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
-            if not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category) and rakuten_listing_exists_for_jan(jan_code):
-                warnings.append("Rakuten Ichiba listing found for the same JAN; permitted prohibited words accepted")
-                matched_forbidden_words = []
-            else:
-                word = str(matched_forbidden_words[0]["word"])
-                matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-                return EvaluationResult(
+            word = str(matched_forbidden_words[0]["word"])
+            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+            return EvaluationResult(
                 "business_ng",
                 f"prohibited word matched: {word}",
                 matched_rules,
