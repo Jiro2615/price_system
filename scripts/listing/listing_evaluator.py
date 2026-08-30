@@ -320,13 +320,36 @@ def evaluate_listing(
             required_separate_checks.append(check)
     matched_separate_check_phrases.extend(prohibited_analysis["matched_separate_check_phrases"])
     if matched_forbidden_words:
-        # A matching JAN on Rakuten Ichiba is product-information evidence only.
-        # It does not establish that this store may resell a restricted brand or
-        # product.  ``allowed_phrase_rules`` above are the sole explicit
-        # exception mechanism for prohibited-word matches.
-        word = str(matched_forbidden_words[0]["word"])
-        matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-        return EvaluationResult(
+        from scripts.listing.rakuten_marketplace_policy import (
+            MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+            has_sensitive_forbidden_word,
+            is_cosmetics_category,
+            rakuten_listing_count_for_jan,
+        )
+
+        jan_code = str(keepa_result.ean or "").strip()
+        cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
+        same_jan_listing_count = rakuten_listing_count_for_jan(jan_code)
+        if same_jan_listing_count is None:
+            warnings.append("Rakuten same-JAN listing count: unavailable")
+        else:
+            warnings.append(f"Rakuten same-JAN listing count: {same_jan_listing_count}")
+        if (
+            not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category)
+            and (same_jan_listing_count or 0) >= MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION
+        ):
+            warnings.append(
+                "Rakuten same-JAN listing threshold met; "
+                f"{same_jan_listing_count} listings (minimum {MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION})"
+            )
+            matched_forbidden_words = []
+        else:
+            # A matching JAN is only a weak market signal.  Five independently
+            # listed, active products are required before a non-sensitive word
+            # can be allowed through this route.
+            word = str(matched_forbidden_words[0]["word"])
+            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+            return EvaluationResult(
                 "business_ng",
                 f"prohibited word matched: {word}",
                 matched_rules,
@@ -434,9 +457,33 @@ def evaluate_listing(
                 required_separate_checks.append(check)
         matched_separate_check_phrases.extend(attribute_analysis["matched_separate_check_phrases"])
         if matched_forbidden_words:
-            word = str(matched_forbidden_words[0]["word"])
-            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-            return EvaluationResult(
+            from scripts.listing.rakuten_marketplace_policy import (
+                MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+                has_sensitive_forbidden_word,
+                is_cosmetics_category,
+                rakuten_listing_count_for_jan,
+            )
+
+            jan_code = str(keepa_result.ean or "").strip()
+            cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
+            same_jan_listing_count = rakuten_listing_count_for_jan(jan_code)
+            if same_jan_listing_count is None:
+                warnings.append("Rakuten same-JAN listing count: unavailable")
+            else:
+                warnings.append(f"Rakuten same-JAN listing count: {same_jan_listing_count}")
+            if (
+                not has_sensitive_forbidden_word(matched_forbidden_words, cosmetics_category=cosmetics_category)
+                and (same_jan_listing_count or 0) >= MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION
+            ):
+                warnings.append(
+                    "Rakuten same-JAN listing threshold met; "
+                    f"{same_jan_listing_count} listings (minimum {MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION})"
+                )
+                matched_forbidden_words = []
+            else:
+                word = str(matched_forbidden_words[0]["word"])
+                matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+                return EvaluationResult(
                 "business_ng",
                 f"prohibited word matched: {word}",
                 matched_rules,

@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
+MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION = 5
 SENSITIVE_MARKERS = (
     "医療", "医薬", "薬", "コンドーム", "性", "育毛", "殺菌", "除菌", "治療", "効能", "効果",
     "治癒", "予防", "疲労回復", "老化防止", "血液サラサラ", "バストアップ", "デトックス",
@@ -46,8 +47,13 @@ def has_sensitive_forbidden_word(matches: list[dict[str, Any]], *, cosmetics_cat
     return False
 
 
-def rakuten_listing_exists_for_jan(jan_code: str, timeout: float = 15.0) -> bool:
-    """Read-only Rakuten Ichiba lookup; true only for an in-stock, postage-included item."""
+def rakuten_listing_count_for_jan(jan_code: str, timeout: float = 15.0) -> int | None:
+    """Return active, postage-included Rakuten search hits for a JAN.
+
+    ``None`` means the public API was unavailable.  A single result is not
+    sufficient resale evidence for a blocked word: callers must explicitly
+    apply ``MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION``.
+    """
     jan = str(jan_code or "").strip()
     if not jan:
         return False
@@ -57,9 +63,10 @@ def rakuten_listing_exists_for_jan(jan_code: str, timeout: float = 15.0) -> bool
     if not application_id or not access_key:
         return False
     try:
-        response = requests.get(ENDPOINT, params={"applicationId": application_id, "keyword": jan, "postageFlag": 1, "availability": 1, "hits": 1, "format": "json", "formatVersion": 2}, headers={"accessKey": access_key}, timeout=timeout)
+        response = requests.get(ENDPOINT, params={"applicationId": application_id, "keyword": jan, "postageFlag": 1, "availability": 1, "hits": 30, "format": "json", "formatVersion": 2}, headers={"accessKey": access_key}, timeout=timeout)
         if not response.ok:
-            return False
-        return bool(response.json().get("items") or response.json().get("Items"))
+            return None
+        data = response.json()
+        return len(list(data.get("items") or data.get("Items") or []))
     except requests.RequestException:
-        return False
+        return None
