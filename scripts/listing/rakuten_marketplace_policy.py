@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,14 @@ SENSITIVE_MARKERS = (
 )
 ALCOHOL_WORD = "アルコール"
 COSMETICS_CATEGORY_MARKERS = ("ビューティー", "beauty", "化粧品", "cosmetics")
+
+
+def _item_mentions_exact_jan(item: object, jan: str) -> bool:
+    """Whether a Rakuten search result explicitly carries the requested JAN."""
+    if not isinstance(item, dict):
+        return False
+    text = " ".join(str(item.get(key) or "") for key in ("itemName", "itemCaption", "itemCode"))
+    return jan in re.sub(r"\D", "", text)
 
 
 def is_cosmetics_category(category_tree: list[dict[str, Any]] | None) -> bool:
@@ -54,19 +63,23 @@ def rakuten_listing_count_for_jan(jan_code: str, timeout: float = 15.0) -> int |
     sufficient resale evidence for a blocked word: callers must explicitly
     apply ``MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION``.
     """
-    jan = str(jan_code or "").strip()
+    jan = re.sub(r"\D", "", str(jan_code or ""))
     if not jan:
-        return False
+        return 0
     load_dotenv(ENV_PATH)
     application_id = os.getenv("RAKUTEN_WEB_SERVICE_APPLICATION_ID", "").strip()
     access_key = os.getenv("RAKUTEN_WEB_SERVICE_ACCESS_KEY", "").strip()
     if not application_id or not access_key:
-        return False
+        return None
     try:
         response = requests.get(ENDPOINT, params={"applicationId": application_id, "keyword": jan, "postageFlag": 1, "availability": 1, "hits": 30, "format": "json", "formatVersion": 2}, headers={"accessKey": access_key}, timeout=timeout)
         if not response.ok:
             return None
         data = response.json()
-        return len(list(data.get("items") or data.get("Items") or []))
+        return sum(
+            1
+            for item in list(data.get("items") or data.get("Items") or [])
+            if _item_mentions_exact_jan(item, jan)
+        )
     except requests.RequestException:
         return None
