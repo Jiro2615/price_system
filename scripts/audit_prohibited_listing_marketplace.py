@@ -132,8 +132,12 @@ def matched_words_for_title(title: str, snapshot: Any, grouped_words: dict[str, 
     analysis = analyze_prohibited_word_issues(
         {"title": title},
         list(dict.fromkeys(list(snapshot.prohibited_rakuten) + list(snapshot.prohibited_other))),
-        snapshot.allowed_phrase_rules,
-        separate_check_rules=snapshot.allowed_phrase_separate_checks,
+        # The audit reads the PostgreSQL snapshot directly.  Its field names
+        # intentionally differ from MasterData (allowed_rules/separate_checks
+        # instead of allowed_phrase_*), so do not use the listing runtime
+        # names here.
+        snapshot.allowed_rules,
+        separate_check_rules=snapshot.separate_checks,
     )
     return list(dict.fromkeys(str(item.get("word") or "").strip() for item in analysis["matched_forbidden_words"] if str(item.get("word") or "").strip()))
 
