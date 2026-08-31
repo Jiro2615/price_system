@@ -54,6 +54,41 @@ def _normalize_jan_code(value: Any) -> str:
     return digits if (check_total + int(digits[-1])) % 10 == 0 else ""
 
 
+def _normalize_cabinet_path(value: Any) -> str:
+    """Return the Cabinet-relative path for an uploaded image location.
+
+    Real listing results contain either an Item API location such as
+    ``/13649221/2026081801/example_1.jpg`` or a public Cabinet URL.  Keeping
+    the relative path makes it usable by the Cabinet file search/delete API
+    even if the public image host changes later.
+    """
+    path = str(value or "").strip().replace("\\", "/")
+    if not path:
+        return ""
+    marker = "/cabinet/"
+    if marker in path:
+        path = path.split(marker, 1)[1]
+    path = path.split("?", 1)[0].strip().strip("/")
+    if not path or "/" not in path:
+        return ""
+    return path
+
+
+def _uploaded_cabinet_paths(raw_execute_result: object) -> list[str]:
+    """Read every confirmed Cabinet destination from a real listing result."""
+    raw = raw_execute_result if isinstance(raw_execute_result, dict) else {}
+    candidates: list[object] = list(raw.get("rakuten_image_urls_after") or [])
+    for upload in raw.get("image_upload_results") or []:
+        if isinstance(upload, dict):
+            candidates.append(upload.get("rakuten_image_url"))
+    paths: list[str] = []
+    for candidate in candidates:
+        path = _normalize_cabinet_path(candidate)
+        if path and path not in paths:
+            paths.append(path)
+    return paths
+
+
 def _load_related_json(result: dict[str, Any], explicit_path: Path | None, key: str) -> dict[str, Any]:
     if explicit_path is not None:
         return load_json(explicit_path)
@@ -84,6 +119,7 @@ def _extract_sync_payload(request: ListingDbSyncRequest) -> dict[str, Any]:
     asin = str(result.get("asin") or raw.get("asin") or dry_run.get("asin") or amazon_result.get("requested_asin") or "").strip().upper()
     standard_price = _to_int_or_none(variant_payload.get("standardPrice"))
     quantity = _to_int_or_none(inventory_payload.get("quantity"))
+    uploaded_cabinet_paths = _uploaded_cabinet_paths(raw)
 
     return {
         "result": result,
@@ -105,6 +141,7 @@ def _extract_sync_payload(request: ListingDbSyncRequest) -> dict[str, Any]:
         "final_status": str(result.get("final_status") or raw.get("execute_status") or "").strip(),
         "item_success": bool((raw.get("item_result") or {}).get("success")),
         "inventory_success": bool((raw.get("inventory_result") or {}).get("success")),
+        "uploaded_cabinet_paths": uploaded_cabinet_paths,
     }
 
 
@@ -170,6 +207,7 @@ def _build_preview(sync: dict[str, Any], *, execute: bool, save_snapshot: bool) 
         "title": sync["title"],
         "standard_price": sync["standard_price"],
         "quantity": sync["quantity"],
+        "uploaded_cabinet_paths": sync["uploaded_cabinet_paths"],
         "operations": operations,
     }
 
@@ -319,6 +357,46 @@ def _insert_snapshot(cur: Any, sync: dict[str, Any], store_id: int) -> None:
     )
 
 
+def _ensure_uploaded_image_table(cur: Any) -> None:
+    """Create the durable manifest used to remove Cabinet files on deletion."""
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS rakuten_listing_uploaded_images (
+            image_id BIGSERIAL PRIMARY KEY,
+            store_id BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+            mall_item_code TEXT NOT NULL,
+            asin TEXT NOT NULL DEFAULT '',
+            cabinet_path TEXT NOT NULL,
+            first_recorded_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_recorded_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (store_id, mall_item_code, cabinet_path)
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE INDEX IF NOT EXISTS ix_rakuten_listing_uploaded_images_lookup
+        ON rakuten_listing_uploaded_images(store_id, mall_item_code, last_recorded_at DESC)
+        """
+    )
+
+
+def _record_uploaded_images(cur: Any, sync: dict[str, Any], store_id: int) -> None:
+    for cabinet_path in sync["uploaded_cabinet_paths"]:
+        cur.execute(
+            """
+            INSERT INTO rakuten_listing_uploaded_images (
+                store_id, mall_item_code, asin, cabinet_path, first_recorded_at, last_recorded_at
+            )
+            VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ON CONFLICT (store_id, mall_item_code, cabinet_path) DO UPDATE SET
+                asin = EXCLUDED.asin,
+                last_recorded_at = CURRENT_TIMESTAMP
+            """,
+            (store_id, sync["management_number"], sync["asin"], cabinet_path),
+        )
+
+
 def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
     sync = _extract_sync_payload(request)
     result = _build_preview(sync, execute=request.execute, save_snapshot=request.save_snapshot)
@@ -330,6 +408,8 @@ def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
             store_id = _get_store_id(cur, sync["store_code"])
             _upsert_amazon_product(cur, sync)
             _update_or_insert_store_product(cur, sync, store_id)
+            _ensure_uploaded_image_table(cur)
+            _record_uploaded_images(cur, sync, store_id)
             if request.save_snapshot:
                 _insert_snapshot(cur, sync, store_id)
         conn.commit()
