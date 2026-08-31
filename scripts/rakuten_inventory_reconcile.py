@@ -18,6 +18,10 @@ from db_config import connect_db
 from rakuten_auth import build_rakuten_auth_header
 
 
+class RmsInventoryNotFoundError(RuntimeError):
+    """Raised when RMS confirms that an inventory item no longer exists."""
+
+
 def fetch_targets(cur, store_code: str, limit: int) -> list[dict]:
     cur.execute(
         """
@@ -31,6 +35,8 @@ def fetch_targets(cur, store_code: str, limit: int) -> list[dict]:
         JOIN stores s ON s.id = sp.store_id
         WHERE s.mall = 'rakuten'
           AND s.store_code = %s
+          AND sp.enabled = TRUE
+          AND COALESCE(sp.force_stop, FALSE) = FALSE
           AND COALESCE(sp.mall_item_code, '') <> ''
           AND COALESCE(sp.sku_code, '') <> ''
         ORDER BY sp.rms_inventory_checked_at NULLS FIRST, sp.id
@@ -88,6 +94,11 @@ def fetch_rms_quantity(
                 time.sleep(wait_seconds)
                 continue
 
+            if response.status_code == 404:
+                raise RmsInventoryNotFoundError(
+                    f"RMS item not found (404): manageNumber={manage_number}, variantId={sku_code}"
+                )
+
             response.raise_for_status()
             value = payload.get("quantity")
             if value is None or value == "":
@@ -134,6 +145,28 @@ def save_error(cur, product_id: int, message: str) -> None:
     )
 
 
+def save_rms_deleted(cur, product_id: int, message: str) -> None:
+    """Disable a DB row only after RMS has explicitly returned HTTP 404.
+
+    A 404 from the inventory endpoint is a permanent state, not a transient
+    transport failure.  Keeping such rows active would make every subsequent
+    reconciliation and inventory update retry the same nonexistent item.
+    """
+    cur.execute(
+        """
+        UPDATE store_products
+        SET enabled = FALSE,
+            force_stop = TRUE,
+            current_status = 'rms_deleted',
+            rms_inventory_checked_at = CURRENT_TIMESTAMP,
+            rms_inventory_last_error = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """,
+        (message[:1000], product_id),
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Reconcile Rakuten RMS inventory into DB current_stock")
     parser.add_argument("--store", default="rakuten_2")
@@ -160,6 +193,7 @@ def main() -> int:
     checked = 0
     changed = 0
     failed = 0
+    rms_deleted = 0
     try:
         with conn.cursor() as cur:
             targets = fetch_targets(cur, store_code, args.limit)
@@ -188,6 +222,13 @@ def main() -> int:
                     conn.commit()
                 if index < len(targets) and args.api_interval:
                     time.sleep(args.api_interval)
+            except RmsInventoryNotFoundError as exc:
+                rms_deleted += 1
+                print(f"[inventory-reconcile] id={product['id']} rms_deleted: {exc}", flush=True)
+                if args.execute:
+                    with conn.cursor() as cur:
+                        save_rms_deleted(cur, int(product["id"]), str(exc))
+                    conn.commit()
             except Exception as exc:
                 failed += 1
                 print(f"[inventory-reconcile] id={product['id']} failed: {exc}", flush=True)
@@ -200,7 +241,7 @@ def main() -> int:
 
     print(
         f"[inventory-reconcile] store={store_code} checked={checked} changed={changed} "
-        f"failed={failed} execute={args.execute}",
+        f"rms_deleted={rms_deleted} failed={failed} execute={args.execute}",
         flush=True,
     )
     return 1 if failed else 0
