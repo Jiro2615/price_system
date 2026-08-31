@@ -22,6 +22,7 @@ ENV_PATH = BASE_DIR.parent / ".env"
 OUTPUT_DIR = BASE_DIR / "output" / "rakuten_api"
 
 RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbers"
+RAKUTEN_ITEM_SEARCH_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/search"
 RETRY_STATE_TABLE = "rakuten_price_api_retry_state"
 PENDING_STATE_TABLE = "rakuten_price_api_pending_state"
 
@@ -74,6 +75,12 @@ def write_json_file(prefix: str, data: dict) -> Path:
 def item_url(manage_number: str) -> str:
     encoded = quote(str(manage_number), safe="")
     return f"{RAKUTEN_ITEM_BASE_URL}/{encoded}"
+
+
+def item_search_url(manage_number: str) -> str:
+    """Return an exact manage-number search URL for a 404 confirmation."""
+    encoded = quote(str(manage_number), safe="")
+    return f"{RAKUTEN_ITEM_SEARCH_URL}?manageNumber={encoded}&hits=1&cursorMark=%2A"
 
 
 # =========================
@@ -559,6 +566,41 @@ def call_item_get(
     return data
 
 
+def confirm_item_absent_in_search(
+    manage_number: str,
+    store_code: str,
+    max_retries: int,
+    retry_wait: float,
+) -> tuple[bool, dict[str, Any]]:
+    """Confirm that a price-patch 404 is a deleted Item API record.
+
+    The inventory API can retain an orphaned inventory row after the Item API
+    record has disappeared.  Do not disable a DB product merely because PATCH
+    returned 404: require an exact Item API search with no item result too.
+    """
+    _status_code, data = call_rakuten_api_with_retry(
+        "GET",
+        item_search_url(manage_number),
+        store_code=store_code,
+        api_label="楽天items.search（404確認）",
+        max_retries=max_retries,
+        retry_wait=retry_wait,
+    )
+    results = data.get("results") if isinstance(data, dict) else None
+    found = any(
+        isinstance(result, dict)
+        and isinstance(result.get("item"), dict)
+        and str(result["item"].get("manageNumber") or "").strip() == str(manage_number).strip()
+        for result in (results or [])
+    )
+    return (not found), data if isinstance(data, dict) else {}
+
+
+def is_item_api_not_found(error_message: str) -> bool:
+    message = str(error_message or "")
+    return "status=404" in message and ("楽天価格更新API" in message or "楽天items.get" in message)
+
+
 def extract_standard_price(item_data: dict[str, Any], sku_code: str) -> int | None:
     variants = item_data.get("variants") or {}
     variant = variants.get(sku_code)
@@ -820,6 +862,22 @@ def update_failed(cur, row: dict[str, Any], error_message: str) -> None:
     )
 
 
+def update_rms_deleted(cur, row: dict[str, Any], error_message: str) -> None:
+    """Disable an orphaned DB row after Item PATCH 404 + search zero match."""
+    cur.execute(
+        """
+        UPDATE store_products
+        SET enabled = FALSE,
+            force_stop = TRUE,
+            current_status = 'rms_deleted',
+            api_last_error = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """,
+        (error_message[:2000], row["store_product_id"]),
+    )
+
+
 def insert_price_update_log(
     cur,
     row: dict[str, Any],
@@ -940,6 +998,31 @@ def mark_failed(conn, row: dict[str, Any], error_message: str, request_payload: 
             response_payload=None,
         )
     return retry_state
+
+
+def mark_rms_deleted(
+    conn,
+    row: dict[str, Any],
+    error_message: str,
+    request_payload: dict[str, Any] | None,
+    search_response: dict[str, Any],
+    retry_policy: bool = False,
+) -> None:
+    """Persist a confirmed RMS Item deletion and retain an audit log."""
+    confirmation = f"RMS商品API 404、items.search 0件のためRMS削除済み: {error_message}"
+    with conn.transaction():
+        with conn.cursor() as cur:
+            update_rms_deleted(cur, row, confirmation)
+            if retry_policy:
+                clear_retry_state(cur, row)
+        save_log_best_effort(
+            conn,
+            row=row,
+            status="rms_deleted",
+            message=confirmation,
+            request_payload=request_payload,
+            response_payload={"items_search": search_response},
+        )
 
 
 # =========================
@@ -1189,35 +1272,75 @@ def main() -> int:
 
             except Exception as e:
                 error_message = str(e)
-                # A failure to persist retry metadata must not terminate the
-                # whole batch.  The next SKU still needs its price check.
-                try:
-                    retry_state = mark_failed(conn, row, error_message, request_payload, retry_policy=args.retry_policy)
-                except Exception as retry_error:
-                    retry_state = None
-                    error_message = f"{error_message} / 失敗状態の保存にも失敗: {retry_error}"
+                # Item PATCH/GET 404 by itself is not enough to decide that
+                # the listing disappeared: RMS can leave inventory records
+                # behind.  Confirm through items.search before disabling it.
+                deleted_search_response: dict[str, Any] | None = None
+                confirmed_rms_deleted = False
+                if is_item_api_not_found(error_message):
+                    try:
+                        confirmed_rms_deleted, deleted_search_response = confirm_item_absent_in_search(
+                            manage,
+                            auth_store_code,
+                            max_retries=args.retry_count,
+                            retry_wait=args.retry_wait,
+                        )
+                    except Exception as search_error:
+                        error_message = f"{error_message} / RMS削除確認に失敗: {search_error}"
 
-                result_summary["failed_count"] += 1
-                result_summary["items"].append({
-                    "index": index,
-                    "status": "failed",
-                    "store_product_id": row.get("store_product_id"),
-                    "manageNumber": manage,
-                    "variantId": sku,
-                    "current_price": row.get("current_price"),
-                    "target_price": row.get("target_price"),
-                    "request": request_payload,
-                    "error": error_message,
-                    "retry_state": retry_state,
-                })
-                print(f"失敗: {error_message}")
-                if retry_state:
-                    retry_at = "保留（手動対応）" if retry_state["retry_delay_seconds"] is None else f"{retry_state['retry_delay_seconds']}秒後"
-                    print(
-                        "  RETRY_STATE"
-                        f" state={retry_state['state']} kind={retry_state['failure_kind']}"
-                        f" attempt={retry_state['attempt_count']} next={retry_at}"
+                if confirmed_rms_deleted:
+                    mark_rms_deleted(
+                        conn,
+                        row,
+                        error_message,
+                        request_payload,
+                        deleted_search_response or {},
+                        retry_policy=args.retry_policy,
                     )
+                    result_summary["skipped_count"] += 1
+                    result_summary["items"].append({
+                        "index": index,
+                        "status": "rms_deleted",
+                        "store_product_id": row.get("store_product_id"),
+                        "manageNumber": manage,
+                        "variantId": sku,
+                        "current_price": row.get("current_price"),
+                        "target_price": row.get("target_price"),
+                        "request": request_payload,
+                        "error": error_message,
+                        "items_search": deleted_search_response,
+                    })
+                    print("RMS削除済みを確認: DBを無効化しました")
+                else:
+                    # A failure to persist retry metadata must not terminate the
+                    # whole batch.  The next SKU still needs its price check.
+                    try:
+                        retry_state = mark_failed(conn, row, error_message, request_payload, retry_policy=args.retry_policy)
+                    except Exception as retry_error:
+                        retry_state = None
+                        error_message = f"{error_message} / 失敗状態の保存にも失敗: {retry_error}"
+
+                    result_summary["failed_count"] += 1
+                    result_summary["items"].append({
+                        "index": index,
+                        "status": "failed",
+                        "store_product_id": row.get("store_product_id"),
+                        "manageNumber": manage,
+                        "variantId": sku,
+                        "current_price": row.get("current_price"),
+                        "target_price": row.get("target_price"),
+                        "request": request_payload,
+                        "error": error_message,
+                        "retry_state": retry_state,
+                    })
+                    print(f"失敗: {error_message}")
+                    if retry_state:
+                        retry_at = "保留（手動対応）" if retry_state["retry_delay_seconds"] is None else f"{retry_state['retry_delay_seconds']}秒後"
+                        print(
+                            "  RETRY_STATE"
+                            f" state={retry_state['state']} kind={retry_state['failure_kind']}"
+                            f" attempt={retry_state['attempt_count']} next={retry_at}"
+                        )
 
             print("")
 
