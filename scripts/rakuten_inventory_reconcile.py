@@ -19,7 +19,10 @@ from rakuten_auth import build_rakuten_auth_header
 
 
 class RmsInventoryNotFoundError(RuntimeError):
-    """Raised when RMS confirms that an inventory item no longer exists."""
+    """Raised when the RMS inventory endpoint returns HTTP 404."""
+
+
+RMS_INVENTORY_404_PENDING_PREFIX = "RMS inventory 404 pending confirmation:"
 
 
 def fetch_targets(cur, store_code: str, limit: int) -> list[dict]:
@@ -30,7 +33,8 @@ def fetch_targets(cur, store_code: str, limit: int) -> list[dict]:
             sp.mall_item_code,
             sp.sku_code,
             sp.current_stock,
-            sp.target_stock
+            sp.target_stock,
+            sp.rms_inventory_last_error
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         WHERE s.mall = 'rakuten'
@@ -146,12 +150,7 @@ def save_error(cur, product_id: int, message: str) -> None:
 
 
 def save_rms_deleted(cur, product_id: int, message: str) -> None:
-    """Disable a DB row only after RMS has explicitly returned HTTP 404.
-
-    A 404 from the inventory endpoint is a permanent state, not a transient
-    transport failure.  Keeping such rows active would make every subsequent
-    reconciliation and inventory update retry the same nonexistent item.
-    """
+    """Disable a DB row after two independent RMS inventory 404 responses."""
     cur.execute(
         """
         UPDATE store_products
@@ -164,6 +163,26 @@ def save_rms_deleted(cur, product_id: int, message: str) -> None:
         WHERE id = %s
         """,
         (message[:1000], product_id),
+    )
+
+
+def save_rms_inventory_404_pending(cur, product_id: int, message: str) -> None:
+    """Remember one 404 without disabling a potentially live RMS item.
+
+    The first 404 is not retried in this run.  Because RMS may transiently
+    return 404 while the item is still reachable later, the next full cycle
+    must independently see the same response before ``save_rms_deleted`` is
+    allowed to disable the record.
+    """
+    cur.execute(
+        """
+        UPDATE store_products
+        SET rms_inventory_checked_at = CURRENT_TIMESTAMP,
+            rms_inventory_last_error = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """,
+        (f"{RMS_INVENTORY_404_PENDING_PREFIX} {message}"[:1000], product_id),
     )
 
 
@@ -193,6 +212,7 @@ def main() -> int:
     checked = 0
     changed = 0
     failed = 0
+    rms_404_pending = 0
     rms_deleted = 0
     try:
         with conn.cursor() as cur:
@@ -223,11 +243,22 @@ def main() -> int:
                 if index < len(targets) and args.api_interval:
                     time.sleep(args.api_interval)
             except RmsInventoryNotFoundError as exc:
-                rms_deleted += 1
-                print(f"[inventory-reconcile] id={product['id']} rms_deleted: {exc}", flush=True)
+                was_pending = str(product.get("rms_inventory_last_error") or "").startswith(
+                    RMS_INVENTORY_404_PENDING_PREFIX
+                )
+                if was_pending:
+                    rms_deleted += 1
+                    message = "rms_deleted"
+                else:
+                    rms_404_pending += 1
+                    message = "rms_404_pending"
+                print(f"[inventory-reconcile] id={product['id']} {message}: {exc}", flush=True)
                 if args.execute:
                     with conn.cursor() as cur:
-                        save_rms_deleted(cur, int(product["id"]), str(exc))
+                        if was_pending:
+                            save_rms_deleted(cur, int(product["id"]), str(exc))
+                        else:
+                            save_rms_inventory_404_pending(cur, int(product["id"]), str(exc))
                     conn.commit()
             except Exception as exc:
                 failed += 1
@@ -241,7 +272,8 @@ def main() -> int:
 
     print(
         f"[inventory-reconcile] store={store_code} checked={checked} changed={changed} "
-        f"rms_deleted={rms_deleted} failed={failed} execute={args.execute}",
+        f"rms_404_pending={rms_404_pending} rms_deleted={rms_deleted} "
+        f"failed={failed} execute={args.execute}",
         flush=True,
     )
     return 1 if failed else 0
