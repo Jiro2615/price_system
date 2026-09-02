@@ -22,12 +22,16 @@ if str(REPOSITORY_ROOT) not in sys.path:
 from scripts.listing.rakuten_payload_builder import build_customization_options
 
 
-REQUIRED_FLAG_INDEX = 104
-OPTION_TYPE_INDEX = 2
-OPTION_NAME_INDEX = 3
-OPTION_VALUE_START_INDEX = 4
+# RMSのnormal-item出力（105列）では、0列目が商品管理番号、1列目が
+# 選択肢タイプ、2列目が項目名、3列目以降が選択肢、103列目が必須フラグ、
+# 104列目がSKU管理番号。以前の定数は1列ずれており、商品行と選択肢行を
+# 取り違えていた。
+REQUIRED_FLAG_INDEX = 103
+OPTION_TYPE_INDEX = 1
+OPTION_NAME_INDEX = 2
+OPTION_VALUE_START_INDEX = 3
 MANAGEMENT_NUMBER_INDEX = 0
-ITEM_NUMBER_INDEX = 1
+SKU_MANAGEMENT_NUMBER_INDEX = 104
 CSV_ENCODING = "cp932"
 
 
@@ -108,7 +112,11 @@ def canonical_option_rows(management_number: str, column_count: int) -> list[lis
 
 
 def is_option_row(row: list[str]) -> bool:
-    return len(row) > OPTION_NAME_INDEX and bool(row[OPTION_NAME_INDEX])
+    return (
+        len(row) > OPTION_NAME_INDEX
+        and bool(row[OPTION_TYPE_INDEX])
+        and bool(row[OPTION_NAME_INDEX])
+    )
 
 
 def replace_options(group: list[list[str]], column_count: int) -> list[list[str]]:
@@ -116,17 +124,14 @@ def replace_options(group: list[list[str]], column_count: int) -> list[list[str]
     if any(row[MANAGEMENT_NUMBER_INDEX] != management_number for row in group):
         raise ValueError(f"Mixed management numbers in group: {management_number}")
 
-    item_rows = [row for row in group if len(row) > ITEM_NUMBER_INDEX and row[ITEM_NUMBER_INDEX]]
-    if not item_rows:
-        # RMS exports a handful of legacy items without an item number.  Their
-        # first, management-number-only row is still the product row; preserve
-        # it rather than discarding that item or treating its SKU row as one.
-        item_rows = [
-            row
-            for row in group
-            if not is_option_row(row)
-            and not (len(row) > REQUIRED_FLAG_INDEX + 1 and row[REQUIRED_FLAG_INDEX + 1])
-        ]
+    # 商品レベル行は選択肢タイプもSKU管理番号も空。選択肢行（type=c/s）と
+    # SKU行（104列目にSKU管理番号あり）を確実に除外する。
+    item_rows = [
+        row
+        for row in group
+        if not is_option_row(row)
+        and not (len(row) > SKU_MANAGEMENT_NUMBER_INDEX and row[SKU_MANAGEMENT_NUMBER_INDEX])
+    ]
     if len(item_rows) != 1:
         raise ValueError(f"Expected one item row for {management_number}; found {len(item_rows)}")
 
