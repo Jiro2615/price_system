@@ -8,9 +8,9 @@ from scripts.listing.text_sanitizer import sanitize_payload_text_for_rakuten_api
 
 
 CUSTOMIZATION_OPTION_AMAZON_MCF_NOTICE = (
-    "◆当店ではAmazonマルチチャネルサービスを利用しての発送となり、"
-    "その際無地のダンボールではない場合がございます。この点、"
-    "ご了承いただけますでしょうか？"
+    "◆当店ではAmazon 社のFBA マルチチャネルサービスを一部活用しています。"
+    "梱包にAmazon ロゴの記載やAmazonの配送員が商品をお届けする可能性がございます。"
+    "この点、ご了承いただけますでしょうか？"
 )
 CUSTOMIZATION_OPTION_ACCEPT_VALUE = "了承の上購入する"
 CUSTOMIZATION_OPTION_DELIVERY_PREFERENCE = "配送指示のご希望"
