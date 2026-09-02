@@ -6,6 +6,12 @@ from scripts.listing.common_settings import build_seller_count_evaluation, load_
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, StoreSettings
 from scripts.listing.prohibited_word_masking import analyze_prohibited_word_issues, detect_legacy_spacing_reviews
 from scripts.listing.provisional_genre import suggest_provisional_genre
+from scripts.listing.rakuten_marketplace_policy import (
+    MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+    has_sensitive_forbidden_word,
+    is_cosmetics_category,
+    rakuten_listing_count_for_jan,
+)
 
 
 # These effectiveness/sexual-function expressions remain non-overridable even
@@ -24,6 +30,48 @@ QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS = {
     "美白", "殺菌", "消炎", "予防", "防ぐ", "効果", "効能",
 }
 COSMETICS_CONDITIONALLY_ALLOWED_WORDS = {"化粧品"}
+
+
+def same_jan_prohibited_word_exception(
+    *,
+    matched_words: list[dict[str, object]],
+    keepa_result: KeepaProductData,
+    warnings: list[str],
+) -> dict[str, object] | None:
+    """Return the audit payload when a non-sensitive word is market-exempt.
+
+    The exception is deliberately exact-JAN only.  It does not apply to
+    efficacy/medical-sensitive terms, even when the item is widely listed.
+    """
+    if not matched_words:
+        return None
+    jan_code = str(keepa_result.ean or "").strip()
+    cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
+    same_jan_listing_count = rakuten_listing_count_for_jan(jan_code)
+    if same_jan_listing_count is None:
+        warnings.append("Rakuten same-JAN listing count: unavailable")
+        return None
+    warnings.append(f"Rakuten same-JAN listing count: {same_jan_listing_count}")
+    if has_sensitive_forbidden_word(matched_words, cosmetics_category=cosmetics_category):
+        return None
+    if same_jan_listing_count < MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION:
+        return None
+
+    words = list(dict.fromkeys(str(item.get("word") or "").strip() for item in matched_words))
+    words = [word for word in words if word]
+    message = (
+        "禁止語一致だが楽天同一JAN "
+        f"{same_jan_listing_count}件のため例外通過: {', '.join(words)}"
+    )
+    warnings.append(message)
+    return {
+        "type": "same_jan_marketplace",
+        "message": message,
+        "matched_words": words,
+        "jan_code": jan_code,
+        "same_jan_listing_count": int(same_jan_listing_count),
+        "minimum_listing_count": MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+    }
 
 
 def apply_cleanup_replacements(text: str, replacements: list[tuple[str, str]]) -> tuple[str, list[MatchedRule]]:
@@ -155,6 +203,7 @@ def evaluate_listing(
     matched_forbidden_words: list[dict[str, object]] = []
     required_separate_checks: list[str] = []
     matched_separate_check_phrases: list[dict[str, object]] = []
+    prohibited_word_exceptions: list[dict[str, object]] = []
     legacy_spacing_reviews: list[dict[str, object]] = []
 
     if master_data.missing_files:
@@ -320,28 +369,33 @@ def evaluate_listing(
             required_separate_checks.append(check)
     matched_separate_check_phrases.extend(prohibited_analysis["matched_separate_check_phrases"])
     if matched_forbidden_words:
-        # A same-JAN Rakuten search result is useful for auditing existing
-        # listings, but it is not an authorization to ignore a prohibited
-        # expression.  In particular, a widely sold brand can still be a
-        # prohibited brand for this shop.  The only exception is an explicit
-        # store/ASIN allow phrase that was applied before this analysis.
-        word = str(matched_forbidden_words[0]["word"])
-        matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-        return EvaluationResult(
-            "business_ng",
-            f"prohibited word matched: {word}",
-            matched_rules,
-            warnings,
-            title=title,
-            description_pc=description_pc,
-            description_sp=description_sp,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            required_separate_checks=required_separate_checks,
-            matched_separate_check_phrases=matched_separate_check_phrases,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-            compliance_evidence=quasi_drug_evidence,
+        exception = same_jan_prohibited_word_exception(
+            matched_words=matched_forbidden_words,
+            keepa_result=keepa_result,
+            warnings=warnings,
         )
+        if exception:
+            prohibited_word_exceptions.append(exception)
+            matched_forbidden_words = []
+        else:
+            word = str(matched_forbidden_words[0]["word"])
+            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+            return EvaluationResult(
+                "business_ng",
+                f"prohibited word matched: {word}",
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+                compliance_evidence=quasi_drug_evidence,
+            )
 
     if keepa_result.category_id is None:
         return EvaluationResult(
@@ -354,6 +408,7 @@ def evaluate_listing(
             description_sp=description_sp,
             allowed_phrase_matches=allowed_phrase_matches,
             matched_forbidden_words=matched_forbidden_words,
+            prohibited_word_exceptions=prohibited_word_exceptions,
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
@@ -378,6 +433,7 @@ def evaluate_listing(
                 description_sp=description_sp,
                 allowed_phrase_matches=allowed_phrase_matches,
                 matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
                 required_separate_checks=required_separate_checks,
                 matched_separate_check_phrases=matched_separate_check_phrases,
                 legacy_spacing_reviews=legacy_spacing_reviews,
@@ -435,24 +491,34 @@ def evaluate_listing(
                 required_separate_checks.append(check)
         matched_separate_check_phrases.extend(attribute_analysis["matched_separate_check_phrases"])
         if matched_forbidden_words:
-            word = str(matched_forbidden_words[0]["word"])
-            matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
-            return EvaluationResult(
-                "business_ng",
-                f"prohibited word matched: {word}",
-                matched_rules,
-                warnings,
-                title=title,
-                description_pc=description_pc,
-                description_sp=description_sp,
-                genre_id=genre_id,
-                resolved_attributes=resolved_attributes,
-                allowed_phrase_matches=allowed_phrase_matches,
-                matched_forbidden_words=matched_forbidden_words,
-                required_separate_checks=required_separate_checks,
-                matched_separate_check_phrases=matched_separate_check_phrases,
-                legacy_spacing_reviews=legacy_spacing_reviews,
+            exception = same_jan_prohibited_word_exception(
+                matched_words=matched_forbidden_words,
+                keepa_result=keepa_result,
+                warnings=warnings,
             )
+            if exception:
+                prohibited_word_exceptions.append(exception)
+                matched_forbidden_words = []
+            else:
+                word = str(matched_forbidden_words[0]["word"])
+                matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
+                return EvaluationResult(
+                    "business_ng",
+                    f"prohibited word matched: {word}",
+                    matched_rules,
+                    warnings,
+                    title=title,
+                    description_pc=description_pc,
+                    description_sp=description_sp,
+                    genre_id=genre_id,
+                    resolved_attributes=resolved_attributes,
+                    allowed_phrase_matches=allowed_phrase_matches,
+                    matched_forbidden_words=matched_forbidden_words,
+                    prohibited_word_exceptions=prohibited_word_exceptions,
+                    required_separate_checks=required_separate_checks,
+                    matched_separate_check_phrases=matched_separate_check_phrases,
+                    legacy_spacing_reviews=legacy_spacing_reviews,
+                )
 
     legacy_spacing_reviews = detect_legacy_spacing_reviews(
         {
@@ -490,6 +556,7 @@ def evaluate_listing(
             resolved_attributes=resolved_attributes,
             allowed_phrase_matches=allowed_phrase_matches,
             matched_forbidden_words=matched_forbidden_words,
+            prohibited_word_exceptions=prohibited_word_exceptions,
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
@@ -515,6 +582,7 @@ def evaluate_listing(
             seller_count_evaluation=seller_count_evaluation,
             allowed_phrase_matches=allowed_phrase_matches,
             matched_forbidden_words=matched_forbidden_words,
+            prohibited_word_exceptions=prohibited_word_exceptions,
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
@@ -546,6 +614,7 @@ def evaluate_listing(
             seller_count_evaluation=seller_count_evaluation,
             allowed_phrase_matches=allowed_phrase_matches,
             matched_forbidden_words=matched_forbidden_words,
+            prohibited_word_exceptions=prohibited_word_exceptions,
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
@@ -575,6 +644,7 @@ def evaluate_listing(
             article_number=article_number,
             allowed_phrase_matches=allowed_phrase_matches,
             matched_forbidden_words=matched_forbidden_words,
+            prohibited_word_exceptions=prohibited_word_exceptions,
             required_separate_checks=required_separate_checks,
             matched_separate_check_phrases=matched_separate_check_phrases,
             legacy_spacing_reviews=legacy_spacing_reviews,
@@ -597,6 +667,7 @@ def evaluate_listing(
         image_candidates=image_candidates,
         allowed_phrase_matches=allowed_phrase_matches,
         matched_forbidden_words=matched_forbidden_words,
+        prohibited_word_exceptions=prohibited_word_exceptions,
         required_separate_checks=required_separate_checks,
         matched_separate_check_phrases=matched_separate_check_phrases,
         legacy_spacing_reviews=legacy_spacing_reviews,

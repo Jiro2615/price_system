@@ -132,7 +132,7 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertEqual(result.listing_status, "business_ng")
         self.assertIn("prohibited word", result.listing_reason)
 
-    def test_prohibited_brand_never_uses_same_jan_listing_count_as_an_exception(self) -> None:
+    def test_prohibited_brand_uses_same_jan_listing_count_as_an_exception(self) -> None:
         self.master.prohibited_words_rakuten = ["\u30d1\u30ca\u30bd\u30cb\u30c3\u30af"]
         amazon = AmazonCheckResult(
             **{
@@ -140,21 +140,23 @@ class RakutenListingPhase1Tests(unittest.TestCase):
                 "title": "\u30d1\u30ca\u30bd\u30cb\u30c3\u30af \u30c6\u30b9\u30c8\u5546\u54c1",
             }
         )
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
         with mock.patch(
-            "scripts.listing.rakuten_marketplace_policy.rakuten_listing_count_for_jan",
+            "scripts.listing.listing_evaluator.rakuten_listing_count_for_jan",
             return_value=99,
         ) as marketplace_count:
             result = evaluate_listing(
                 asin="B000TEST01",
                 amazon_result=amazon,
-                keepa_result=self.keepa,
+                keepa_result=keepa,
                 master_data=self.master,
                 store_settings=self.store,
                 management_number="20250101010101_187_ab12",
             )
-        self.assertEqual(result.listing_status, "business_ng")
-        self.assertEqual(result.listing_reason, "prohibited word matched: \u30d1\u30ca\u30bd\u30cb\u30c3\u30af")
-        self.assertFalse(marketplace_count.called)
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertTrue(marketplace_count.called)
+        self.assertEqual(result.prohibited_word_exceptions[0]["matched_words"], ["\u30d1\u30ca\u30bd\u30cb\u30c3\u30af"])
+        self.assertEqual(result.prohibited_word_exceptions[0]["same_jan_listing_count"], 99)
 
     def test_unknown_category(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "category_id": 99999})

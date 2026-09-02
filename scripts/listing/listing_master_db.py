@@ -120,6 +120,26 @@ def ensure_listing_master_tables(cur) -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS listing_asin_allowed_phrases (id BIGSERIAL PRIMARY KEY, store_id BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE, asin TEXT NOT NULL, forbidden_word TEXT NOT NULL, allowed_phrase TEXT NOT NULL, keepa_avg90_min NUMERIC(8,2) NOT NULL DEFAULT 3.5, note TEXT NOT NULL DEFAULT '', enabled BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE (store_id, asin, forbidden_word, allowed_phrase), CHECK (keepa_avg90_min >= 3.5))""")
     cur.execute("""CREATE TABLE IF NOT EXISTS listing_past_ng (id BIGSERIAL PRIMARY KEY, scope TEXT NOT NULL DEFAULT 'global' CHECK (scope IN ('global','store')), store_id BIGINT REFERENCES stores(id) ON DELETE CASCADE, asin TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', matched_rules JSONB NOT NULL DEFAULT '[]'::jsonb, source TEXT NOT NULL DEFAULT 'legacy_import', enabled BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
     cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_listing_past_ng_scope_asin ON listing_past_ng (scope, COALESCE(store_id, 0), asin)")
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS listing_prohibited_word_exceptions (
+            id BIGSERIAL PRIMARY KEY,
+            store_id BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+            asin TEXT NOT NULL,
+            management_number TEXT NOT NULL DEFAULT '',
+            exception_type TEXT NOT NULL DEFAULT 'same_jan_marketplace',
+            matched_words JSONB NOT NULL DEFAULT '[]'::jsonb,
+            jan_code TEXT NOT NULL DEFAULT '',
+            same_jan_listing_count INTEGER,
+            minimum_listing_count INTEGER,
+            detail TEXT NOT NULL DEFAULT '',
+            occurrence_count INTEGER NOT NULL DEFAULT 1,
+            first_seen_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (store_id, asin, exception_type)
+        )
+        """
+    )
     cur.execute("""CREATE TABLE IF NOT EXISTS listing_category_maps (keepa_category_id BIGINT PRIMARY KEY, rakuten_genre_id BIGINT NOT NULL, source TEXT NOT NULL DEFAULT 'legacy_import', enabled BOOLEAN NOT NULL DEFAULT TRUE, updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
     cur.execute("""CREATE TABLE IF NOT EXISTS listing_genre_attributes (genre_id BIGINT NOT NULL, attribute_order INTEGER NOT NULL, attribute_name TEXT NOT NULL, genre_path TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'legacy_import', enabled BOOLEAN NOT NULL DEFAULT TRUE, updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (genre_id, attribute_order))""")
 
@@ -251,6 +271,56 @@ def record_rule_based_past_ng(asin: str, store_code: str, reason: str, matched_r
             cur.execute("UPDATE listing_past_ng SET reason=%s, matched_rules=%s, enabled=TRUE, updated_at=CURRENT_TIMESTAMP WHERE id=%s", (reason, Jsonb(matched_rules), existing[0]))
         else:
             cur.execute("INSERT INTO listing_past_ng (scope, store_id, asin, reason, matched_rules, source) VALUES ('store', %s, %s, %s, %s, 'listing_rule_auto')", (store_id, asin.upper(), reason, Jsonb(matched_rules)))
+        conn.commit()
+
+
+def record_prohibited_word_exceptions(
+    *,
+    asin: str,
+    store_code: str,
+    management_number: str,
+    exceptions: list[dict[str, Any]],
+) -> None:
+    """Persist the last exact-JAN exception while retaining an occurrence count."""
+    if not asin or not exceptions:
+        return
+    with connect_db() as conn, conn.cursor() as cur:
+        ensure_listing_master_tables(cur)
+        cur.execute("SELECT id FROM stores WHERE LOWER(store_code)=LOWER(%s)", (store_code,))
+        row = cur.fetchone()
+        if row is None:
+            raise RuntimeError(f"store not found: {store_code}")
+        store_id = row[0]
+        for exception in exceptions:
+            exception_type = str(exception.get("type") or "same_jan_marketplace")
+            cur.execute(
+                """
+                INSERT INTO listing_prohibited_word_exceptions (
+                    store_id, asin, management_number, exception_type, matched_words,
+                    jan_code, same_jan_listing_count, minimum_listing_count, detail
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (store_id, asin, exception_type) DO UPDATE SET
+                    management_number = EXCLUDED.management_number,
+                    matched_words = EXCLUDED.matched_words,
+                    jan_code = EXCLUDED.jan_code,
+                    same_jan_listing_count = EXCLUDED.same_jan_listing_count,
+                    minimum_listing_count = EXCLUDED.minimum_listing_count,
+                    detail = EXCLUDED.detail,
+                    occurrence_count = listing_prohibited_word_exceptions.occurrence_count + 1,
+                    last_seen_at = CURRENT_TIMESTAMP
+                """,
+                (
+                    store_id,
+                    asin.upper(),
+                    management_number.strip(),
+                    exception_type,
+                    Jsonb(list(exception.get("matched_words") or [])),
+                    str(exception.get("jan_code") or ""),
+                    exception.get("same_jan_listing_count"),
+                    exception.get("minimum_listing_count"),
+                    str(exception.get("message") or ""),
+                ),
+            )
         conn.commit()
 
 

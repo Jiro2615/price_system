@@ -284,6 +284,7 @@ def _base_result(
     required_separate_checks: list[str] | None = None,
     matched_separate_check_phrases: list[dict[str, object]] | None = None,
     legacy_spacing_reviews: list[dict[str, object]] | None = None,
+    prohibited_word_exceptions: list[dict[str, object]] | None = None,
     main_image_url: str | None = None,
     image_urls: list[str] | None = None,
     image_source: str | None = None,
@@ -362,6 +363,7 @@ def _base_result(
         "resolved_attributes": resolved_attributes,
         "allowed_phrase_matches": allowed_phrase_matches or [],
         "matched_forbidden_words": matched_forbidden_words or [],
+        "prohibited_word_exceptions": prohibited_word_exceptions or [],
         "required_separate_checks": required_separate_checks or [],
         "matched_separate_check_phrases": matched_separate_check_phrases or [],
         "legacy_spacing_reviews": legacy_spacing_reviews or [],
@@ -686,6 +688,20 @@ def prepare_listing(
         quasi_drug_evidence=quasi_drug_evidence,
     )
 
+    if evaluation.prohibited_word_exceptions:
+        try:
+            from scripts.listing.listing_master_db import record_prohibited_word_exceptions
+
+            record_prohibited_word_exceptions(
+                asin=asin,
+                store_code=store_settings.store_code,
+                management_number=request.management_number.strip(),
+                exceptions=[dict(item) for item in evaluation.prohibited_word_exceptions],
+            )
+            evaluation.warnings.append("禁止語の楽天同一JAN例外通過を記録しました")
+        except Exception as exc:
+            evaluation.warnings.append(f"禁止語例外の記録に失敗しました: {type(exc).__name__}: {exc}")
+
     # A regulated-category candidate without full disclosure evidence can
     # proceed only when Rakuten search visibly returned an exact-JAN candidate.
     # That exception avoids rejecting Beauty tools whose captions omit the
@@ -747,6 +763,7 @@ def prepare_listing(
             seller_count_evaluation=evaluation.seller_count_evaluation,
             allowed_phrase_matches=evaluation.allowed_phrase_matches,
             matched_forbidden_words=evaluation.matched_forbidden_words,
+            prohibited_word_exceptions=evaluation.prohibited_word_exceptions,
             required_separate_checks=evaluation.required_separate_checks,
             matched_separate_check_phrases=evaluation.matched_separate_check_phrases,
             legacy_spacing_reviews=evaluation.legacy_spacing_reviews,
@@ -831,6 +848,7 @@ def prepare_listing(
         seller_count_evaluation=evaluation.seller_count_evaluation,
         allowed_phrase_matches=evaluation.allowed_phrase_matches,
         matched_forbidden_words=evaluation.matched_forbidden_words,
+        prohibited_word_exceptions=evaluation.prohibited_word_exceptions,
         required_separate_checks=evaluation.required_separate_checks,
         matched_separate_check_phrases=evaluation.matched_separate_check_phrases,
         legacy_spacing_reviews=evaluation.legacy_spacing_reviews,

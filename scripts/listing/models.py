@@ -106,6 +106,10 @@ class EvaluationResult:
     image_candidates: list[dict[str, str]] = field(default_factory=list)
     allowed_phrase_matches: list[dict[str, Any]] = field(default_factory=list)
     matched_forbidden_words: list[dict[str, Any]] = field(default_factory=list)
+    # Forbidden words that were allowed only through the exact-JAN Rakuten
+    # marketplace exception.  Keep this separate from active matches so an
+    # eligible result remains eligible while the exception stays auditable.
+    prohibited_word_exceptions: list[dict[str, Any]] = field(default_factory=list)
     required_separate_checks: list[str] = field(default_factory=list)
     matched_separate_check_phrases: list[dict[str, Any]] = field(default_factory=list)
     legacy_spacing_reviews: list[dict[str, Any]] = field(default_factory=list)
