@@ -195,8 +195,11 @@ def evaluate_listing(
     resolved_fields: dict[str, object] | None = None,
     common_settings: ListingCommonSettings | None = None,
     quasi_drug_evidence: dict[str, object] | None = None,
+    bypass_rules: set[str] | frozenset[str] | None = None,
+    require_minimum_same_jan_listings: bool = False,
 ) -> EvaluationResult:
     asin = asin.strip().upper()
+    bypass_rules = set(bypass_rules or ())
     matched_rules: list[MatchedRule] = []
     warnings: list[str] = []
     allowed_phrase_matches: list[dict[str, object]] = []
@@ -205,33 +208,42 @@ def evaluate_listing(
     matched_separate_check_phrases: list[dict[str, object]] = []
     prohibited_word_exceptions: list[dict[str, object]] = []
     legacy_spacing_reviews: list[dict[str, object]] = []
+    forced_bypass_checks: list[dict[str, object]] = []
+
+    def record_bypass(rule: str, reason: str) -> None:
+        forced_bypass_checks.append({"rule": rule, "reason": reason})
+        warnings.append(f"条件無視で通過: {reason}")
 
     if master_data.missing_files:
         warnings.append("missing master files: " + ", ".join(master_data.missing_files))
 
     if asin in master_data.kako_ng:
         matched_rules.append(MatchedRule("kakoNG", asin, master_data.kako_ng[asin]))
-        return EvaluationResult(
-            "business_ng",
-            f"\u904e\u53bbNG: {master_data.kako_ng[asin]}",
-            matched_rules,
-            warnings,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-        )
+        if "past_ng" not in bypass_rules:
+            return EvaluationResult(
+                "business_ng",
+                f"\u904e\u53bbNG: {master_data.kako_ng[asin]}",
+                matched_rules,
+                warnings,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+            )
+        record_bypass("past_ng", f"過去NG: {master_data.kako_ng[asin]}")
 
     if asin in master_data.blacklist:
         matched_rules.append(MatchedRule("blacklist", asin, "ASIN matched blacklist"))
-        return EvaluationResult(
-            "business_ng",
-            "\u30d6\u30e9\u30c3\u30af\u30ea\u30b9\u30c8",
-            matched_rules,
-            warnings,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-        )
+        if "blacklist" not in bypass_rules:
+            return EvaluationResult(
+                "business_ng",
+                "\u30d6\u30e9\u30c3\u30af\u30ea\u30b9\u30c8",
+                matched_rules,
+                warnings,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+            )
+        record_bypass("blacklist", "ブラックリスト")
 
     if amazon_result is None:
         return EvaluationResult(
@@ -332,6 +344,27 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
+    # The dedicated forced-listing page intentionally relaxes only selected
+    # master/data rules.  It always retains this external resale-evidence
+    # requirement: the exact same JAN must already have at least five active
+    # Rakuten listings.  An unavailable search is not evidence and blocks.
+    if require_minimum_same_jan_listings:
+        same_jan_count = rakuten_listing_count_for_jan(keepa_result.ean)
+        if same_jan_count is None:
+            return EvaluationResult(
+                "business_ng", "楽天同一JAN件数を取得できないため出品不可", matched_rules, warnings,
+                forced_bypass_checks=forced_bypass_checks,
+            )
+        warnings.append(f"楽天同一JAN件数: {same_jan_count}")
+        if same_jan_count < MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION:
+            return EvaluationResult(
+                "business_ng",
+                f"楽天同一JAN件数が不足: {same_jan_count} < {MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION}",
+                matched_rules,
+                warnings,
+                forced_bypass_checks=forced_bypass_checks,
+            )
+
     quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)
     description_pc_original, description_sp_original = _build_descriptions(title_original, keepa_result)
@@ -377,7 +410,7 @@ def evaluate_listing(
         if exception:
             prohibited_word_exceptions.append(exception)
             matched_forbidden_words = []
-        else:
+        elif "prohibited_words" not in bypass_rules:
             word = str(matched_forbidden_words[0]["word"])
             matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
             return EvaluationResult(
@@ -396,6 +429,14 @@ def evaluate_listing(
                 legacy_spacing_reviews=legacy_spacing_reviews,
                 compliance_evidence=quasi_drug_evidence,
             )
+        else:
+            words = ", ".join(
+                str(item.get("word") or "").strip()
+                for item in matched_forbidden_words
+                if str(item.get("word") or "").strip()
+            )
+            record_bypass("prohibited_words", f"禁止語: {words or '一致あり'}")
+            matched_forbidden_words = []
 
     if keepa_result.category_id is None:
         return EvaluationResult(
@@ -499,7 +540,7 @@ def evaluate_listing(
             if exception:
                 prohibited_word_exceptions.append(exception)
                 matched_forbidden_words = []
-            else:
+            elif "prohibited_words" not in bypass_rules:
                 word = str(matched_forbidden_words[0]["word"])
                 matched_rules.append(MatchedRule("kinsiword", word, f"prohibited word matched: {word}"))
                 return EvaluationResult(
@@ -519,6 +560,14 @@ def evaluate_listing(
                     matched_separate_check_phrases=matched_separate_check_phrases,
                     legacy_spacing_reviews=legacy_spacing_reviews,
                 )
+            else:
+                words = ", ".join(
+                    str(item.get("word") or "").strip()
+                    for item in matched_forbidden_words
+                    if str(item.get("word") or "").strip()
+                )
+                record_bypass("prohibited_words", f"属性の禁止語: {words or '一致あり'}")
+                matched_forbidden_words = []
 
     legacy_spacing_reviews = detect_legacy_spacing_reviews(
         {
@@ -544,50 +593,64 @@ def evaluate_listing(
         warnings.extend(common_setting_warnings)
 
     if keepa_result.avg90_new_offer_count is None:
-        return EvaluationResult(
-            "business_ng",
-            "過去90日の新品出品者数平均が未取得のため出品不可",
-            matched_rules,
-            warnings,
-            title=title,
-            description_pc=description_pc,
-            description_sp=description_sp,
-            genre_id=genre_id,
-            resolved_attributes=resolved_attributes,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            prohibited_word_exceptions=prohibited_word_exceptions,
-            required_separate_checks=required_separate_checks,
-            matched_separate_check_phrases=matched_separate_check_phrases,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-            provisional_genre_candidate=provisional_genre_candidate,
+        if "seller_count" not in bypass_rules:
+            return EvaluationResult(
+                "business_ng",
+                "過去90日の新品出品者数平均が未取得のため出品不可",
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                genre_id=genre_id,
+                resolved_attributes=resolved_attributes,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+                provisional_genre_candidate=provisional_genre_candidate,
+            )
+        record_bypass("seller_count", "過去90日の新品出品者数平均が未取得")
+        seller_count_evaluation = {
+            "actual_value": None,
+            "minimum_value": common_settings.min_avg90_new_offer_count,
+            "passed": True,
+            "reason": "条件無視",
+        }
+    else:
+        seller_count_evaluation = build_seller_count_evaluation(
+            actual_value=keepa_result.avg90_new_offer_count,
+            minimum_value=common_settings.min_avg90_new_offer_count,
         )
-
-    seller_count_evaluation = build_seller_count_evaluation(
-        actual_value=keepa_result.avg90_new_offer_count,
-        minimum_value=common_settings.min_avg90_new_offer_count,
-    )
     if not seller_count_evaluation["passed"]:
-        return EvaluationResult(
-            "business_ng",
+        if "seller_count" not in bypass_rules:
+            return EvaluationResult(
+                "business_ng",
+                f"過去90日の新品出品者数平均が基準未満: {seller_count_evaluation['actual_value']} < {seller_count_evaluation['minimum_value']}",
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                genre_id=genre_id,
+                attributes=[],
+                resolved_attributes=resolved_attributes,
+                seller_count_evaluation=seller_count_evaluation,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+                provisional_genre_candidate=provisional_genre_candidate,
+            )
+        record_bypass(
+            "seller_count",
             f"過去90日の新品出品者数平均が基準未満: {seller_count_evaluation['actual_value']} < {seller_count_evaluation['minimum_value']}",
-            matched_rules,
-            warnings,
-            title=title,
-            description_pc=description_pc,
-            description_sp=description_sp,
-            genre_id=genre_id,
-            attributes=[],
-            resolved_attributes=resolved_attributes,
-            seller_count_evaluation=seller_count_evaluation,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            prohibited_word_exceptions=prohibited_word_exceptions,
-            required_separate_checks=required_separate_checks,
-            matched_separate_check_phrases=matched_separate_check_phrases,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-                    provisional_genre_candidate=provisional_genre_candidate,
-                )
+        )
+        seller_count_evaluation = {**seller_count_evaluation, "passed": True, "reason": "条件無視"}
 
     attributes: list[dict[str, str]] = []
     missing_attrs: list[str] = []
@@ -600,26 +663,39 @@ def evaluate_listing(
         attributes.append({"name": attr_name, "value": value})
 
     if missing_attrs:
-        return EvaluationResult(
-            "missing_required_data",
-            "\u5c5e\u6027\u4e0d\u8db3: " + ", ".join(missing_attrs),
-            matched_rules,
-            warnings,
-            title=title,
-            description_pc=description_pc,
-            description_sp=description_sp,
-            genre_id=genre_id,
-            attributes=attributes,
-            resolved_attributes=resolved_attributes,
-            seller_count_evaluation=seller_count_evaluation,
-            allowed_phrase_matches=allowed_phrase_matches,
-            matched_forbidden_words=matched_forbidden_words,
-            prohibited_word_exceptions=prohibited_word_exceptions,
-            required_separate_checks=required_separate_checks,
-            matched_separate_check_phrases=matched_separate_check_phrases,
-            legacy_spacing_reviews=legacy_spacing_reviews,
-            provisional_genre_candidate=provisional_genre_candidate,
-        )
+        if "missing_attributes" not in bypass_rules:
+            return EvaluationResult(
+                "missing_required_data",
+                "\u5c5e\u6027\u4e0d\u8db3: " + ", ".join(missing_attrs),
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                genre_id=genre_id,
+                attributes=attributes,
+                resolved_attributes=resolved_attributes,
+                seller_count_evaluation=seller_count_evaluation,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+                provisional_genre_candidate=provisional_genre_candidate,
+            )
+        for attr_name in missing_attrs:
+            resolved_attributes[attr_name] = ResolvedField(
+                value="-",
+                source="forced_bypass",
+                transform="missing_required_attribute",
+                confidence="none",
+                evidence="条件無視ASIN出品で属性不足を明示的に許可",
+                fallback_used=True,
+                resolution_action="use_legacy_dash",
+            )
+            attributes.append({"name": attr_name, "value": "-"})
+        record_bypass("missing_attributes", "属性不足: " + ", ".join(missing_attrs))
 
     article_number = keepa_result.ean or asin
 
@@ -673,4 +749,5 @@ def evaluate_listing(
         legacy_spacing_reviews=legacy_spacing_reviews,
         provisional_genre_candidate=provisional_genre_candidate,
         compliance_evidence=quasi_drug_evidence,
+        forced_bypass_checks=forced_bypass_checks,
     )

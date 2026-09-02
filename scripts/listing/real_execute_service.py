@@ -341,6 +341,7 @@ def build_real_execute_result(
     # the product-specific cause, rather than only its downstream gate failures.
     result["listing_status"] = str(dry_run_result.get("listing_status") or "")
     result["listing_reason"] = str(dry_run_result.get("listing_reason") or "")
+    result["forced_bypass_checks"] = list(dry_run_result.get("forced_bypass_checks") or [])
     result["execution_diagnostics"] = _build_execution_diagnostics(
         preflight_result=preflight_result,
         mock_result=mock_result,

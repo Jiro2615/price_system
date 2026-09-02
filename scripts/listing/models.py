@@ -115,6 +115,9 @@ class EvaluationResult:
     legacy_spacing_reviews: list[dict[str, Any]] = field(default_factory=list)
     provisional_genre_candidate: dict[str, Any] = field(default_factory=dict)
     compliance_evidence: dict[str, Any] = field(default_factory=dict)
+    # Set only by the dedicated forced-listing flow.  The exception remains in
+    # the dry-run artifact and execution history without relaxing normal runs.
+    forced_bypass_checks: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

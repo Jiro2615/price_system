@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins
+from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins, parse_bypass_rules
 from scripts.listing.amazon_bridge import fetch_amazon_result
 from scripts.listing.mock_execute_service import build_mock_execute_result
 from scripts.listing.models import sanitize_for_output, to_jsonable
@@ -45,6 +45,8 @@ def parse_args() -> argparse.Namespace:
         help="Amazon/Keepa を使う出品判定の並列数 (1-4)。RMS 実出品は常に 1 件ずつです。",
     )
     parser.add_argument("--allow-missing-master", action="store_true")
+    parser.add_argument("--ignore-rules", default="", help="条件無視ASIN出品で許可するルール（カンマ区切り）")
+    parser.add_argument("--require-minimum-same-jan-listings", action="store_true")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--approved", action="store_true")
     parser.add_argument("--confirm-real-api", action="store_true")
@@ -64,6 +66,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         raise ValueError(f"execution batch exceeds max-execute={args.max_execute}")
     if not 1 <= args.prepare_workers <= 4:
         raise ValueError("prepare-workers must be between 1 and 4")
+    args.bypass_rules = parse_bypass_rules(args.ignore_rules)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
     playwright, browser, context, page = await create_amazon_page()
@@ -144,6 +147,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 allow_missing_master=args.allow_missing_master,
                 page_timeout_ms=args.page_timeout,
                 update_existing=args.update_existing,
+                bypass_rules=args.bypass_rules,
+                require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
             )
             try:
                 dry = await asyncio.to_thread(precheck_local_listing_exclusion, request)

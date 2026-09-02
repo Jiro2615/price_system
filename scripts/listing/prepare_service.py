@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -40,6 +40,8 @@ class PrepareListingRequest:
     store_settings_json: Path | None = None
     amazon_result_json: Path | None = None
     keepa_result_json: Path | None = None
+    bypass_rules: tuple[str, ...] = ()
+    require_minimum_same_jan_listings: bool = False
 
 
 def fetch_keepa_result_sync(asin: str) -> KeepaProductData:
@@ -126,7 +128,8 @@ def precheck_local_listing_exclusion(
             store_settings=store_settings, common_settings=common_settings,
             existing_management_number=management_number,
         )
-    if asin in master_data.kako_ng:
+    bypass_rules = set(request.bypass_rules or ())
+    if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
         return _base_result(
             mode=mode, asin=asin, amazon_result=None, keepa_result=None,
             listing_status="business_ng", listing_reason=f"過去NG: {master_data.kako_ng[asin]}",
@@ -134,7 +137,7 @@ def precheck_local_listing_exclusion(
             missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
             store_settings=store_settings, common_settings=common_settings,
         )
-    if asin in master_data.blacklist:
+    if asin in master_data.blacklist and "blacklist" not in bypass_rules:
         return _base_result(
             mode=mode, asin=asin, amazon_result=None, keepa_result=None,
             listing_status="business_ng", listing_reason="ブラックリスト",
@@ -296,6 +299,7 @@ def _base_result(
     representative_color_mapping: dict[str, object] | None = None,
     provisional_genre_candidate: dict[str, object] | None = None,
     compliance_evidence: dict[str, object] | None = None,
+    forced_bypass_checks: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     genre_id_value = None
     if item_payload is not None:
@@ -377,6 +381,7 @@ def _base_result(
         "representative_color_mapping": representative_color_mapping or {},
         "provisional_genre_candidate": provisional_genre_candidate or {},
         "compliance_evidence": compliance_evidence or {},
+        "forced_bypass_checks": forced_bypass_checks or [],
         "warnings": computed_warnings,
         "missing_master_files": missing_master_files,
         "master_dir": str(Path(master_dir).resolve()),
@@ -526,7 +531,8 @@ def prepare_listing(
 
     # A blacklist decision is entirely local.  Do not open Amazon or call
     # Keepa for an ASIN that is already disallowed by the active master.
-    if asin in master_data.blacklist:
+    bypass_rules = set(request.bypass_rules or ())
+    if asin in master_data.blacklist and "blacklist" not in bypass_rules:
         return _base_result(
             mode=mode,
             asin=asin,
@@ -686,6 +692,8 @@ def prepare_listing(
         resolved_fields=resolved_fields,
         common_settings=common_settings,
         quasi_drug_evidence=quasi_drug_evidence,
+        bypass_rules=bypass_rules,
+        require_minimum_same_jan_listings=request.require_minimum_same_jan_listings,
     )
 
     if evaluation.prohibited_word_exceptions:
@@ -707,7 +715,13 @@ def prepare_listing(
     # That exception avoids rejecting Beauty tools whose captions omit the
     # regulated facts, while a missing JAN, API failure, or unrelated search
     # hit remains a strict business NG.
-    if category and not quasi_drug_evidence and not same_jan_candidate and evaluation.listing_status == "eligible":
+    if (
+        category
+        and not quasi_drug_evidence
+        and not same_jan_candidate
+        and evaluation.listing_status == "eligible"
+        and "regulated_evidence" not in bypass_rules
+    ):
         evaluation.listing_status = "business_ng"
         evaluation.listing_reason = (
             f"{category}証跡不足: 楽天同一JAN候補を確認できないため出品不可"
@@ -715,6 +729,9 @@ def prepare_listing(
         evaluation.warnings.append(
             f"{category}候補は広告文責・メーカー名または販売業者名・原産国・商品区分を確認できないため出品停止です"
         )
+    elif category and not quasi_drug_evidence and not same_jan_candidate and evaluation.listing_status == "eligible":
+        evaluation.forced_bypass_checks.append({"rule": "regulated_evidence", "reason": f"{category}証跡不足"})
+        evaluation.warnings.append(f"条件無視で通過: {category}証跡不足（広告文責は追記しません）")
 
     if evaluation.listing_status != "eligible" or amazon_result is None:
         # Only prohibited-word decisions are durable enough to auto-accumulate.
@@ -775,6 +792,7 @@ def prepare_listing(
             representative_color_mapping=_build_representative_color_mapping(evaluation.resolved_attributes, None),
             provisional_genre_candidate=evaluation.provisional_genre_candidate,
             compliance_evidence=evaluation.compliance_evidence,
+            forced_bypass_checks=evaluation.forced_bypass_checks,
         )
 
     requested_management_number = request.management_number.strip()
@@ -862,6 +880,7 @@ def prepare_listing(
         representative_color_mapping=representative_color_mapping,
         provisional_genre_candidate=evaluation.provisional_genre_candidate,
         compliance_evidence=evaluation.compliance_evidence,
+        forced_bypass_checks=evaluation.forced_bypass_checks,
     )
 
 
@@ -897,7 +916,11 @@ def precheck_keepa_before_amazon(
     options = dict(prepare_kwargs or {})
     options["amazon_fetcher"] = lambda _asin, _timeout: placeholder_amazon
     options["keepa_fetcher"] = keepa_fetcher
-    precheck = prepare_listing(request, **options)
+    # The forced-listing JAN threshold is an external marketplace request.
+    # Check it once after the real Amazon page has passed, not once here and
+    # once again in the final preparation stage.
+    precheck_request = replace(request, require_minimum_same_jan_listings=False)
+    precheck = prepare_listing(precheck_request, **options)
     keepa_value = precheck.get("keepa_result")
     keepa_result = keepa_value if isinstance(keepa_value, KeepaProductData) else None
     status = str(precheck.get("listing_status") or "")

@@ -26,6 +26,7 @@ from scripts.price_check_one_asin_db import create_amazon_page
 
 ASIN_RE = re.compile(r"^[A-Z0-9]{10}$")
 MAX_ASINS = 10000
+FORCE_BYPASS_RULES = frozenset({"blacklist", "past_ng", "prohibited_words", "missing_attributes", "seller_count", "regulated_evidence"})
 # Current Keepa plan refills 20 tokens/minute.  Metadata-only prechecks cost
 # one product token, so this leaves a small safety margin while adding no wait
 # during the much slower Amazon-page path.
@@ -46,7 +47,17 @@ def parse_args() -> argparse.Namespace:
         help="Amazon確認タブ数 (1-4)。Keepa確認はトークン保護のため直列です。",
     )
     parser.add_argument("--allow-missing-master", action="store_true")
+    parser.add_argument("--ignore-rules", default="", help="条件無視ASIN出品で許可するルール（カンマ区切り）")
+    parser.add_argument("--require-minimum-same-jan-listings", action="store_true")
     return parser.parse_args()
+
+
+def parse_bypass_rules(value: str) -> tuple[str, ...]:
+    rules = tuple(dict.fromkeys(part.strip() for part in str(value or "").split(",") if part.strip()))
+    unknown = sorted(set(rules) - FORCE_BYPASS_RULES)
+    if unknown:
+        raise ValueError(f"unsupported ignore rules: {', '.join(unknown)}")
+    return rules
 
 
 def load_asins(path: Path) -> list[str]:
@@ -65,6 +76,7 @@ def load_asins(path: Path) -> list[str]:
 async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     if not 1 <= args.prepare_workers <= 4:
         raise ValueError("prepare-workers must be between 1 and 4")
+    args.bypass_rules = parse_bypass_rules(args.ignore_rules)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
     summary_path = args.output_dir / "summary.json"
@@ -127,6 +139,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 dry_run=True,
                 allow_missing_master=args.allow_missing_master,
                 page_timeout_ms=args.page_timeout,
+                bypass_rules=args.bypass_rules,
+                require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
             )
             try:
                 result = await asyncio.to_thread(precheck_local_listing_exclusion, request)
