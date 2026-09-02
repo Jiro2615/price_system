@@ -543,6 +543,50 @@ async def detect_unsupported_direct_purchase_ui(page) -> str:
     return ""
 
 
+async def select_one_time_purchase(page) -> bool:
+    """Select Amazon's ordinary one-time purchase BuyBox when it is available.
+
+    Some Amazon product pages render the furusato-tax or Subscribe & Save
+    accordion as the initially active purchase option.  Reading that option
+    would return the wrong price, stock, and purchase controls.  Amazon gives
+    the regular purchase option a stable accordion-row name even when the
+    visible Japanese copy changes, so prefer that structural selector.
+
+    Returns ``True`` only when the active option was changed.  A missing or
+    hidden ordinary-purchase row is deliberately a no-op: the existing BuyBox
+    / all-offers decision remains responsible for such products.
+    """
+    rows = page.locator(
+        "#buybox [data-a-accordion-row-name='newAccordionRow'], "
+        "#desktop_buybox [data-a-accordion-row-name='newAccordionRow'], "
+        "[data-a-accordion-row-name='newAccordionRow']"
+    )
+
+    try:
+        row_count = await rows.count()
+    except Exception:
+        return False
+
+    for index in range(row_count):
+        row = rows.nth(index)
+        header = row.locator(".a-accordion-row-a11y").first
+        try:
+            if not await header.is_visible(timeout=500):
+                continue
+            radio = header.locator(".a-accordion-radio").first
+            radio_class = (await radio.get_attribute("class")) or ""
+            if "a-icon-radio-active" in radio_class:
+                return False
+
+            await click_force(header)
+            await page.wait_for_timeout(750)
+            print("amazon_purchase_option selected=one_time")
+            return True
+        except Exception:
+            continue
+    return False
+
+
 async def read_buybox_info(page) -> dict[str, Any]:
     result = {
         "in_text": "",
@@ -876,6 +920,13 @@ async def check_amazon_one(
                 result["system_error"] = True
                 result["ng_reason"] = "画像認証"
                 return result
+
+            # Amazon can initially activate a furusato-tax or Subscribe &
+            # Save accordion for the same ASIN.  Always inspect the regular
+            # one-time purchase row before reading price, stock, or BuyBox
+            # eligibility.
+            if await select_one_time_purchase(page):
+                body = await get_first_text(page, "body")
 
             current_asin = extract_asin(page.url)
             if current_asin and current_asin != asin:
