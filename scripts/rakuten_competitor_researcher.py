@@ -26,8 +26,9 @@ from bs4 import BeautifulSoup
 MAX_STORE_URLS = 300
 MAX_PRODUCTS_PER_STORE = 100
 MAX_CANDIDATE_SAMPLES = 500
+MAX_FETCH_ATTEMPTS = 5
 ASIN_RE = re.compile(r"^[A-Z0-9]{10}$")
-AMAZON_WORD_RE = re.compile(r"amazon|アマゾン", re.IGNORECASE)
+AMAZON_WORD_RE = re.compile(r"amazon|アマゾン|(?<![A-Za-z0-9])fba(?![A-Za-z0-9])", re.IGNORECASE)
 RAKUTEN_STORE_HOST = "search.rakuten.co.jp"
 RAKUTEN_ITEM_HOST = "item.rakuten.co.jp"
 
@@ -153,7 +154,17 @@ def with_page_number(store_url: str, page_number: int) -> str:
 
 
 def fetch_html(session: requests.Session, url: str, timeout_seconds: float = 30) -> str:
-    response = session.get(url, timeout=timeout_seconds)
+    response: requests.Response | None = None
+    for attempt in range(MAX_FETCH_ATTEMPTS):
+        response = session.get(url, timeout=timeout_seconds)
+        if response.status_code not in {429, 500, 502, 503, 504}:
+            response.raise_for_status()
+            return decode_response(response)
+        if attempt + 1 < MAX_FETCH_ATTEMPTS:
+            retry_after = str(response.headers.get("retry-after") or "").strip()
+            delay = float(retry_after) if retry_after.isdecimal() else min(2 ** (attempt + 1), 16)
+            time.sleep(delay)
+    assert response is not None
     response.raise_for_status()
     return decode_response(response)
 
@@ -185,15 +196,35 @@ def fetch_store_products(
 
 def amazon_keyword_context(html: str) -> tuple[bool, str]:
     soup = BeautifulSoup(html, "html.parser")
+    # 楽天の商品ページは、選択肢など画面表示される商品固有の文言を
+    # item-page-app-data のJSONからクライアント側で描画することがある。
+    # 通常の script は誤検知を避けて除外し、この商品データJSONだけは
+    # 可視本文と合わせて判定する。
+    item_data_text = " ".join(
+        element.get_text(" ", strip=True)
+        for element in soup.select('script#item-page-app-data[type="application/json"]')
+    )
     for element in soup(["script", "style", "noscript"]):
         element.decompose()
-    visible_text = unicodedata.normalize("NFKC", soup.get_text(" ", strip=True))
-    match = AMAZON_WORD_RE.search(visible_text)
+    searchable_text = unicodedata.normalize(
+        "NFKC",
+        f"{soup.get_text(' ', strip=True)} {item_data_text}",
+    )
+    match = AMAZON_WORD_RE.search(searchable_text)
     if not match:
         return False, ""
     start = max(0, match.start() - 60)
-    end = min(len(visible_text), match.end() + 100)
-    return True, normalize_space(visible_text[start:end])[:240]
+    end = min(len(searchable_text), match.end() + 100)
+    return True, normalize_space(searchable_text[start:end])[:240]
+
+
+def load_create_amazon_page():
+    """Load the shared Amazon browser factory in package and script modes."""
+    script_dir = str(Path(__file__).resolve().parent)
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+    from price_check_one_asin_db import create_amazon_page
+    return create_amazon_page
 
 
 def hinted_asin(item_code: str) -> str:
@@ -351,8 +382,7 @@ async def run(args: argparse.Namespace) -> int:
                 store_result["status"] = "eligible"
                 result["eligible_store_count"] += 1
                 if page is None:
-                    from scripts.price_check_one_asin_db import create_amazon_page
-
+                    create_amazon_page = load_create_amazon_page()
                     playwright, browser, context, page = await create_amazon_page(start_minimized=True)
 
                 for product in products:

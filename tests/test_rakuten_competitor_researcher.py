@@ -3,10 +3,12 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 from scripts.rakuten_competitor_researcher import (
     amazon_keyword_context,
     choose_amazon_candidate,
+    fetch_html,
     load_store_urls,
     normalize_store_url,
     parse_store_products,
@@ -44,12 +46,32 @@ class RakutenCompetitorResearcherTests(unittest.TestCase):
         self.assertEqual([row["item_code"] for row in products], ["b0first001", "b0second02"])
         self.assertEqual(products[0]["rakuten_title"], "商品 一")
 
-    def test_amazon_keyword_must_be_visible_text(self) -> None:
+    def test_amazon_keyword_uses_visible_text_and_rakuten_item_data(self) -> None:
         self.assertEqual(amazon_keyword_context("<script>const seller='Amazon'</script><p>通常発送</p>"), (False, ""))
         matched, context = amazon_keyword_context("<p>一部の商品はamazonの倉庫から発送します。</p>")
         self.assertTrue(matched)
         self.assertIn("amazon", context)
         self.assertTrue(amazon_keyword_context("<p>アマゾン倉庫を利用</p>")[0])
+        self.assertTrue(amazon_keyword_context('<p>当店はFBAから発送します。</p>')[0])
+        self.assertFalse(amazon_keyword_context('<script>const fbAppId = "123";</script>')[0])
+        self.assertTrue(
+            amazon_keyword_context(
+                '<script id="item-page-app-data" type="application/json">'
+                '{"customizationOptions":[{"label":"Amazon倉庫から発送します"}]}'
+                '</script>'
+            )[0]
+        )
+
+    def test_fetch_html_retries_temporary_rakuten_error(self) -> None:
+        unavailable = Mock(status_code=503, headers={"content-type": "text/html"}, encoding="utf-8")
+        ok = Mock(status_code=200, headers={"content-type": "text/html; charset=utf-8"}, encoding="utf-8")
+        ok.content = "商品".encode("utf-8")
+        session = Mock()
+        session.get.side_effect = [unavailable, ok]
+        with patch("scripts.rakuten_competitor_researcher.time.sleep") as sleep:
+            self.assertEqual(fetch_html(session, "https://example.invalid/"), "商品")
+        self.assertEqual(session.get.call_count, 2)
+        sleep.assert_called_once_with(2)
 
     def test_choose_amazon_candidate_prefers_item_code_confirmed_by_search(self) -> None:
         candidates = [
