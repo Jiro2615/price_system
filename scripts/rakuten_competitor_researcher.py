@@ -304,6 +304,10 @@ def result_template(args: argparse.Namespace, stores: list[dict[str, str]]) -> d
         "matched_product_count": 0,
         "unique_asin_count": 0,
         "asins": [],
+        # Keep one title for every ASIN, not just the on-screen samples.  This
+        # lets the orchestrator provide an operator-downloadable ASIN/title
+        # list after the run has completed.
+        "asin_products": [],
         "candidate_samples": [],
         "store_results": [],
     }
@@ -341,6 +345,7 @@ async def run(args: argparse.Namespace) -> int:
     playwright = browser = context = page = None
     asins: list[str] = []
     seen_asins: set[str] = set()
+    asin_products: list[dict[str, str]] = []
 
     try:
         for store in stores:
@@ -403,6 +408,14 @@ async def run(args: argparse.Namespace) -> int:
                         if asin not in seen_asins:
                             seen_asins.add(asin)
                             asins.append(asin)
+                            asin_products.append({
+                                "asin": asin,
+                                # The Amazon title identifies the matched ASIN
+                                # most directly.  Some result cards have no
+                                # title, so retain the Rakuten title as a
+                                # useful fallback for the download.
+                                "title": str(chosen.get("title") or title).strip()[:300],
+                            })
                         if len(result["candidate_samples"]) < MAX_CANDIDATE_SAMPLES:
                             result["candidate_samples"].append({
                                 "asin": asin,
@@ -415,6 +428,7 @@ async def run(args: argparse.Namespace) -> int:
                                 "source_sid": store["sid"],
                             })
                     result["asins"] = asins
+                    result["asin_products"] = asin_products
                     result["unique_asin_count"] = len(asins)
                     write_result(args.output_json, result)
                     print_progress(result, store["sid"])
@@ -424,6 +438,7 @@ async def run(args: argparse.Namespace) -> int:
             finally:
                 result["processed_store_count"] += 1
                 result["asins"] = asins
+                result["asin_products"] = asin_products
                 result["unique_asin_count"] = len(asins)
                 write_result(args.output_json, result)
                 print_progress(result, store["sid"])
