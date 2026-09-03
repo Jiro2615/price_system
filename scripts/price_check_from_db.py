@@ -44,6 +44,8 @@ def safe_print(*args, **kwargs) -> None:
 
 
 ASIN_SPLIT_RE = re.compile(r"[\s,]+")
+LONG_ZERO_STOCK_DAYS = 5
+LONG_ZERO_STOCK_CHECK_INTERVAL_HOURS = 36
 
 
 def load_asins_from_file(path_text: str, max_count: int = 5000) -> list[str]:
@@ -756,8 +758,10 @@ def _claim_active_listed_store_asins_without_retry(
 
     Normal products do not wait for ``next_check_at``: a continuous checker
     must eventually make a complete pass even when a large due queue exists.
-    Error and Amazon confirmation-wait rows still honor their short retry
-    schedule, so they cannot be hammered by every circulation.
+    The sole normal exception is the reserved 36-hour interval for ASINs whose
+    active Rakuten listings have all been at stock zero for five days. Error
+    and Amazon confirmation-wait rows still honor their short retry schedule,
+    so they cannot be hammered by every circulation.
     """
     sql = """
         WITH target_rows AS (
@@ -789,6 +793,7 @@ def _claim_active_listed_store_asins_without_retry(
                       OR (
                           COALESCE(ap.system_error, FALSE) = FALSE
                           AND COALESCE(s.check_interval_hours, 0) > 0
+                          AND COALESCE(s.check_interval_hours, 0) <> %(long_zero_interval_hours)s
                       )
                  ))
             )
@@ -818,6 +823,7 @@ def _claim_active_listed_store_asins_without_retry(
                 "reason_contains": reason_contains,
                 "reason_pattern": f"%{reason_contains}%",
                 "store_code": store_code,
+                "long_zero_interval_hours": LONG_ZERO_STOCK_CHECK_INTERVAL_HOURS,
             })
             rows = cur.fetchall()
         conn.commit()
@@ -1113,7 +1119,44 @@ def apply_repeated_system_error_stock_stop(
     return streak
 
 
-def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, Any], existing: dict[str, Any] | None) -> dict[str, Any]:
+def is_long_zero_stock_for_active_listings(asin: str) -> bool:
+    """Return true only when every active listing for the ASIN is long zero.
+
+    Check statistics are shared by ASIN, while Rakuten stock is per store.
+    Deferring an ASIN because just one store is zero could leave another active
+    store with stale Amazon data, so require all active listings to have been
+    zero continuously for the configured period.
+    """
+    sql = """
+        SELECT COUNT(*) > 0
+           AND BOOL_AND(
+               COALESCE(sp.current_stock, -1) = 0
+               AND sp.stock_zero_since IS NOT NULL
+               AND sp.stock_zero_since <= CURRENT_TIMESTAMP - (%s || ' days')::interval
+           )
+        FROM store_products sp
+        WHERE sp.asin = %s
+          AND COALESCE(sp.enabled, FALSE) = TRUE
+          AND COALESCE(sp.force_stop, FALSE) = FALSE
+          AND COALESCE(sp.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
+    """
+    conn = connect_db()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (LONG_ZERO_STOCK_DAYS, asin))
+            row = cur.fetchone()
+            return bool(row and row[0])
+    finally:
+        conn.close()
+
+
+def determine_stats_update(
+    previous: dict[str, Any] | None,
+    current: dict[str, Any],
+    existing: dict[str, Any] | None,
+    *,
+    long_zero_stock: bool = False,
+) -> dict[str, Any]:
     stats = existing or {
         "check_count": 0,
         "price_change_count": 0,
@@ -1176,6 +1219,11 @@ def determine_stats_update(previous: dict[str, Any] | None, current: dict[str, A
         result["check_interval_hours"] = 1
         result["priority_score"] = 200
         result["system_error_detected"] = True
+    elif long_zero_stock:
+        result["stable_count"] = stats["stable_count"] + 1
+        result["check_interval_hours"] = LONG_ZERO_STOCK_CHECK_INTERVAL_HOURS
+        result["priority_score"] = 20
+        result["stable_detected"] = True
     elif price_changed or stock_changed or ng_changed:
         if price_changed:
             result["price_change_count"] += 1
@@ -2047,9 +2095,21 @@ async def main() -> int:
                     business_ng_count += 1
 
                 if args.use_stats:
-                    stats_update = determine_stats_update(previous, data, existing_stats)
+                    long_zero_stock = is_long_zero_stock_for_active_listings(asin)
+                    stats_update = determine_stats_update(
+                        previous,
+                        data,
+                        existing_stats,
+                        long_zero_stock=long_zero_stock,
+                    )
                     update_amazon_check_stats(asin, stats_update)
                     stats_updated_count += 1
+
+                    if long_zero_stock and not data.get("system_error") and not data.get("amazon_confirmation_waiting"):
+                        print(
+                            "長期在庫0のため次回価格・在庫チェックを "
+                            f"{LONG_ZERO_STOCK_CHECK_INTERVAL_HOURS}時間後に設定しました"
+                        )
 
                     if stats_update["system_error_detected"]:
                         system_error_count += 1
