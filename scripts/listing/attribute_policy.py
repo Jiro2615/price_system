@@ -18,6 +18,19 @@ LEGACY_DASH_EVIDENCE = (
     "User policy: use '-' when a required Rakuten attribute cannot be resolved. "
     "Legacy item CSV exports also contain '-' placeholders for required attributes."
 )
+NUMERIC_OR_UNIT_ATTRIBUTE_MARKERS = (
+    "容量",
+    "重量",
+    "本数",
+    "個数",
+    "枚数",
+    "数量",
+    "長さ",
+    "高さ",
+    "幅",
+    "奥行",
+    "単位",
+)
 
 GENERIC_ATTRIBUTE_FIELD_MAP = {
     ATTR_COLOR: "color",
@@ -66,11 +79,21 @@ def _legacy_dash_field(attr_name: str) -> ResolvedField:
     )
 
 
+def _requires_numeric_or_unit_value(attr_name: str) -> bool:
+    normalized = _text(attr_name).replace(" ", "").replace("　", "")
+    return any(marker in normalized for marker in NUMERIC_OR_UNIT_ATTRIBUTE_MARKERS)
+
+
 def _apply_legacy_dash_fallback(results: dict[str, ResolvedField]) -> dict[str, ResolvedField]:
-    """Keep known values, but make every unresolved required attribute sendable."""
+    """Use ``-`` only for text attributes that RMS permits as placeholders."""
     for attr_name, field in results.items():
         if not _text(field.value) or field.resolution_action == "needs_review":
-            results[attr_name] = _legacy_dash_field(attr_name)
+            if _requires_numeric_or_unit_value(attr_name):
+                results[attr_name] = _needs_review(
+                    f"RMS numeric or unit attribute cannot use '-': {attr_name}"
+                )
+            else:
+                results[attr_name] = _legacy_dash_field(attr_name)
     return results
 
 

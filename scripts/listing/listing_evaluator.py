@@ -3,7 +3,7 @@ from __future__ import annotations
 from scripts.listing.attribute_policy import resolve_required_attributes
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
-from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, StoreSettings
+from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, ResolvedField, StoreSettings
 from scripts.listing.prohibited_word_masking import analyze_prohibited_word_issues, detect_legacy_spacing_reviews
 from scripts.listing.provisional_genre import suggest_provisional_genre
 from scripts.listing.rakuten_marketplace_policy import (
@@ -31,6 +31,50 @@ QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS = {
     "美白", "殺菌", "消炎", "予防", "防ぐ", "効果", "効能",
 }
 COSMETICS_CONDITIONALLY_ALLOWED_WORDS = {"化粧品"}
+AMAZON_BOOK_ROOT_NAMES = {"本", "洋書", "Kindle本"}
+RAKUTEN_BOOK_ROOT = "本・雑誌・コミック"
+RAKUTEN_GENERIC_BOOK_PATH = f"{RAKUTEN_BOOK_ROOT}>その他"
+
+
+def _amazon_category_names(keepa_result: KeepaProductData | None) -> list[str]:
+    if keepa_result is None:
+        return []
+    return [
+        str(node.get("name") or "").strip()
+        for node in keepa_result.category_tree
+        if isinstance(node, dict) and str(node.get("name") or "").strip()
+    ]
+
+
+def _is_amazon_book_category(keepa_result: KeepaProductData | None) -> bool:
+    names = _amazon_category_names(keepa_result)
+    return bool(names and names[0] in AMAZON_BOOK_ROOT_NAMES)
+
+
+def _is_rakuten_book_genre(genre_id: int | None, master_data: MasterData) -> bool:
+    if genre_id is None:
+        return False
+    return str(master_data.genre_paths.get(int(genre_id)) or "").startswith(f"{RAKUTEN_BOOK_ROOT}>")
+
+
+def _generic_rakuten_book_genre_id(master_data: MasterData) -> int | None:
+    for genre_id, genre_path in master_data.genre_paths.items():
+        if str(genre_path or "") == RAKUTEN_GENERIC_BOOK_PATH:
+            return int(genre_id)
+    return None
+
+
+def _book_safe_genre_id(genre_id: int | None, master_data: MasterData) -> int | None:
+    """Never use a non-book Rakuten genre for an Amazon book category.
+
+    A legacy leaf-category mapping can be wrong.  For Amazon's book root we
+    retain an already-book genre, but otherwise use the broad, low-attribute
+    ``本・雑誌・コミック>その他`` genre instead of guessing a more specific
+    branch from an overlapping word such as "ドイツ語".
+    """
+    if _is_rakuten_book_genre(genre_id, master_data):
+        return genre_id
+    return _generic_rakuten_book_genre_id(master_data)
 
 
 def same_jan_prohibited_word_exception(
@@ -484,6 +528,39 @@ def evaluate_listing(
 
     genre_id = master_data.category_map.get(int(keepa_result.category_id))
     provisional_genre_candidate: dict[str, object] = {}
+    amazon_book_category = _is_amazon_book_category(keepa_result)
+    if amazon_book_category:
+        original_genre_id = genre_id
+        genre_id = _book_safe_genre_id(genre_id, master_data)
+        if genre_id is None:
+            return EvaluationResult(
+                "unknown_category",
+                "Amazonカテゴリが本ですが、汎用書籍ジャンルをマスターに見つけられません",
+                matched_rules,
+                warnings,
+                title=title,
+                description_pc=description_pc,
+                description_sp=description_sp,
+                allowed_phrase_matches=allowed_phrase_matches,
+                matched_forbidden_words=matched_forbidden_words,
+                prohibited_word_exceptions=prohibited_word_exceptions,
+                required_separate_checks=required_separate_checks,
+                matched_separate_check_phrases=matched_separate_check_phrases,
+                legacy_spacing_reviews=legacy_spacing_reviews,
+            )
+        if genre_id != original_genre_id:
+            original_path = str(master_data.genre_paths.get(int(original_genre_id or 0)) or "").strip()
+            matched_rules.append(
+                MatchedRule(
+                    "book_generic_genre_fallback",
+                    str(genre_id),
+                    "Amazonカテゴリの本ルートと不整合のため汎用書籍ジャンルを選択"
+                    + (f": {original_path}" if original_path else ""),
+                )
+            )
+            warnings.append(
+                f"Amazonカテゴリの本ルートのため、汎用書籍ジャンルを選択しました: {genre_id}"
+            )
     if genre_id is None:
         provisional = suggest_provisional_genre(
             amazon_result=amazon_result,
@@ -525,6 +602,17 @@ def evaluate_listing(
             amazon_result=amazon_result,
             keepa_result=keepa_result,
             master_data=master_data,
+        )
+    if amazon_book_category:
+        resolved_fields["genre_id"] = ResolvedField(
+            value=int(genre_id),
+            source="book_root_fallback",
+            raw_path="products[0].categoryTree[0].name",
+            transform="amazon_book_root -> generic_rakuten_book_genre",
+            confidence="high",
+            evidence="Amazon category root is a book category",
+            fallback_used=True,
+            resolution_action="use_book_generic_genre",
         )
 
     attr_names = master_data.attribute_definitions.get(int(genre_id), [])

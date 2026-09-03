@@ -108,6 +108,44 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         )
         self.assertIn("\u904e\u53bbNG", result.listing_reason)
 
+    def test_amazon_book_root_uses_generic_book_genre_when_mapping_is_not_book(self) -> None:
+        wrong_genre_id = 110626
+        generic_book_genre_id = 203063
+        self.master.category_map = {self.valid_keepa_category_id: wrong_genre_id}
+        self.master.genre_paths = {
+            wrong_genre_id: "\u30d3\u30fc\u30eb\u30fb\u6d0b\u9152>\u30d3\u30fc\u30eb\u30fb\u767a\u6ce1\u9152>\u30d3\u30fc\u30eb",
+            generic_book_genre_id: "\u672c\u30fb\u96d1\u8a8c\u30fb\u30b3\u30df\u30c3\u30af>\u305d\u306e\u4ed6",
+        }
+        self.master.attribute_definitions = {
+            wrong_genre_id: ["\u30b7\u30ea\u30fc\u30ba\u540d", "\u30d6\u30e9\u30f3\u30c9\u540d", "\u7dcf\u672c\u6570", "\u5358\u54c1\u5bb9\u91cf"],
+            generic_book_genre_id: ["\u30bf\u30a4\u30c8\u30eb", "\u51fa\u7248\u793e"],
+        }
+        keepa = KeepaProductData(
+            **{
+                **self.keepa.__dict__,
+                "category_tree": [
+                    {"name": "\u672c", "catId": 465392},
+                    {"name": "\u6587\u5b66\u30fb\u8a55\u8ad6", "catId": 466284},
+                    {"name": "\u30c9\u30a4\u30c4\u6587\u5b66", "catId": self.valid_keepa_category_id},
+                ],
+                "avg90_new_offer_count": 4.2,
+            }
+        )
+
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertEqual(result.genre_id, generic_book_genre_id)
+        self.assertTrue(any(rule.rule_type == "book_generic_genre_fallback" for rule in result.matched_master_rules))
+        self.assertEqual([item["name"] for item in result.attributes], ["\u30bf\u30a4\u30c8\u30eb", "\u51fa\u7248\u793e"])
+
     def test_already_listed_status(self) -> None:
         result = evaluate_listing(
             asin="B000LISTED1",

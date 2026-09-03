@@ -412,6 +412,26 @@ class ListingAttributeResolverTests(unittest.TestCase):
         self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].value, "-")
         self.assertEqual(resolved_attributes["\u30e1\u30fc\u30ab\u30fc\u578b\u756a"].resolution_action, "use_legacy_dash")
 
+    def test_numeric_or_unit_attribute_does_not_use_legacy_dash(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "size": ""})
+        resolved_fields = build_resolved_fields(
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+        )
+        resolved_attributes = resolve_required_attributes(
+            genre_id=101737,
+            attr_names=["\u7dcf\u672c\u6570", "\u5358\u54c1\u5bb9\u91cf"],
+            resolved_fields=resolved_fields,
+            keepa_result=keepa,
+            amazon_result=self.amazon,
+            asin=keepa.asin,
+        )
+        self.assertIsNone(resolved_attributes["\u7dcf\u672c\u6570"].value)
+        self.assertEqual(resolved_attributes["\u7dcf\u672c\u6570"].resolution_action, "needs_review")
+        self.assertIsNone(resolved_attributes["\u5358\u54c1\u5bb9\u91cf"].value)
+        self.assertEqual(resolved_attributes["\u5358\u54c1\u5bb9\u91cf"].resolution_action, "needs_review")
+
     def test_genre_213661_representative_color_reuses_keepa_color(self) -> None:
         master = MasterData(
             blacklist=set(),
