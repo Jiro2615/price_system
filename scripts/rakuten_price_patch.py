@@ -72,7 +72,9 @@ def load_auth_header() -> dict[str, str]:
 def write_json_file(prefix: str, data: dict) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / f"{prefix}_{now_text()}.json"
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    # The dry-run manifest can contain tens of thousands of SKU rows.  Keep it
+    # compact: it is consumed by the web console/CSV exporter, not by a human.
+    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     return path
 
 
@@ -402,6 +404,19 @@ def build_all_dry_run_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "variantId": row.get("sku_code"),
             "current_price": row.get("current_price"),
             "target_price": row.get("target_price"),
+            # Keep the CSV check sheet useful without fetching the exact same
+            # targets from the DB again after this confirmation completes.
+            "item_name": row.get("item_name"),
+            "current_stock": row.get("current_stock"),
+            "target_stock": row.get("target_stock"),
+            "amazon_price": row.get("amazon_price"),
+            "amazon_point": row.get("amazon_point"),
+            "available_qty": row.get("available_qty"),
+            "business_ng": row.get("business_ng"),
+            "system_error": row.get("system_error"),
+            "ng_reason": row.get("ng_reason"),
+            "rakuten_csv_update_blocked": row.get("rakuten_csv_update_blocked"),
+            "rakuten_csv_update_error": row.get("rakuten_csv_update_error"),
             "request_url": item_url(manage_number),
             "request_method": "PATCH",
             "request_json": payload,
@@ -1093,7 +1108,7 @@ def mark_rms_deleted(
 # 表示
 # =========================
 
-def print_targets(rows: list[dict[str, Any]]) -> None:
+def print_targets(rows: list[dict[str, Any]], max_rows: int = 10) -> None:
     if not rows:
         print("楽天価格更新対象はありません。")
         return
@@ -1102,7 +1117,7 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
     print("===== 楽天価格更新対象 =====")
     print("")
 
-    for row in rows:
+    for row in rows[:max_rows]:
         print(
             f"[{row.get('store_code')}] "
             f"id={row.get('store_product_id')} "
@@ -1122,6 +1137,9 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
             f"system={row.get('system_error')}, reason={row.get('ng_reason') or ''}"
         )
         print("")
+
+    if len(rows) > max_rows:
+        print(f"... 残り {len(rows) - max_rows}件はログ出力を省略しました（全件は送信予定JSONに保存）。")
 
 
 def print_summary(total_targets: int, success_count: int, failed_count: int, skipped_count: int) -> None:
@@ -1241,7 +1259,7 @@ def main() -> int:
             output_path = write_json_file("items_patch_price_dry_run", all_payload)
         else:
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(json.dumps(all_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            output_path.write_text(json.dumps(all_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
         print("")
         print("dry-run のため楽天APIへは送信しません。")

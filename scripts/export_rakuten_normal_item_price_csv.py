@@ -1,5 +1,6 @@
 import argparse
 import csv
+import json
 import math
 from collections import OrderedDict
 from datetime import datetime
@@ -234,6 +235,68 @@ def fetch_price_targets(
     return valid_rows, skipped_rows
 
 
+def fetch_price_targets_from_manifest(
+    manifest_path: Path,
+    store_code: str,
+    limit: int,
+    include_stock: bool,
+    allow_large_change: bool,
+    max_change_rate: float,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Reuse a completed price-target confirmation instead of querying DB again."""
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"対象確認スナップショットを読めません: {manifest_path}") from exc
+
+    items = payload.get("items") if isinstance(payload, dict) else None
+    if not isinstance(items, list):
+        raise ValueError("対象確認スナップショットの形式が不正です")
+
+    valid_rows: list[dict[str, Any]] = []
+    skipped_rows: list[dict[str, Any]] = []
+    normalized_store = str(store_code or "").strip().lower()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("store_code") or "").strip().lower() != normalized_store:
+            continue
+        row = {
+            "store_product_id": item.get("store_product_id"),
+            "store_code": item.get("store_code"),
+            "asin": item.get("asin"),
+            "mall_item_code": item.get("manageNumber"),
+            "sku_code": item.get("variantId"),
+            "item_name": item.get("item_name"),
+            "current_price": item.get("current_price"),
+            "target_price": item.get("target_price"),
+            "current_stock": item.get("current_stock"),
+            "target_stock": item.get("target_stock"),
+            "amazon_price": item.get("amazon_price"),
+            "amazon_point": item.get("amazon_point"),
+            "available_qty": item.get("available_qty"),
+            "business_ng": item.get("business_ng"),
+            "system_error": item.get("system_error"),
+            "ng_reason": item.get("ng_reason"),
+            "rakuten_csv_update_blocked": item.get("rakuten_csv_update_blocked"),
+            "rakuten_csv_update_error": item.get("rakuten_csv_update_error"),
+        }
+        ok, reason = validate_target(
+            row=row,
+            include_stock=include_stock,
+            allow_large_change=allow_large_change,
+            max_change_rate=max_change_rate,
+        )
+        if ok:
+            valid_rows.append(row)
+        else:
+            row["_skip_reason"] = reason
+            skipped_rows.append(row)
+        if limit and len(valid_rows) >= limit:
+            break
+    return valid_rows, skipped_rows
+
+
 def make_normal_item_rows(rows: list[dict[str, Any]], include_stock: bool, include_product_rows: bool) -> list[list[Any]]:
     output_rows: list[list[Any]] = []
     grouped: "OrderedDict[str, list[dict[str, Any]]]" = OrderedDict()
@@ -391,11 +454,12 @@ def print_preview(rows: list[dict[str, Any]], include_stock: bool, max_rows: int
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="楽天 normal-item.csv 形式の価格更新CSVをDBから出力します。blocked商品はデフォルト除外します。")
+    parser = argparse.ArgumentParser(description="楽天 normal-item.csv 形式の価格更新CSVを出力します。blocked商品はデフォルト除外します。")
     parser.add_argument("--store", default="rakuten_1", help="stores.store_code")
     parser.add_argument("--limit", type=int, default=10, help="CSV出力する最大SKU件数")
     parser.add_argument("--output", default="", help="normal-item CSV出力先。未指定なら C:\\price_system\\output\\rakuten_csv 配下")
     parser.add_argument("--check-output", default="", help="確認用CSV出力先。未指定なら自動生成")
+    parser.add_argument("--target-manifest", default="", help="完了済みの価格対象確認JSON。指定時はDBを再検索しない")
     parser.add_argument("--include-stock", action="store_true", help="在庫数もCSVに含める")
     parser.add_argument("--include-stock-only", action="store_true", help="--include-stock 時、在庫差分だけの商品も出力対象に含める")
     parser.add_argument("--sku-only", action="store_true", help="商品レベル行を出さず、SKUレベル行だけ出力する。楽天仕様上NGになりやすいので基本非推奨")
@@ -413,15 +477,33 @@ def main() -> int:
         print("--include-stock-only は --include-stock と一緒に指定してください。")
         return 2
 
-    rows, skipped_rows = fetch_price_targets(
-        store_code=args.store,
-        limit=args.limit,
-        include_stock=args.include_stock,
-        include_stock_only=args.include_stock_only,
-        allow_large_change=args.allow_large_change,
-        max_change_rate=args.max_change_rate,
-        include_blocked=args.include_blocked,
-    )
+    target_manifest = Path(args.target_manifest) if args.target_manifest.strip() else None
+    try:
+        if target_manifest:
+            if not target_manifest.is_absolute():
+                target_manifest = BASE_DIR / target_manifest
+            rows, skipped_rows = fetch_price_targets_from_manifest(
+                manifest_path=target_manifest,
+                store_code=args.store,
+                limit=args.limit,
+                include_stock=args.include_stock,
+                allow_large_change=args.allow_large_change,
+                max_change_rate=args.max_change_rate,
+            )
+            print(f"対象確認スナップショットを使用: {target_manifest}")
+        else:
+            rows, skipped_rows = fetch_price_targets(
+                store_code=args.store,
+                limit=args.limit,
+                include_stock=args.include_stock,
+                include_stock_only=args.include_stock_only,
+                allow_large_change=args.allow_large_change,
+                max_change_rate=args.max_change_rate,
+                include_blocked=args.include_blocked,
+            )
+    except ValueError as exc:
+        print(exc)
+        return 2
 
     print_preview(rows, include_stock=args.include_stock)
     print(f"CSV出力対象SKU件数: {len(rows)}")
