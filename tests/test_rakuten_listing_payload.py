@@ -143,8 +143,74 @@ class RakutenListingPhase1Tests(unittest.TestCase):
 
         self.assertEqual(result.listing_status, "eligible")
         self.assertEqual(result.genre_id, generic_book_genre_id)
-        self.assertTrue(any(rule.rule_type == "book_generic_genre_fallback" for rule in result.matched_master_rules))
+        self.assertTrue(any(rule.rule_type == "root_generic_genre_fallback" for rule in result.matched_master_rules))
         self.assertEqual([item["name"] for item in result.attributes], ["\u30bf\u30a4\u30c8\u30eb", "\u51fa\u7248\u793e"])
+
+    def test_amazon_beauty_root_uses_generic_beauty_genre_when_mapping_is_unrelated(self) -> None:
+        wrong_genre_id = 110626
+        generic_beauty_genre_id = 101877
+        self.master.category_map = {self.valid_keepa_category_id: wrong_genre_id}
+        self.master.genre_paths = {
+            wrong_genre_id: "\u30d3\u30fc\u30eb\u30fb\u6d0b\u9152>\u30d3\u30fc\u30eb\u30fb\u767a\u6ce1\u9152>\u30d3\u30fc\u30eb",
+            generic_beauty_genre_id: "\u7f8e\u5bb9\u30fb\u30b3\u30b9\u30e1\u30fb\u9999\u6c34>\u305d\u306e\u4ed6",
+        }
+        self.master.attribute_definitions = {
+            wrong_genre_id: ["\u7dcf\u672c\u6570", "\u5358\u54c1\u5bb9\u91cf"],
+            generic_beauty_genre_id: [],
+        }
+        keepa = KeepaProductData(
+            **{
+                **self.keepa.__dict__,
+                "category_tree": [
+                    {"name": "\u30d3\u30e5\u30fc\u30c6\u30a3\u30fc", "catId": 52374051},
+                    {"name": "\u30b9\u30ad\u30f3\u30b1\u30a2", "catId": self.valid_keepa_category_id},
+                ],
+                "avg90_new_offer_count": 4.2,
+            }
+        )
+
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertEqual(result.genre_id, generic_beauty_genre_id)
+        self.assertTrue(any(rule.rule_type == "root_generic_genre_fallback" for rule in result.matched_master_rules))
+
+    def test_amazon_fashion_root_blocks_unrelated_mapping_without_generic_fallback(self) -> None:
+        wrong_genre_id = 110626
+        self.master.category_map = {self.valid_keepa_category_id: wrong_genre_id}
+        self.master.genre_paths = {
+            wrong_genre_id: "\u30d3\u30fc\u30eb\u30fb\u6d0b\u9152>\u30d3\u30fc\u30eb\u30fb\u767a\u6ce1\u9152>\u30d3\u30fc\u30eb",
+        }
+        self.master.attribute_definitions = {wrong_genre_id: []}
+        keepa = KeepaProductData(
+            **{
+                **self.keepa.__dict__,
+                "category_tree": [
+                    {"name": "\u30d5\u30a1\u30c3\u30b7\u30e7\u30f3", "catId": 352484011},
+                    {"name": "\u30e1\u30f3\u30ba", "catId": self.valid_keepa_category_id},
+                ],
+                "avg90_new_offer_count": 4.2,
+            }
+        )
+
+        result = evaluate_listing(
+            asin="B000TEST01",
+            amazon_result=self.amazon,
+            keepa_result=keepa,
+            master_data=self.master,
+            store_settings=self.store,
+            management_number="20250101010101_187_ab12",
+        )
+
+        self.assertEqual(result.listing_status, "unknown_category")
+        self.assertIn("大分類と楽天ジャンルが不整合", result.listing_reason)
 
     def test_already_listed_status(self) -> None:
         result = evaluate_listing(

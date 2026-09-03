@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from scripts.listing.attribute_policy import resolve_required_attributes
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
@@ -31,9 +33,45 @@ QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS = {
     "美白", "殺菌", "消炎", "予防", "防ぐ", "効果", "効能",
 }
 COSMETICS_CONDITIONALLY_ALLOWED_WORDS = {"化粧品"}
-AMAZON_BOOK_ROOT_NAMES = {"本", "洋書", "Kindle本"}
-RAKUTEN_BOOK_ROOT = "本・雑誌・コミック"
-RAKUTEN_GENERIC_BOOK_PATH = f"{RAKUTEN_BOOK_ROOT}>その他"
+# Amazon のカテゴリツリー先頭（大分類）に対して、採用を許す楽天の
+# 大分類と、固定マッピングが別大分類を指した際の安全な退避先を定義する。
+# ``None`` のものは、別大分類への誤出品は止めるが、属性が大きく異なる
+# ため一律の「その他」へは落とさない。
+AMAZON_ROOT_RAKUTEN_GENRE_POLICY: dict[str, tuple[tuple[str, ...], str | None]] = {
+    "本": (("本・雑誌・コミック",), "本・雑誌・コミック"),
+    "洋書": (("本・雑誌・コミック",), "本・雑誌・コミック"),
+    "Kindle本": (("本・雑誌・コミック",), "本・雑誌・コミック"),
+    "ビューティー": (("美容・コスメ・香水",), "美容・コスメ・香水"),
+    "食品・飲料・お酒": (("食品", "水・ソフトドリンク", "スイーツ・お菓子", "ビール・洋酒"), "食品"),
+    "ホーム＆キッチン": (("キッチン用品・食器・調理器具", "インテリア・寝具・収納", "日用品雑貨・文房具・手芸"), "キッチン用品・食器・調理器具"),
+    "パソコン・周辺機器": (("パソコン・周辺機器",), "パソコン・周辺機器"),
+    "スポーツ＆アウトドア": (("スポーツ・アウトドア",), "スポーツ・アウトドア"),
+    "ペット用品": (("ペット・ペットグッズ",), "ペット・ペットグッズ"),
+    "DIY・工具・ガーデン": (("花・ガーデン・DIY",), "花・ガーデン・DIY"),
+    "カー＆バイク用品": (("車用品・バイク用品", "車・バイク"), "車用品・バイク用品"),
+    "文房具・オフィス用品": (("日用品雑貨・文房具・手芸",), "日用品雑貨・文房具・手芸"),
+    "楽器・音響機器": (("楽器・音響機器",), "楽器・音響機器"),
+    "CD・DVD": (("CD・DVD",), "CD・DVD"),
+    "ゲーム": (("テレビゲーム",), "テレビゲーム"),
+    "ドラッグストア": (("ダイエット・健康", "医薬品・コンタクト・介護", "美容・コスメ・香水"), None),
+    "家電＆カメラ": (("家電", "TV・オーディオ・カメラ", "パソコン・周辺機器", "スマートフォン・タブレット"), None),
+    "おもちゃ": (("おもちゃ", "ホビー"), None),
+    "ホビー": (("ホビー", "おもちゃ"), None),
+    "ファッション": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴", "ジュエリー・アクセサリー", "腕時計"), None),
+    "服＆ファッション小物": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴"), None),
+    "シューズ＆バッグ": (("靴", "バッグ・小物・ブランド雑貨"), None),
+    "ベビー＆マタニティ": (("キッズ・ベビー・マタニティ",), None),
+    "ジュエリー": (("ジュエリー・アクセサリー",), "ジュエリー・アクセサリー"),
+    "腕時計": (("腕時計",), "腕時計"),
+}
+
+
+@dataclass(frozen=True)
+class RootGenreResolution:
+    genre_id: int | None
+    amazon_root: str
+    fallback_root: str | None = None
+    mismatch_blocked: bool = False
 
 
 def _amazon_category_names(keepa_result: KeepaProductData | None) -> list[str]:
@@ -46,35 +84,62 @@ def _amazon_category_names(keepa_result: KeepaProductData | None) -> list[str]:
     ]
 
 
-def _is_amazon_book_category(keepa_result: KeepaProductData | None) -> bool:
+def _amazon_root_name(keepa_result: KeepaProductData | None) -> str:
     names = _amazon_category_names(keepa_result)
-    return bool(names and names[0] in AMAZON_BOOK_ROOT_NAMES)
+    return names[0] if names else ""
 
 
-def _is_rakuten_book_genre(genre_id: int | None, master_data: MasterData) -> bool:
+def _rakuten_genre_root(genre_id: int | None, master_data: MasterData) -> str:
     if genre_id is None:
-        return False
-    return str(master_data.genre_paths.get(int(genre_id)) or "").startswith(f"{RAKUTEN_BOOK_ROOT}>")
+        return ""
+    return str(master_data.genre_paths.get(int(genre_id)) or "").split(">", 1)[0].strip()
 
 
-def _generic_rakuten_book_genre_id(master_data: MasterData) -> int | None:
+def _generic_rakuten_genre_id(rakuten_root: str, master_data: MasterData) -> int | None:
+    generic_path = f"{rakuten_root}>その他"
     for genre_id, genre_path in master_data.genre_paths.items():
-        if str(genre_path or "") == RAKUTEN_GENERIC_BOOK_PATH:
+        if str(genre_path or "") == generic_path:
             return int(genre_id)
     return None
 
 
-def _book_safe_genre_id(genre_id: int | None, master_data: MasterData) -> int | None:
-    """Never use a non-book Rakuten genre for an Amazon book category.
+def _root_safe_genre_id(
+    genre_id: int | None,
+    keepa_result: KeepaProductData,
+    master_data: MasterData,
+) -> RootGenreResolution | None:
+    """Keep an Amazon root from being listed in an unrelated Rakuten root.
 
-    A legacy leaf-category mapping can be wrong.  For Amazon's book root we
-    retain an already-book genre, but otherwise use the broad, low-attribute
-    ``本・雑誌・コミック>その他`` genre instead of guessing a more specific
-    branch from an overlapping word such as "ドイツ語".
+    A known Amazon root always keeps an already-compatible category mapping.
+    When its legacy mapping is missing or points to another Rakuten root, use
+    only that root's explicit ``>その他`` fallback.  Where such a generic
+    choice would be too broad (for example fashion), block before an RMS API
+    call rather than letting token matching choose an unrelated genre.
     """
-    if _is_rakuten_book_genre(genre_id, master_data):
-        return genre_id
-    return _generic_rakuten_book_genre_id(master_data)
+    amazon_root = _amazon_root_name(keepa_result)
+    policy = AMAZON_ROOT_RAKUTEN_GENRE_POLICY.get(amazon_root)
+    if policy is None:
+        return None
+
+    allowed_roots, fallback_root = policy
+    if _rakuten_genre_root(genre_id, master_data) in allowed_roots:
+        return RootGenreResolution(genre_id=genre_id, amazon_root=amazon_root)
+
+    if fallback_root:
+        fallback_genre_id = _generic_rakuten_genre_id(fallback_root, master_data)
+        if fallback_genre_id is not None:
+            return RootGenreResolution(
+                genre_id=fallback_genre_id,
+                amazon_root=amazon_root,
+                fallback_root=fallback_root,
+            )
+
+    return RootGenreResolution(
+        genre_id=None,
+        amazon_root=amazon_root,
+        fallback_root=fallback_root,
+        mismatch_blocked=True,
+    )
 
 
 def same_jan_prohibited_word_exception(
@@ -528,14 +593,20 @@ def evaluate_listing(
 
     genre_id = master_data.category_map.get(int(keepa_result.category_id))
     provisional_genre_candidate: dict[str, object] = {}
-    amazon_book_category = _is_amazon_book_category(keepa_result)
-    if amazon_book_category:
+    root_genre_resolution = _root_safe_genre_id(genre_id, keepa_result, master_data)
+    if root_genre_resolution is not None:
         original_genre_id = genre_id
-        genre_id = _book_safe_genre_id(genre_id, master_data)
+        genre_id = root_genre_resolution.genre_id
         if genre_id is None:
+            original_path = str(master_data.genre_paths.get(int(original_genre_id or 0)) or "").strip()
+            expected = " / ".join(
+                AMAZON_ROOT_RAKUTEN_GENRE_POLICY[root_genre_resolution.amazon_root][0]
+            )
             return EvaluationResult(
                 "unknown_category",
-                "Amazonカテゴリが本ですが、汎用書籍ジャンルをマスターに見つけられません",
+                "Amazonカテゴリの大分類と楽天ジャンルが不整合です: "
+                f"{root_genre_resolution.amazon_root} -> {original_path or '未設定'} "
+                f"(許可先: {expected})",
                 matched_rules,
                 warnings,
                 title=title,
@@ -552,14 +623,16 @@ def evaluate_listing(
             original_path = str(master_data.genre_paths.get(int(original_genre_id or 0)) or "").strip()
             matched_rules.append(
                 MatchedRule(
-                    "book_generic_genre_fallback",
+                    "root_generic_genre_fallback",
                     str(genre_id),
-                    "Amazonカテゴリの本ルートと不整合のため汎用書籍ジャンルを選択"
+                    f"Amazonカテゴリの{root_genre_resolution.amazon_root}ルートと不整合のため"
+                    f"汎用ジャンルを選択: {root_genre_resolution.fallback_root}>その他"
                     + (f": {original_path}" if original_path else ""),
                 )
             )
             warnings.append(
-                f"Amazonカテゴリの本ルートのため、汎用書籍ジャンルを選択しました: {genre_id}"
+                f"Amazonカテゴリの{root_genre_resolution.amazon_root}ルートのため、"
+                f"汎用ジャンルを選択しました: {genre_id}"
             )
     if genre_id is None:
         provisional = suggest_provisional_genre(
@@ -603,16 +676,20 @@ def evaluate_listing(
             keepa_result=keepa_result,
             master_data=master_data,
         )
-    if amazon_book_category:
+    if (
+        root_genre_resolution is not None
+        and root_genre_resolution.fallback_root
+        and genre_id != original_genre_id
+    ):
         resolved_fields["genre_id"] = ResolvedField(
             value=int(genre_id),
-            source="book_root_fallback",
+            source="amazon_root_fallback",
             raw_path="products[0].categoryTree[0].name",
-            transform="amazon_book_root -> generic_rakuten_book_genre",
+            transform="amazon_root -> generic_rakuten_root_genre",
             confidence="high",
-            evidence="Amazon category root is a book category",
+            evidence=f"Amazon category root is {root_genre_resolution.amazon_root}",
             fallback_used=True,
-            resolution_action="use_book_generic_genre",
+            resolution_action="use_root_generic_genre",
         )
 
     attr_names = master_data.attribute_definitions.get(int(genre_id), [])
