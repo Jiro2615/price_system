@@ -25,6 +25,10 @@ RAKUTEN_ITEM_BASE_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/manage-numbe
 RAKUTEN_ITEM_SEARCH_URL = "https://api.rms.rakuten.co.jp/es/2.0/items/search"
 RETRY_STATE_TABLE = "rakuten_price_api_retry_state"
 PENDING_STATE_TABLE = "rakuten_price_api_pending_state"
+# Item API 404 confirmation was introduced on 2026-09-01.  Holds created
+# before that date never received the items.search confirmation, so recover
+# each still-pending row once through the current confirmation path.
+LEGACY_404_RECHECK_CUTOFF = "2026-09-01T00:00:00+09:00"
 
 
 # =========================
@@ -660,6 +664,66 @@ def ensure_retry_state_table(conn) -> None:
             )
 
 
+def clear_resolved_retry_states(conn, store_code: str | None) -> int:
+    """Drop retry holds whose price difference no longer exists.
+
+    The retry row is only operational metadata.  Keeping it after an
+    inventory/CSV/API sync has already removed the price difference leaves a
+    misleading "manual action" error in the dashboard.
+    """
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                DELETE FROM {RETRY_STATE_TABLE} retry_state
+                USING store_products sp
+                JOIN stores s ON s.id = sp.store_id
+                WHERE retry_state.store_product_id = sp.id
+                  AND (%s::text IS NULL OR s.store_code = %s)
+                  AND (
+                    sp.enabled IS NOT TRUE
+                    OR sp.target_price IS NULL
+                    OR COALESCE(sp.current_price, -1) = sp.target_price
+                  )
+                """,
+                (store_code, store_code),
+            )
+            return int(cur.rowcount or 0)
+
+
+def requeue_legacy_404_holds(conn, store_code: str | None) -> int:
+    """Give pre-confirmation 404 holds one current items.search check.
+
+    The update is deliberately one-time: moving ``last_attempt_at`` past the
+    cut-off means a continuing 404 is put back into the normal permanent hold
+    by ``record_retry_state`` and is not retried every continuous cycle.
+    """
+    with conn.transaction():
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                UPDATE {RETRY_STATE_TABLE} retry_state
+                SET state = 'retry_scheduled',
+                    failure_kind = 'legacy_404_recheck',
+                    next_retry_at = CURRENT_TIMESTAMP,
+                    last_attempt_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                FROM store_products sp
+                JOIN stores s ON s.id = sp.store_id
+                WHERE retry_state.store_product_id = sp.id
+                  AND (%s::text IS NULL OR s.store_code = %s)
+                  AND sp.enabled = TRUE
+                  AND sp.target_price IS NOT NULL
+                  AND COALESCE(sp.current_price, -1) <> sp.target_price
+                  AND retry_state.state = 'permanent_hold'
+                  AND retry_state.last_error ILIKE '%%status=404%%'
+                  AND retry_state.last_attempt_at < %s::timestamptz
+                """,
+                (store_code, store_code, LEGACY_404_RECHECK_CUTOFF),
+            )
+            return int(cur.rowcount or 0)
+
+
 def ensure_pending_state_table(conn) -> None:
     """Create the durable queue used by the continuous price API worker."""
     with conn.transaction():
@@ -1124,6 +1188,12 @@ def main() -> int:
         try:
             if args.retry_policy:
                 ensure_retry_state_table(retry_conn)
+                resolved_retry_count = clear_resolved_retry_states(retry_conn, store_code)
+                legacy_404_recheck_count = requeue_legacy_404_holds(retry_conn, store_code)
+                if resolved_retry_count:
+                    print(f"解消済みの価格更新保留を削除: {resolved_retry_count}件")
+                if legacy_404_recheck_count:
+                    print(f"旧404保留を現行確認へ再投入: {legacy_404_recheck_count}件")
             if args.pending_queue:
                 ensure_pending_state_table(retry_conn)
                 refresh_pending_price_queue(retry_conn, store_code)
