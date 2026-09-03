@@ -5,6 +5,9 @@ from typing import Optional
 from db_config import connect_db
 
 
+RAKUTEN_TARGET_PRICE_FLOOR = 1000
+
+
 def ceil_to_unit(value: int, unit: int) -> int:
     if unit <= 1:
         return int(value)
@@ -124,6 +127,13 @@ def apply_rakuten_competitor_price_floor(
     if not competitor_price_enabled or competitor_price is None or competitor_price <= base_target_price:
         return base_target_price, False
     return competitor_price, True
+
+
+def apply_rakuten_target_price_floor(target_price: Optional[int]) -> tuple[Optional[int], bool]:
+    """Keep every Rakuten target selling price at ¥1,000+."""
+    if target_price is None or target_price >= RAKUTEN_TARGET_PRICE_FLOOR:
+        return target_price, False
+    return RAKUTEN_TARGET_PRICE_FLOOR, True
 
 
 def calculate_profit_amount(
@@ -454,6 +464,9 @@ def calc_target_for_row(row) -> dict:
             if competitor_reason:
                 reason += f" / {competitor_reason}"
 
+        target_price, price_floor_applied = apply_rakuten_target_price_floor(target_price)
+        if price_floor_applied:
+            reason += f" / target_price_floor={RAKUTEN_TARGET_PRICE_FLOOR}"
         reason += f" / max_stock={max_stock}"
 
     return {
