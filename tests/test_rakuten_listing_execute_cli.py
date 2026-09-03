@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from scripts.listing.master_loader import load_master_data
 from scripts.listing.models import AmazonCheckResult, KeepaProductData, to_jsonable
+from scripts.listing.preflight_service import build_preflight_result
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
 from scripts.rakuten_listing_execute import build_execute_cli_result, main
 
@@ -192,6 +194,36 @@ class RakutenListingExecuteCliTests(unittest.TestCase):
         check = {item["key"]: item for item in result["preflight_checks"]}
         self.assertEqual(check["image_download_plan_present"]["status"], "blocked")
         self.assertEqual(check["image_urls_present"]["status"], "blocked")
+
+    def test_plan_only_does_not_require_brand_or_model_when_genre_does_not_define_them(self) -> None:
+        dry_run_result = deepcopy(self._build_eligible_fixture_result())
+        dry_run_result["resolved_attributes"] = {
+            name: value
+            for name, value in dry_run_result["resolved_attributes"].items()
+            if name not in {"ブランド名", "メーカー型番"}
+        }
+        variant = next(iter(dry_run_result["item_payload"]["variants"].values()))
+        variant["attributes"] = [
+            attribute
+            for attribute in variant["attributes"]
+            if attribute.get("name") not in {"ブランド名", "メーカー型番"}
+        ]
+        input_path = self._write_result(dry_run_result)
+
+        result = build_preflight_result(
+            dry_run_result,
+            input_json_path=input_path,
+            asin="B0ELIGIBLE1",
+            management_number=str(dry_run_result["management_number"]),
+            store="rakuten_1",
+        )
+
+        checks = {item["key"]: item for item in result["checks"]}
+        self.assertEqual(checks["brand"]["status"], "ok")
+        self.assertEqual(checks["brand"]["expected"], "not required for this genre")
+        self.assertEqual(checks["model"]["status"], "ok")
+        self.assertEqual(checks["model"]["expected"], "not required for this genre")
+        self.assertNotIn("model: non-empty", result["blocking_reasons"])
 
     def test_b0cn39x1fc_plan_only_reports_allowed_phrase_and_warning_spec(self) -> None:
         dry_run_result = self._build_b0cn39x1fc_result()

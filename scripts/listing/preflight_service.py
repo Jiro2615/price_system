@@ -329,8 +329,37 @@ def _field_value(field: Any) -> Any:
     return getattr(field, "value", None)
 
 
-def _field_present(field: Any) -> bool:
-    return bool(str(_field_value(field) or "").strip())
+def _required_attribute_check(
+    *,
+    key: str,
+    attribute_name: str,
+    item_payload: dict[str, Any],
+    resolved_attributes: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate a named attribute only when the selected genre requires it.
+
+    ``resolved_attributes`` is built from the selected genre's attribute
+    definition.  The item payload is also consulted so a malformed payload
+    cannot silently omit an attribute that was already resolved.  Attribute
+    policy supplies ``-`` for a required but unknown value, therefore an empty
+    value here is a payload-generation error rather than a reason to require
+    the same field for every genre.
+    """
+    field = resolved_attributes.get(attribute_name)
+    required = attribute_name in resolved_attributes or any(
+        attribute["name"] == attribute_name
+        for attribute in _extract_attribute_values(item_payload)
+    )
+    value = _field_value(field)
+    if value is None:
+        value = _extract_attribute_value(item_payload, attribute_name)
+    return _build_check(
+        key,
+        value,
+        "non-empty (genre required)" if required else "not required for this genre",
+        "ok" if not required or bool(str(value or "").strip()) else "blocked",
+        None,
+    )
 
 
 def _build_checks(
@@ -427,8 +456,18 @@ def _build_checks(
         ),
         _build_check("genreId", item_payload.get("genreId"), "non-null", "ok" if item_payload.get("genreId") is not None else "blocked", None),
         _build_check("jan_ean", keepa_ean, "non-empty", "ok" if str(keepa_ean or "").strip() else "blocked", None),
-        _build_check("brand", _field_value(resolved_attributes.get("ブランド名")), "non-empty", "ok" if _field_present(resolved_attributes.get("ブランド名")) else "blocked", None),
-        _build_check("model", _field_value(resolved_attributes.get("メーカー型番")), "non-empty", "ok" if _field_present(resolved_attributes.get("メーカー型番")) else "blocked", None),
+        _required_attribute_check(
+            key="brand",
+            attribute_name="ブランド名",
+            item_payload=item_payload,
+            resolved_attributes=resolved_attributes,
+        ),
+        _required_attribute_check(
+            key="model",
+            attribute_name="メーカー型番",
+            item_payload=item_payload,
+            resolved_attributes=resolved_attributes,
+        ),
         _build_check(
             "representative_color",
             representative_color,
