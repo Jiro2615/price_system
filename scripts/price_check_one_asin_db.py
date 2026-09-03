@@ -326,8 +326,10 @@ async def get_price_from_locator(locator) -> int:
 
 
 async def get_alt_price_from_buybox(page) -> int:
-    buybox = page.locator("#buybox")
-    root = buybox if await buybox.count() > 0 else page
+    root = await get_selected_new_buybox_row(page)
+    if root is None:
+        buybox = page.locator("#buybox")
+        root = buybox if await buybox.count() > 0 else page
     loc = root.locator(".a-price.a-text-price.a-size-medium")
 
     for i in range(await loc.count()):
@@ -610,27 +612,73 @@ async def select_one_time_purchase(page) -> bool:
     return False
 
 
+async def get_selected_new_buybox_row(page):
+    """Return the currently selected ordinary-purchase accordion row.
+
+    Amazon's book pages can keep a used or collector offer in a sibling
+    accordion.  Reading their shared ``#buyBoxAccordion`` parent mixes that
+    inactive text into the new BuyBox.  Prefer the active normal-purchase row
+    and use the parent BuyBox only on pages without this accordion structure.
+    """
+    rows = page.locator(
+        "#buybox [data-a-accordion-row-name='newAccordionRow'], "
+        "#desktop_buybox [data-a-accordion-row-name='newAccordionRow'], "
+        "[data-a-accordion-row-name='newAccordionRow']"
+    )
+    first_visible = None
+    try:
+        row_count = await rows.count()
+    except Exception:
+        row_count = 0
+
+    for index in range(row_count):
+        row = rows.nth(index)
+        try:
+            if not await row.is_visible(timeout=500):
+                continue
+            if first_visible is None:
+                first_visible = row
+            row_class = (await row.get_attribute("class")) or ""
+            header = row.locator(".a-accordion-row-a11y").first
+            header_expanded = (await header.get_attribute("aria-expanded")) or ""
+            radio = header.locator(".a-accordion-radio").first
+            radio_class = (await radio.get_attribute("class")) or ""
+            if (
+                "a-accordion-active" in row_class
+                or header_expanded.lower() == "true"
+                or "a-icon-radio-active" in radio_class
+            ):
+                return row
+        except Exception:
+            continue
+
+    return first_visible
+
+
 async def read_buybox_info(page) -> dict[str, Any]:
     result = {
         "in_text": "",
         "price": 0,
     }
 
-    buybox = page.locator("#buybox")
-    root = buybox if await buybox.count() > 0 else page
+    root = await get_selected_new_buybox_row(page)
+    if root is None:
+        buybox = page.locator("#buybox")
+        root = buybox if await buybox.count() > 0 else page
 
-    groups = root.locator(".a-box-group")
-    if await groups.count() == 0:
-        groups = page.locator(".a-box-group")
-
-    if await groups.count() == 0:
+    try:
+        if await root.count() == 0:
+            return result
+    except Exception:
         return result
 
-    group = groups.first
-    await expand_see_more(group, page)
+    # ``すべて見る`` is expanded only inside the selected row.  This preserves
+    # hidden details such as shipping and seller information without importing
+    # text from the inactive used/collector rows.
+    await expand_see_more(root, page)
 
-    result["in_text"] = await safe_inner_text(group)
-    result["price"] = await get_price_from_locator(group)
+    result["in_text"] = await safe_inner_text(root)
+    result["price"] = await get_price_from_locator(root)
 
     return result
 
@@ -1148,7 +1196,11 @@ async def check_amazon_one(
                 result["business_ng"] = True
                 result["ng_reason"] = status_error
 
-            qty, minimum_order_quantity = await get_quantity_dropdown_details(page, root=page.locator("#buybox"))
+            selected_buybox = await get_selected_new_buybox_row(page)
+            qty, minimum_order_quantity = await get_quantity_dropdown_details(
+                page,
+                root=selected_buybox if selected_buybox is not None else page.locator("#buybox"),
+            )
             if qty is None:
                 qty = parse_available_qty(in_text)
             apply_minimum_order_block(result, minimum_order_quantity)

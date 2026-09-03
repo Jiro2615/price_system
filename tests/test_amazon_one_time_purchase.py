@@ -1,6 +1,9 @@
 import unittest
 
-from scripts.price_check_one_asin_db import select_one_time_purchase
+from scripts.price_check_one_asin_db import (
+    get_selected_new_buybox_row,
+    select_one_time_purchase,
+)
 
 
 class FakeRadio:
@@ -34,6 +37,11 @@ class FakeHeader:
     async def is_visible(self, **_kwargs) -> bool:
         return self.visible
 
+    async def get_attribute(self, name: str):
+        if name == "aria-expanded":
+            return "true" if self.radio.active else "false"
+        raise AssertionError(name)
+
     async def scroll_into_view_if_needed(self, **_kwargs) -> None:
         return None
 
@@ -52,6 +60,14 @@ class FakeRow:
         if selector == ".a-accordion-row-a11y":
             return self.header
         raise AssertionError(selector)
+
+    async def is_visible(self, **_kwargs) -> bool:
+        return True
+
+    async def get_attribute(self, name: str):
+        if name == "class":
+            return "a-box a-accordion-active" if self.header.radio.active else "a-box"
+        raise AssertionError(name)
 
 
 class FakeRows:
@@ -93,6 +109,13 @@ class AmazonOneTimePurchaseTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(await select_one_time_purchase(page))
         self.assertFalse(header.clicked)
         self.assertEqual(page.waits, [])
+
+    async def test_selected_row_excludes_inactive_used_sibling(self) -> None:
+        new_row = FakeRow(FakeHeader(active=True))
+        used_row = FakeRow(FakeHeader(active=False))
+        page = FakePage([new_row, used_row])
+
+        self.assertIs(await get_selected_new_buybox_row(page), new_row)
 
 
 if __name__ == "__main__":
