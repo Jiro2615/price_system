@@ -128,6 +128,37 @@ def calc_diff_days(month_num: int, day_num: int) -> Optional[int]:
     return (target - today).days
 
 
+_DELIVERY_DATE_RANGE_PATTERN = re.compile(
+    r"(?P<start_month>\d{1,2})月(?P<start_day>\d{1,2})日"
+    r"(?:[-〜～–—](?:(?P<end_month>\d{1,2})月)?(?P<end_day>\d{1,2})日?)?"
+)
+
+
+def delivery_promise_end_date(
+    text: str, *, require_delivery_context: bool = False
+) -> Optional[tuple[int, int]]:
+    """Return the latest date in an Amazon delivery promise.
+
+    Amazon often displays a range such as ``9月9日-15日にお届け``.  The
+    promised date is the range end (15th), not the first date.  AOD's
+    ``data-csa-c-delivery-time`` can contain only the date range, while the
+    BuyBox text also includes delivery wording, hence the optional context
+    requirement.
+    """
+    normalized = re.sub(r"\s+", "", text or "")
+    for match in _DELIVERY_DATE_RANGE_PATTERN.finditer(normalized):
+        if require_delivery_context:
+            context = normalized[
+                max(0, match.start() - 24) : min(len(normalized), match.end() + 24)
+            ]
+            if not re.search(r"お届け|配送|配達|到着", context):
+                continue
+        month_num = int(match.group("end_month") or match.group("start_month"))
+        day_num = int(match.group("end_day") or match.group("start_day"))
+        return month_num, day_num
+    return None
+
+
 def judge_basic_ng(in_text: str, page_text: str = "") -> str:
     if "在庫切れ" in in_text:
         return "在庫切れ"
@@ -226,17 +257,9 @@ def parse_shipping_status(in_text: str) -> tuple[str, str]:
     if m:
         send_week = send_week or int(m.group(1))
 
-    date_match = re.search(
-        r"(?:お届け|配送|配達|到着).{0,20}?([0-9]{1,2})月([0-9]{1,2})日",
-        text,
-    )
-    if not date_match:
-        date_match = re.search(
-            r"([0-9]{1,2})月([0-9]{1,2})日.{0,20}?(?:お届け|配送|配達|到着)",
-            text,
-        )
-    if date_match:
-        diff_days = calc_diff_days(int(date_match.group(1)), int(date_match.group(2)))
+    delivery_date = delivery_promise_end_date(text, require_delivery_context=True)
+    if delivery_date:
+        diff_days = calc_diff_days(*delivery_date)
 
     if send_week == 1:
         return "OK", "配送OK"
@@ -650,11 +673,11 @@ def delivery_within_one_week(text: str) -> bool:
     if any(word in normalized for word in ("本日", "今日", "明日", "翌日")):
         return True
 
-    match = re.search(r"(\d{1,2})月(\d{1,2})日", normalized)
-    if not match:
+    delivery_date = delivery_promise_end_date(normalized)
+    if not delivery_date:
         return False
 
-    diff_days = calc_diff_days(int(match.group(1)), int(match.group(2)))
+    diff_days = calc_diff_days(*delivery_date)
     return diff_days is not None and 0 <= diff_days <= 7
 
 
