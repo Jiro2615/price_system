@@ -10,6 +10,7 @@ from scripts.listing.rakuten_marketplace_policy import (
     MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
     has_sensitive_forbidden_word,
     is_cosmetics_category,
+    rakuten_marketplace_evidence,
     rakuten_listing_count_for_jan,
 )
 
@@ -345,25 +346,51 @@ def evaluate_listing(
         )
 
     # The dedicated forced-listing page intentionally relaxes only selected
-    # master/data rules.  It always retains this external resale-evidence
-    # requirement: the exact same JAN must already have at least five active
-    # Rakuten listings.  An unavailable search is not evidence and blocks.
+    # master/data rules.  It always retains external resale evidence: five
+    # distinct Rakuten shops must sell the exact JAN, or the same product must
+    # be confirmed through a high-confidence maker/model/title match.
     if require_minimum_same_jan_listings:
-        same_jan_count = rakuten_listing_count_for_jan(keepa_result.ean)
-        if same_jan_count is None:
+        marketplace_evidence = rakuten_marketplace_evidence(
+            jan_code=keepa_result.ean,
+            title=amazon_result.title or keepa_result.title,
+            brand=keepa_result.brand,
+            manufacturer=keepa_result.manufacturer,
+            model=keepa_result.model,
+            part_number=keepa_result.part_number,
+            minimum_shops=MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+        )
+        if marketplace_evidence is None:
             return EvaluationResult(
-                "business_ng", "楽天同一JAN件数を取得できないため出品不可", matched_rules, warnings,
+                "business_ng", "楽天の複数店舗確認を取得できないため出品不可", matched_rules, warnings,
                 forced_bypass_checks=forced_bypass_checks,
             )
-        warnings.append(f"楽天同一JAN件数: {same_jan_count}")
-        if same_jan_count < MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION:
+        jan_shop_count = int(marketplace_evidence.get("jan_exact_shop_count") or 0)
+        text_shop_count = int(marketplace_evidence.get("text_match_shop_count") or 0)
+        confirmed_shop_count = int(marketplace_evidence.get("confirmed_shop_count") or 0)
+        minimum_shops = int(marketplace_evidence.get("minimum_shops") or MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION)
+        query = str(marketplace_evidence.get("query") or "")
+        source = str(marketplace_evidence.get("source") or "")
+        evidence_summary = (
+            f"楽天複数店舗確認: JAN一致 {jan_shop_count}店舗 / "
+            f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗"
+        )
+        if query:
+            evidence_summary += f" / 検索: {query}"
+        warnings.append(evidence_summary)
+        if not marketplace_evidence.get("accepted"):
             return EvaluationResult(
                 "business_ng",
-                f"楽天同一JAN件数が不足: {same_jan_count} < {MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION}",
+                f"楽天複数店舗確認が不足: {confirmed_shop_count} < {minimum_shops}店舗（JAN一致 {jan_shop_count} / 高精度文言一致 {text_shop_count}）",
                 matched_rules,
                 warnings,
                 forced_bypass_checks=forced_bypass_checks,
             )
+        forced_bypass_checks.append(
+            {
+                "rule": "rakuten_marketplace_evidence",
+                "reason": f"{evidence_summary} / 根拠: {source}",
+            }
+        )
 
     quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)
