@@ -129,6 +129,7 @@ def preview(
                 break
 
     differences: list[dict[str, Any]] = []
+    genre_updates: list[dict[str, Any]] = []
     unchanged_count = 0
     unavailable: list[dict[str, Any]] = []
     for manage_number, db_rows in by_manage.items():
@@ -136,6 +137,7 @@ def preview(
         if not item:
             unavailable.extend({**row, "reason": "RMS商品を取得できませんでした"} for row in db_rows)
             continue
+        rms_genre_id = to_int(item.get("genreId"))
         variants = item.get("variants") if isinstance(item.get("variants"), dict) else {}
         for row in db_rows:
             variant = variants.get(str(row["sku_code"]))
@@ -151,6 +153,11 @@ def preview(
                 "db_price": to_int(row.get("current_price")),
                 "rms_price": rms_price,
             }
+            if rms_genre_id is not None:
+                genre_updates.append({
+                    "store_product_id": row["store_product_id"],
+                    "rms_genre_id": rms_genre_id,
+                })
             if entry["db_price"] == rms_price:
                 unchanged_count += 1
             else:
@@ -165,9 +172,11 @@ def preview(
         "api_interval_seconds": api_interval_seconds,
         "api_retry_count": api_retry_count,
         "difference_count": len(differences),
+        "genre_update_candidate_count": len(genre_updates),
         "unchanged_count": unchanged_count,
         "unavailable_count": len(unavailable),
         "differences": differences,
+        "genre_updates": genre_updates,
         "unavailable": unavailable,
         "api_errors": api_errors,
     }
@@ -178,10 +187,13 @@ def apply_preview(path: Path, store_code: str) -> dict[str, Any]:
     if str(data.get("store") or "") != store_code:
         raise RuntimeError("確認結果の店舗が一致しません")
     differences = data.get("differences") if isinstance(data.get("differences"), list) else []
+    genre_updates = data.get("genre_updates") if isinstance(data.get("genre_updates"), list) else []
     updated = 0
+    genre_updated = 0
     skipped_changed = 0
     with connect_db() as conn:
         with conn.cursor() as cur:
+            cur.execute("ALTER TABLE store_products ADD COLUMN IF NOT EXISTS rakuten_genre_id BIGINT")
             for row in differences:
                 db_price = to_int(row.get("db_price"))
                 rms_price = to_int(row.get("rms_price"))
@@ -205,12 +217,29 @@ def apply_preview(path: Path, store_code: str) -> dict[str, Any]:
                     updated += 1
                 else:
                     skipped_changed += 1
+            for row in genre_updates:
+                product_id = to_int(row.get("store_product_id"))
+                genre_id = to_int(row.get("rms_genre_id"))
+                if product_id is None or genre_id is None or genre_id <= 0:
+                    continue
+                cur.execute(
+                    """
+                    UPDATE store_products
+                    SET rakuten_genre_id = %s,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                      AND rakuten_genre_id IS DISTINCT FROM %s
+                    """,
+                    (genre_id, product_id, genre_id),
+                )
+                genre_updated += int(cur.rowcount or 0)
         conn.commit()
     return {
         "store": store_code,
         "source_preview": str(path),
         "difference_count": len(differences),
         "updated_count": updated,
+        "genre_updated_count": genre_updated,
         "skipped_changed_count": skipped_changed,
         "applied_at": datetime.now().isoformat(timespec="seconds"),
     }

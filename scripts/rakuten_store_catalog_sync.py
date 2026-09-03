@@ -190,6 +190,7 @@ def catalog_rows(items: list[dict[str, Any]], shop_slug: str) -> tuple[list[dict
         images = item.get("images") if isinstance(item.get("images"), list) else []
         main_image_url, main_image_path, main_image_type = image_url(shop_slug, images[0] if images else None)
         title = str(item.get("title") or "").strip()
+        genre_id = to_int(item.get("genreId"))
         hidden = bool(item.get("hideItem"))
         unlimited = bool(item.get("unlimitedInventoryFlag"))
         for variant_id, variant in variants.items():
@@ -205,6 +206,7 @@ def catalog_rows(items: list[dict[str, Any]], shop_slug: str) -> tuple[list[dict
                     "current_stock": None,
                     "status": "warehouse" if hidden else "synced",
                     "enabled": not hidden,
+                    "rakuten_genre_id": genre_id,
                     "unlimited_inventory": unlimited,
                     "rakuten_image_url": main_image_url,
                     "rakuten_image_path": main_image_path,
@@ -300,6 +302,10 @@ def apply_rows(
     deleted = 0
     restored_asin = 0
     with conn.cursor() as cur:
+        # ``genreId`` is item-level data returned by RMS Item API.  Keep it
+        # with the SKU rows so the product list can filter by the actual
+        # Rakuten genre (not the shop display category).
+        cur.execute("ALTER TABLE store_products ADD COLUMN IF NOT EXISTS rakuten_genre_id BIGINT")
         # store_products.asin is a foreign key to amazon_products.  The RMS
         # export can contain ASINs which have not yet been checked by an
         # Amazon worker, so create a minimal parent record first.  Keep this
@@ -339,6 +345,7 @@ def apply_rows(
                 stock,
                 row["status"],
                 row["enabled"],
+                row["rakuten_genre_id"],
                 row["rakuten_image_url"],
                 row["rakuten_image_path"],
                 row["rakuten_image_type"],
@@ -354,6 +361,7 @@ def apply_rows(
                         current_stock = CASE WHEN %s IS NULL THEN current_stock ELSE %s END,
                         current_status = %s,
                         enabled = %s,
+                        rakuten_genre_id = COALESCE(%s, rakuten_genre_id),
                         rakuten_image_url = COALESCE(NULLIF(%s, ''), rakuten_image_url),
                         rakuten_image_path = COALESCE(NULLIF(%s, ''), rakuten_image_path),
                         rakuten_image_type = COALESCE(NULLIF(%s, ''), rakuten_image_type),
@@ -375,9 +383,9 @@ def apply_rows(
                 INSERT INTO store_products (
                     store_id, asin, mall_item_code, sku_code, current_price, current_stock,
                     current_status, enabled, force_stop, item_name, rakuten_image_url,
-                    rakuten_image_path, rakuten_image_type, stock_zero_since, api_last_synced_at, created_at, updated_at
+                    rakuten_image_path, rakuten_image_type, rakuten_genre_id, stock_zero_since, api_last_synced_at, created_at, updated_at
                 )
-                VALUES (%s, NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, FALSE, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                VALUES (%s, NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, FALSE, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """,
                 (
                     store_id,
@@ -392,6 +400,7 @@ def apply_rows(
                     row["rakuten_image_url"],
                     row["rakuten_image_path"],
                     row["rakuten_image_type"],
+                    row["rakuten_genre_id"],
                     stock_zero_since,
                 ),
             )
