@@ -5,9 +5,6 @@ from typing import Optional
 from db_config import connect_db
 
 
-RAKUTEN_TARGET_PRICE_FLOOR = 1000
-
-
 def ceil_to_unit(value: int, unit: int) -> int:
     if unit <= 1:
         return int(value)
@@ -129,11 +126,15 @@ def apply_rakuten_competitor_price_floor(
     return competitor_price, True
 
 
-def apply_rakuten_target_price_floor(target_price: Optional[int]) -> tuple[Optional[int], bool]:
-    """Keep every Rakuten target selling price at ¥1,000+."""
-    if target_price is None or target_price >= RAKUTEN_TARGET_PRICE_FLOOR:
+def apply_rakuten_target_price_floor(
+    target_price: Optional[int],
+    configured_floor: Optional[int],
+) -> tuple[Optional[int], bool]:
+    """Apply an optional per-store Rakuten target-price lower bound."""
+    floor = to_int(configured_floor)
+    if target_price is None or floor is None or floor <= 0 or target_price >= floor:
         return target_price, False
-    return RAKUTEN_TARGET_PRICE_FLOOR, True
+    return floor, True
 
 
 def calculate_profit_amount(
@@ -204,6 +205,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
     if not has_store_max_stock:
         raise RuntimeError("stores.max_stock column is required for safe target_stock calculation")
 
+    has_store_settings = has_table(conn, "store_settings")
     has_competitor_setting = has_table_column(conn, "store_settings", "rakuten_competitor_price_enabled")
     has_competitor_snapshots = has_table(conn, "rakuten_competitor_price_snapshots")
     has_fixed_price_settings = has_table(conn, "asin_fixed_price_settings")
@@ -212,7 +214,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
         if has_competitor_setting
         else "FALSE"
     )
-    competitor_settings_join = "LEFT JOIN store_settings ss ON ss.store_id = s.id" if has_competitor_setting else ""
+    store_settings_join = "LEFT JOIN store_settings ss ON ss.store_id = s.id" if has_store_settings else ""
     competitor_snapshot_select = "rcp.item_price" if has_competitor_snapshots else "NULL::integer"
     competitor_snapshot_join = """
         LEFT JOIN LATERAL (
@@ -235,6 +237,13 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
     """ if has_fixed_price_settings else ""
     def setting_select(column_name: str, default: str) -> str:
         return f"COALESCE(ss.{column_name}, {default})" if has_table_column(conn, "store_settings", column_name) else default
+
+    target_price_floor_select = (
+        "CASE WHEN COALESCE(ss.order_fulfillment_settings_json->>'rakuten_target_price_floor', '') ~ '^[0-9]+$' "
+        "THEN (ss.order_fulfillment_settings_json->>'rakuten_target_price_floor')::integer ELSE NULL END"
+        if has_store_settings
+        else "NULL::integer"
+    )
 
     sql = f"""
         SELECT
@@ -277,11 +286,12 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
             {setting_select('rakuten_competitor_undercut_enabled', 'FALSE')} AS rakuten_competitor_undercut_enabled,
             {setting_select('rakuten_competitor_undercut_yen', '0')} AS rakuten_competitor_undercut_yen,
             {setting_select('rakuten_competitor_min_profit_amount', '0')} AS rakuten_competitor_min_profit_amount,
+            {target_price_floor_select} AS rakuten_target_price_floor,
             {fixed_price_select} AS fixed_price
         FROM store_products sp
         JOIN stores s ON s.id = sp.store_id
         JOIN amazon_products ap ON ap.asin = sp.asin
-        {competitor_settings_join}
+        {store_settings_join}
         LEFT JOIN LATERAL (
             SELECT pr.*
             FROM price_rules pr
@@ -370,6 +380,7 @@ def calc_target_for_row(row) -> dict:
         rakuten_competitor_undercut_enabled,
         rakuten_competitor_undercut_yen,
         rakuten_competitor_min_profit_amount,
+        rakuten_target_price_floor,
         fixed_price,
     ) = row
 
@@ -464,9 +475,31 @@ def calc_target_for_row(row) -> dict:
             if competitor_reason:
                 reason += f" / {competitor_reason}"
 
-        target_price, price_floor_applied = apply_rakuten_target_price_floor(target_price)
+        target_price, price_floor_applied = apply_rakuten_target_price_floor(
+            target_price,
+            to_int(rakuten_target_price_floor),
+        )
         if price_floor_applied:
-            reason += f" / target_price_floor={RAKUTEN_TARGET_PRICE_FLOOR}"
+            # Fixed-price rows expose an estimated profit in the UI. Recompute
+            # it against the actual floored target rather than the lower
+            # configured fixed price.
+            if to_int(fixed_price, 0) > 0 and target_price is not None:
+                previous_profit = fixed_price_estimated_profit
+                fixed_price_estimated_profit = calculate_profit_amount(
+                    selling_price=target_price,
+                    amazon_price=int(amazon_price),
+                    amazon_point=int(amazon_point or 0),
+                    use_amazon_point=bool(use_amazon_point),
+                    fee_rate=to_float(rule_fee_rate, to_float(store_fee_rate, 0.116)),
+                    fixed_cost=to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0,
+                )
+                if previous_profit is not None:
+                    reason = reason.replace(
+                        f"estimated_profit={previous_profit}",
+                        f"estimated_profit={fixed_price_estimated_profit}",
+                        1,
+                    )
+            reason += f" / target_price_floor={rakuten_target_price_floor}"
         reason += f" / max_stock={max_stock}"
 
     return {
