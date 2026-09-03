@@ -295,6 +295,26 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertIn("JAN一致 2店舗", detail["reason"])
         self.assertIn("高精度文言一致 4店舗", detail["reason"])
 
+    def test_forced_listing_can_explicitly_skip_marketplace_evidence(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        with mock.patch(
+            "scripts.listing.listing_evaluator.rakuten_marketplace_evidence",
+        ) as marketplace_evidence:
+            result = evaluate_listing(
+                asin="B000TEST01",
+                amazon_result=self.amazon,
+                keepa_result=keepa,
+                master_data=self.master,
+                store_settings=self.store,
+                management_number="20250101010101_187_ab12",
+                bypass_rules={"rakuten_marketplace_evidence"},
+                require_minimum_same_jan_listings=False,
+            )
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertFalse(marketplace_evidence.called)
+        detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
+        self.assertIn("未判定", detail["reason"])
+
     def test_unknown_category(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "category_id": 99999})
         result = evaluate_listing(

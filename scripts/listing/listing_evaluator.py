@@ -526,6 +526,8 @@ def evaluate_listing(
                 "reason": f"{evidence_summary} / 根拠: {source}",
             }
         )
+    elif "rakuten_marketplace_evidence" in bypass_rules:
+        record_bypass("rakuten_marketplace_evidence", "楽天複数店舗確認を未判定（5店舗以上の確認を省略）")
 
     quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)
