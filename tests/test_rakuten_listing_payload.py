@@ -182,13 +182,15 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertEqual(result.genre_id, generic_beauty_genre_id)
         self.assertTrue(any(rule.rule_type == "root_generic_genre_fallback" for rule in result.matched_master_rules))
 
-    def test_amazon_fashion_root_blocks_unrelated_mapping_without_generic_fallback(self) -> None:
+    def test_amazon_fashion_root_uses_category_specific_generic_fallback(self) -> None:
         wrong_genre_id = 110626
+        generic_mens_genre_id = 551186
         self.master.category_map = {self.valid_keepa_category_id: wrong_genre_id}
         self.master.genre_paths = {
             wrong_genre_id: "\u30d3\u30fc\u30eb\u30fb\u6d0b\u9152>\u30d3\u30fc\u30eb\u30fb\u767a\u6ce1\u9152>\u30d3\u30fc\u30eb",
+            generic_mens_genre_id: "\u30e1\u30f3\u30ba\u30d5\u30a1\u30c3\u30b7\u30e7\u30f3>\u305d\u306e\u4ed6",
         }
-        self.master.attribute_definitions = {wrong_genre_id: []}
+        self.master.attribute_definitions = {wrong_genre_id: [], generic_mens_genre_id: []}
         keepa = KeepaProductData(
             **{
                 **self.keepa.__dict__,
@@ -209,8 +211,9 @@ class RakutenListingPhase1Tests(unittest.TestCase):
             management_number="20250101010101_187_ab12",
         )
 
-        self.assertEqual(result.listing_status, "unknown_category")
-        self.assertIn("大分類と楽天ジャンルが不整合", result.listing_reason)
+        self.assertEqual(result.listing_status, "eligible")
+        self.assertEqual(result.genre_id, generic_mens_genre_id)
+        self.assertTrue(any(rule.rule_type == "root_generic_genre_fallback" for rule in result.matched_master_rules))
 
     def test_already_listed_status(self) -> None:
         result = evaluate_listing(

@@ -53,14 +53,14 @@ AMAZON_ROOT_RAKUTEN_GENRE_POLICY: dict[str, tuple[tuple[str, ...], str | None]] 
     "楽器・音響機器": (("楽器・音響機器",), "楽器・音響機器"),
     "CD・DVD": (("CD・DVD",), "CD・DVD"),
     "ゲーム": (("テレビゲーム",), "テレビゲーム"),
-    "ドラッグストア": (("ダイエット・健康", "医薬品・コンタクト・介護", "美容・コスメ・香水"), None),
-    "家電＆カメラ": (("家電", "TV・オーディオ・カメラ", "パソコン・周辺機器", "スマートフォン・タブレット"), None),
-    "おもちゃ": (("おもちゃ", "ホビー"), None),
-    "ホビー": (("ホビー", "おもちゃ"), None),
-    "ファッション": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴", "ジュエリー・アクセサリー", "腕時計"), None),
-    "服＆ファッション小物": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴"), None),
-    "シューズ＆バッグ": (("靴", "バッグ・小物・ブランド雑貨"), None),
-    "ベビー＆マタニティ": (("キッズ・ベビー・マタニティ",), None),
+    "ドラッグストア": (("ダイエット・健康", "医薬品・コンタクト・介護", "美容・コスメ・香水"), "ダイエット・健康"),
+    "家電＆カメラ": (("家電", "TV・オーディオ・カメラ", "パソコン・周辺機器", "スマートフォン・タブレット"), "TV・オーディオ・カメラ"),
+    "おもちゃ": (("おもちゃ", "ホビー"), "おもちゃ"),
+    "ホビー": (("ホビー", "おもちゃ"), "ホビー"),
+    "ファッション": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴", "ジュエリー・アクセサリー", "腕時計"), "レディースファッション"),
+    "服＆ファッション小物": (("レディースファッション", "メンズファッション", "キッズ・ベビー・マタニティ", "インナー・下着・ナイトウェア", "バッグ・小物・ブランド雑貨", "靴"), "レディースファッション"),
+    "シューズ＆バッグ": (("靴", "バッグ・小物・ブランド雑貨"), "バッグ・小物・ブランド雑貨"),
+    "ベビー＆マタニティ": (("キッズ・ベビー・マタニティ",), "キッズ・ベビー・マタニティ"),
     "ジュエリー": (("ジュエリー・アクセサリー",), "ジュエリー・アクセサリー"),
     "腕時計": (("腕時計",), "腕時計"),
 }
@@ -103,6 +103,31 @@ def _generic_rakuten_genre_id(rakuten_root: str, master_data: MasterData) -> int
     return None
 
 
+def _fashion_fallback_root(amazon_root: str, keepa_result: KeepaProductData) -> str | None:
+    """Select the least-surprising fashion root from Keepa's category path.
+
+    Rakuten has no gender-neutral fashion root.  Keep a category-specific
+    fallback when Amazon exposes it; the policy's configured value remains
+    the final default for paths that provide no such signal.
+    """
+    if amazon_root not in {"ファッション", "服＆ファッション小物", "シューズ＆バッグ"}:
+        return None
+    category_path = " ".join(_amazon_category_names(keepa_result))
+    matches = (
+        (("腕時計", "ウォッチ"), "腕時計"),
+        (("シューズ", "靴", "ブーツ", "サンダル"), "靴"),
+        (("バッグ", "財布", "リュック", "ポーチ"), "バッグ・小物・ブランド雑貨"),
+        (("インナー", "下着", "ナイトウェア", "ルームウェア"), "インナー・下着・ナイトウェア"),
+        (("キッズ", "ベビー", "ガールズ", "ボーイズ", "子供"), "キッズ・ベビー・マタニティ"),
+        (("メンズ", "男性"), "メンズファッション"),
+        (("レディース", "女性"), "レディースファッション"),
+    )
+    for markers, rakuten_root in matches:
+        if any(marker in category_path for marker in markers):
+            return rakuten_root
+    return None
+
+
 def _root_safe_genre_id(
     genre_id: int | None,
     keepa_result: KeepaProductData,
@@ -125,6 +150,7 @@ def _root_safe_genre_id(
     if _rakuten_genre_root(genre_id, master_data) in allowed_roots:
         return RootGenreResolution(genre_id=genre_id, amazon_root=amazon_root)
 
+    fallback_root = _fashion_fallback_root(amazon_root, keepa_result) or fallback_root
     if fallback_root:
         fallback_genre_id = _generic_rakuten_genre_id(fallback_root, master_data)
         if fallback_genre_id is not None:
