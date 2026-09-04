@@ -13,7 +13,7 @@ from scripts.listing.master_loader import load_master_data
 from scripts.listing.management_number import generate_management_number_bundle
 from scripts.listing.models import AmazonCheckResult, KeepaProductData, MasterData, StoreSettings, sanitize_for_output, to_jsonable
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
-from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload
+from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload, calc_listing_price
 
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -84,6 +84,25 @@ class RakutenListingPhase1Tests(unittest.TestCase):
             buy_box_shipping=0,
             avg90_seller_count=4.2,
             is_adult=False,
+        )
+
+    def test_listing_price_respects_optional_store_floor(self) -> None:
+        floored_store = StoreSettings(**{**self.store.__dict__, "rakuten_target_price_floor": 1000})
+        self.assertEqual(
+            1000,
+            calc_listing_price(
+                amazon_price=500,
+                amazon_point=0,
+                store_settings=floored_store,
+            ),
+        )
+        self.assertLess(
+            calc_listing_price(
+                amazon_price=500,
+                amazon_point=0,
+                store_settings=self.store,
+            ),
+            1000,
         )
 
     def test_blacklist_blocks_listing(self) -> None:

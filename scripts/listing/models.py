@@ -157,6 +157,8 @@ class StoreSettings:
     normal_delivery_time_id: int
     back_order_delivery_time_id: int
     ship_from_ids: list[str]
+    # Store-wide lower bound shared with the price/inventory target calculator.
+    rakuten_target_price_floor: Optional[int] = None
     shipping_method_group: str = ""
     cabinet: dict[str, Any] = field(default_factory=dict)
     management_suffix: str = "187"

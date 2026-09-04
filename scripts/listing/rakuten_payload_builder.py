@@ -83,7 +83,9 @@ def calc_listing_price(
     raw_price = base_cost / (1 - float(store_settings.fee_rate))
     # 価格在庫チェックと同じく、必要額を1円単位で切り上げた後、
     # 店舗／価格帯ルールの端数単位へ切り上げる。
-    return ceil_to_unit(int(math.ceil(raw_price)), store_settings.rounding_unit)
+    calculated_price = ceil_to_unit(int(math.ceil(raw_price)), store_settings.rounding_unit)
+    configured_floor = int(store_settings.rakuten_target_price_floor or 0)
+    return max(calculated_price, configured_floor) if configured_floor > 0 else calculated_price
 
 
 def build_customization_options() -> list[dict[str, object]]:

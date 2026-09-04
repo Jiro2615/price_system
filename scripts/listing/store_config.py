@@ -143,8 +143,14 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
                 COALESCE(pr.profit_amount, 0) AS profit_amount,
                 pr.fee_rate AS rule_fee_rate,
                 pr.fixed_cost AS rule_fixed_cost,
-                pr.rounding_unit AS rule_rounding_unit
+                pr.rounding_unit AS rule_rounding_unit,
+                CASE
+                    WHEN COALESCE(ss.order_fulfillment_settings_json->>'rakuten_target_price_floor', '') ~ '^[0-9]+$'
+                    THEN (ss.order_fulfillment_settings_json->>'rakuten_target_price_floor')::integer
+                    ELSE NULL
+                END AS rakuten_target_price_floor
             FROM stores s
+            LEFT JOIN store_settings ss ON ss.store_id = s.id
             LEFT JOIN LATERAL (
                 SELECT *
                 FROM price_rules pr
@@ -184,6 +190,7 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
         rule_fee_rate,
         rule_fixed_cost,
         rule_rounding_unit,
+        rakuten_target_price_floor,
     ) = row
 
     if max_stock is None or int(max_stock) < 0:
@@ -219,6 +226,7 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
         normal_delivery_time_id=_to_int(_get_env(store_code, "NORMAL_DELIVERY_TIME_ID", "1"), 1),
         back_order_delivery_time_id=_to_int(_get_env(store_code, "BACK_ORDER_DELIVERY_TIME_ID", "1"), 1),
         ship_from_ids=ship_from_ids,
+        rakuten_target_price_floor=_to_optional_positive_int(rakuten_target_price_floor),
         shipping_method_group=_get_env(store_code, "SHIPPING_METHOD_GROUP", ""),
         cabinet=get_store_cabinet_config(store_code),
         management_suffix=_get_env(store_code, "MANAGEMENT_SUFFIX", "187") or "187",
