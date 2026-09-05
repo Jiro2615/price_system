@@ -149,6 +149,43 @@ def calculate_profit_amount(
     return int(math.floor(selling_price * (1 - fee_rate) - amazon_cost - fixed_cost))
 
 
+def apply_fixed_price_loss_guard(
+    *,
+    fixed_price: int,
+    amazon_price: int,
+    amazon_point: int,
+    use_amazon_point: bool,
+    fee_rate: float,
+    fixed_cost: int,
+    rounding_unit: int,
+) -> tuple[int, bool]:
+    """Raise an operator fixed price only when keeping it would make a loss."""
+    configured_price = int(fixed_price)
+    profit = calculate_profit_amount(
+        configured_price,
+        amazon_price,
+        amazon_point,
+        use_amazon_point,
+        fee_rate,
+        fixed_cost,
+    )
+    if profit >= 0:
+        return configured_price, False
+
+    break_even_price = calc_price(
+        amazon_price=amazon_price,
+        amazon_point=amazon_point,
+        use_amazon_point=use_amazon_point,
+        fee_rate=fee_rate,
+        profit_mode="amount",
+        profit_rate=0,
+        profit_amount=0,
+        fixed_cost=fixed_cost,
+        rounding_unit=rounding_unit,
+    )
+    return max(configured_price, break_even_price), True
+
+
 def apply_rakuten_competitor_price_rules(
     *,
     base_target_price: int,
@@ -408,25 +445,36 @@ def calc_target_for_row(row) -> dict:
         target_stock = min(int(available_qty or 0), max_stock)
 
         if to_int(fixed_price, 0) > 0:
-            # A fixed price is an operator-managed price. Amazon checks still
-            # refresh the source price and stock, but the target price remains
-            # fixed instead of being recalculated from those source values.
-            # The separate Rakuten price API is the only stage that sends this
-            # target to RMS.
+            # A fixed price remains the normal operator-managed target. If the
+            # latest Amazon cost would make it unprofitable, raise it only as
+            # far as the rounded break-even price instead of preserving a loss.
             fee_rate = to_float(rule_fee_rate, to_float(store_fee_rate, 0.116))
             fixed_cost = to_int(rule_fixed_cost, to_int(store_fixed_cost, 0)) or 0
+            rounding_unit = to_int(rule_rounding_unit, to_int(store_rounding_unit, 10)) or 10
+            configured_fixed_price = int(fixed_price)
+            target_price, loss_guard_applied = apply_fixed_price_loss_guard(
+                fixed_price=configured_fixed_price,
+                amazon_price=int(amazon_price),
+                amazon_point=int(amazon_point or 0),
+                use_amazon_point=bool(use_amazon_point),
+                fee_rate=fee_rate,
+                fixed_cost=fixed_cost,
+                rounding_unit=rounding_unit,
+            )
             fixed_price_estimated_profit = calculate_profit_amount(
-                selling_price=int(fixed_price),
+                selling_price=target_price,
                 amazon_price=int(amazon_price),
                 amazon_point=int(amazon_point or 0),
                 use_amazon_point=bool(use_amazon_point),
                 fee_rate=fee_rate,
                 fixed_cost=fixed_cost,
             )
-            target_price = int(fixed_price)
-            reason = f"fixed_price={target_price} / fixed target / estimated_profit={fixed_price_estimated_profit}"
-            if fixed_price_estimated_profit < 0:
-                reason += " / WARNING: fixed price would be unprofitable"
+            reason = (
+                f"fixed_price={configured_fixed_price} / effective_price={target_price} / "
+                f"estimated_profit={fixed_price_estimated_profit}"
+            )
+            if loss_guard_applied:
+                reason += " / fixed_price_loss_guard=break_even"
         elif not price_modify_enabled:
             target_price = None
             reason = "price_modify_enabled=OFF / stock only"

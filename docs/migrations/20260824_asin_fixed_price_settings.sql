@@ -1,6 +1,7 @@
 -- Per-store ASIN prices managed manually by an operator.
--- A configured fixed price suppresses automatic price updates, while the
--- ordinary Amazon check continues to calculate and update target_stock.
+-- A configured fixed price suppresses ordinary automatic price updates, while
+-- the Amazon check may raise it to the rounded break-even price to avoid a
+-- loss and continues to calculate and update target_stock.
 CREATE TABLE IF NOT EXISTS asin_fixed_price_settings (
     id BIGSERIAL PRIMARY KEY,
     store_id BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
