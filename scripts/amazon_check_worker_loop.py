@@ -149,7 +149,7 @@ def build_child_cmd(
     ]
     # Explicit ASIN batches also claim rows in amazon_check_stats.  This keeps
     # the same ASIN from being checked simultaneously by another PC.
-    cmd.append("--use-stats" if asin_file or resolved_settings["use_stats"]["value"] else "--no-use-stats")
+    cmd.append("--use-stats" if asin_file or recheck_system_errors or resolved_settings["use_stats"]["value"] else "--no-use-stats")
     if recheck_system_errors:
         cmd.append("--system-error-only")
     if reason_contains:

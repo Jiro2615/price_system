@@ -263,8 +263,7 @@ def claim_target_asins_by_stats(
             JOIN amazon_products ap ON ap.asin = s.asin
             WHERE
                 (
-                    %(system_error_only)s = TRUE
-                    OR s.next_check_at IS NULL
+                    s.next_check_at IS NULL
                     OR s.next_check_at <= CURRENT_TIMESTAMP
                 )
                 AND
@@ -584,45 +583,17 @@ def claim_target_asins_by_stats_v2(
             JOIN amazon_products ap ON ap.asin = s.asin
 
             WHERE
-
-                (
-
-                    %(system_error_only)s = TRUE
-
-                    AND COALESCE(ap.system_error, FALSE) = TRUE
-
-                    AND (
-
-                        %(reason_contains)s = ''
-
-                        OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s
-
-                    )
-
+                (s.next_check_at IS NULL OR s.next_check_at <= CURRENT_TIMESTAMP)
+                AND (
+                    s.status IN ('pending', 'done')
+                    OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)
                 )
-
-                OR
-
-                (
-
+                AND (
                     %(system_error_only)s = FALSE
-
-                    AND (
-
-                        s.next_check_at IS NULL
-
-                        OR s.next_check_at <= CURRENT_TIMESTAMP
-
+                    OR (
+                        COALESCE(ap.system_error, FALSE) = TRUE
+                        AND (%(reason_contains)s = '' OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s)
                     )
-
-                    AND (
-
-                        s.status IN ('pending', 'done')
-
-                        OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP)
-
-                    )
-
                 )
 
             ORDER BY
@@ -782,6 +753,9 @@ def _claim_active_listed_store_asins_without_retry(
             AND (
                 (%(system_error_only)s = TRUE
                  AND COALESCE(ap.system_error, FALSE) = TRUE
+                 AND (s.next_check_at IS NULL OR s.next_check_at <= CURRENT_TIMESTAMP)
+                 AND (s.status IN ('pending', 'done')
+                      OR (s.status = 'processing' AND s.lock_expires_at < CURRENT_TIMESTAMP))
                  AND (%(reason_contains)s = '' OR COALESCE(ap.ng_reason, '') ILIKE %(reason_pattern)s))
                 OR
                 (%(system_error_only)s = FALSE
