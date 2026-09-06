@@ -54,6 +54,11 @@ def _normalize_jan_code(value: Any) -> str:
     return digits if (check_total + int(digits[-1])) % 10 == 0 else ""
 
 
+def _normalize_genre_id(value: Any) -> int | None:
+    text = str(value or "").strip()
+    return int(text) if re.fullmatch(r"[1-9][0-9]{0,8}", text) else None
+
+
 def _normalize_cabinet_path(value: Any) -> str:
     """Return the Cabinet-relative path for an uploaded image location.
 
@@ -132,6 +137,7 @@ def _extract_sync_payload(request: ListingDbSyncRequest) -> dict[str, Any]:
         "title": str(executed_item_payload.get("title") or amazon_result.get("title") or "").strip(),
         "standard_price": standard_price,
         "quantity": quantity,
+        "rakuten_genre_id": _normalize_genre_id(executed_item_payload.get("genreId")),
         "amazon_result": amazon_result,
         "jan_code": _normalize_jan_code(
             keepa_result.get("ean") if isinstance(keepa_result, dict) else getattr(keepa_result, "ean", "")
@@ -182,6 +188,7 @@ def _build_preview(sync: dict[str, Any], *, execute: bool, save_snapshot: bool) 
                 "current_stock": sync["quantity"],
                 "current_status": "listed",
                 "item_name": sync["title"],
+                "rakuten_genre_id": sync["rakuten_genre_id"],
             },
         },
     ]
@@ -284,6 +291,7 @@ def _update_or_insert_store_product(cur: Any, sync: dict[str, Any], store_id: in
             current_stock = %s,
             current_status = %s,
             item_name = %s,
+            rakuten_genre_id = COALESCE(%s, rakuten_genre_id),
             enabled = TRUE,
             force_stop = FALSE,
             last_synced_at = CURRENT_TIMESTAMP,
@@ -300,6 +308,7 @@ def _update_or_insert_store_product(cur: Any, sync: dict[str, Any], store_id: in
             sync["quantity"],
             "listed",
             sync["title"],
+            sync["rakuten_genre_id"],
             store_id,
             sync["management_number"],
         ),
@@ -310,10 +319,10 @@ def _update_or_insert_store_product(cur: Any, sync: dict[str, Any], store_id: in
         """
         INSERT INTO store_products (
             store_id, asin, mall_item_code, sku_code, current_price, current_stock,
-            current_status, enabled, force_stop, item_name, last_synced_at,
+            current_status, enabled, force_stop, item_name, rakuten_genre_id, last_synced_at,
             api_last_synced_at, created_at, updated_at
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, FALSE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, FALSE, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         """,
         (
             store_id,
@@ -324,6 +333,7 @@ def _update_or_insert_store_product(cur: Any, sync: dict[str, Any], store_id: in
             sync["quantity"],
             "listed",
             sync["title"],
+            sync["rakuten_genre_id"],
         ),
     )
 
