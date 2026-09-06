@@ -49,7 +49,8 @@ class BookFormatTests(unittest.TestCase):
                                ('tankobon_softcover', '単行本（ソフトカバー）'),
                                ('paperback_bunko', '文庫'), ('paperback_shinsho', '新書'),
                                ('jp_oversized_book', '大型本'), ('comic', 'コミック'),
-                               ('sheet_music', '楽譜'), ('board_book', 'ボードブック')]:
+                               ('sheet_music', '楽譜'), ('board_book', 'ボードブック'),
+                               ('consumer_magazine', '雑誌'), ('map', '地図'), ('diary', '手帳')]:
             product = parse_keepa_product('A', {'binding': binding, 'productGroup': 'Book'})
             self.assertEqual(prepend_book_format('説明', product), f'本商品は{label}です。<br />説明')
 

@@ -40,6 +40,7 @@ def book_format_label(product):
         'paperback_bunko': '文庫', 'paperback_shinsho': '新書',
         'jp_oversized_book': '大型本', 'comic': 'コミック',
         'magazine': '雑誌', 'sheet_music': '楽譜', 'board_book': 'ボードブック',
+        'consumer_magazine': '雑誌', 'map': '地図', 'diary': '手帳',
     }
     return labels.get(_normalized(product.binding), '')
 
