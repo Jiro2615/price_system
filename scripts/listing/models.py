@@ -68,6 +68,8 @@ class KeepaProductData:
     is_adult: Optional[bool] = None
     is_adult_source: str = "unknown"
     raw_summary: dict[str, Any] = field(default_factory=dict)
+    binding: str = ""
+    product_group: str = ""
 
 
 @dataclass

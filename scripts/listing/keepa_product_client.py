@@ -237,6 +237,8 @@ def parse_keepa_product(asin: str, product: dict[str, Any]) -> KeepaProductData:
 
     return KeepaProductData(
         asin=asin,
+        binding=_coerce_text(product.get("binding")),
+        product_group=_coerce_text(product.get("productGroup")),
         title=_coerce_text(product.get("title")),
         brand=_coerce_text(product.get("brand")),
         manufacturer=_coerce_text(product.get("manufacturer")),
@@ -267,6 +269,8 @@ def parse_keepa_product(asin: str, product: dict[str, Any]) -> KeepaProductData:
         is_adult=is_adult,
         is_adult_source=is_adult_source,
         raw_summary={
+            "binding": _coerce_text(product.get("binding")),
+            "product_group": _coerce_text(product.get("productGroup")),
             "category_id": _extract_leaf_category_id(product),
             "category_tree": category_tree,
             "ean": _first_ean(product),

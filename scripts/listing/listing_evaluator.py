@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from scripts.listing.attribute_policy import resolve_required_attributes
+from scripts.listing.book_format import digital_book_reason, prepend_book_format
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, ResolvedField, StoreSettings
@@ -346,6 +347,12 @@ def evaluate_listing(
     legacy_spacing_reviews: list[dict[str, object]] = []
     forced_bypass_checks: list[dict[str, object]] = []
 
+    # Digital editions are never eligible, including forced-listing runs.
+    if keepa_result is not None:
+        digital_reason = digital_book_reason(keepa_result)
+        if digital_reason:
+            return EvaluationResult("business_ng", digital_reason, matched_rules, warnings)
+
     def record_bypass(rule: str, reason: str) -> None:
         forced_bypass_checks.append({"rule": rule, "reason": reason})
         warnings.append(f"条件無視で通過: {reason}")
@@ -536,6 +543,8 @@ def evaluate_listing(
     title, replacement_hits = apply_cleanup_replacements(title_original, master_data.cleanup_replacements)
     description_pc, replacement_hits_pc = apply_cleanup_replacements(description_pc_original, master_data.cleanup_replacements)
     description_sp, replacement_hits_sp = apply_cleanup_replacements(description_sp_original, master_data.cleanup_replacements)
+    description_pc = prepend_book_format(description_pc, keepa_result)
+    description_sp = prepend_book_format(description_sp, keepa_result)
     matched_rules.extend(replacement_hits)
     matched_rules.extend(replacement_hits_pc)
     matched_rules.extend(replacement_hits_sp)
