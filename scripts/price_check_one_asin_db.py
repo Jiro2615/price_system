@@ -10,6 +10,7 @@ from typing import Any, Optional
 
 from playwright.async_api import async_playwright
 
+from amazon_result_classification import classify_purchase_restriction
 from db_config import connect_db
 from db_retry import run_with_db_retry
 
@@ -2055,7 +2056,11 @@ def _load_shared_amazon_checker():
 # its own DB persistence and target-calculation flow, but uses the same price,
 # stock, gift, and Amazon-fulfilled-offer decision as listing.
 _shared_amazon_checker = _load_shared_amazon_checker()
-check_amazon_one = _shared_amazon_checker.check_amazon_one
+async def check_amazon_one(*args, **kwargs):
+    result = await _shared_amazon_checker.check_amazon_one(*args, **kwargs)
+    return classify_purchase_restriction(result)
+
+
 create_amazon_page = _shared_amazon_checker.create_amazon_page
 close_amazon_page = _shared_amazon_checker.close_amazon_page
 
