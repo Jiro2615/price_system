@@ -17,7 +17,8 @@ class BookFormatTests(unittest.TestCase):
         self.assertIn('デジタル書籍', result.listing_reason)
 
     def test_digital_metadata(self):
-        for binding in ('Kindle Edition', 'Kindle版', 'Audible Audiobook', '電子書籍'):
+        for binding in ('Kindle Edition', 'Kindle版', 'Audible Audiobook', '電子書籍',
+                        'kindle_edition', 'audible_audiobook', 'audio_download'):
             self.assertTrue(digital_book_reason(KeepaProductData('A', binding=binding)))
         self.assertTrue(digital_book_reason(KeepaProductData('A', product_group='eBooks')))
         self.assertTrue(digital_book_reason(KeepaProductData('A', category_tree=[{'catId': 2250738051}])))
@@ -42,6 +43,15 @@ class BookFormatTests(unittest.TestCase):
         self.assertEqual(product.binding, 'Paperback')
         self.assertEqual(product.raw_summary['binding'], 'Paperback')
         self.assertEqual(product.product_group, 'Book')
+
+    def test_keepa_binding_codes(self):
+        for binding, label in [('tankobon_hardcover', '単行本'),
+                               ('tankobon_softcover', '単行本（ソフトカバー）'),
+                               ('paperback_bunko', '文庫'), ('paperback_shinsho', '新書'),
+                               ('jp_oversized_book', '大型本'), ('comic', 'コミック'),
+                               ('sheet_music', '楽譜'), ('board_book', 'ボードブック')]:
+            product = parse_keepa_product('A', {'binding': binding, 'productGroup': 'Book'})
+            self.assertEqual(prepend_book_format('説明', product), f'本商品は{label}です。<br />説明')
 
 
 if __name__ == '__main__':

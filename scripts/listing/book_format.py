@@ -10,10 +10,10 @@ def digital_book_reason(product):
     metadata = [product.binding, product.product_group]
     metadata += [node.get('name', '') for node in product.category_tree]
     digital_names = {'kindle', 'kindle版', 'kindle本', 'kindleストア', 'kindle store',
-                     'kindle edition', 'ebook', 'ebooks', 'e-book', '電子書籍',
+                     'kindle edition', 'kindle_edition', 'ebook', 'ebooks', 'e-book', '電子書籍',
                      'audible', 'audible版', 'audible audiobook', 'audible audiobooks',
                      'audibleオーディオブック', 'audibleオーディオブック版',
-                     'audible books & originals', 'audio download'}
+                     'audible books & originals', 'audio download', 'audible_audiobook', 'audio_download'}
     for value in metadata:
         normalized = _normalized(value)
         if normalized in digital_names or normalized.startswith(('audible ', 'kindle edition')):
@@ -35,6 +35,11 @@ def book_format_label(product):
         'オンデマンド(ペーパーバック)': 'オンデマンド（ペーパーバック）',
         'ボードブック': 'ボードブック', 'board book': 'ボードブック',
         '楽譜': '楽譜', 'sheet music': '楽譜',
+        'tankobon_hardcover': '単行本',
+        'tankobon_softcover': '単行本（ソフトカバー）',
+        'paperback_bunko': '文庫', 'paperback_shinsho': '新書',
+        'jp_oversized_book': '大型本', 'comic': 'コミック',
+        'magazine': '雑誌', 'sheet_music': '楽譜', 'board_book': 'ボードブック',
     }
     return labels.get(_normalized(product.binding), '')
 
