@@ -481,7 +481,7 @@ def mark_rows_failed(conn, rows: list[dict[str, Any]], error_message: str, reque
 # 表示
 # =========================
 
-def print_targets(rows: list[dict[str, Any]]) -> None:
+def print_targets(rows: list[dict[str, Any]], *, verbose: bool = False) -> None:
     if not rows:
         print("楽天在庫更新対象はありません。")
         return
@@ -490,7 +490,8 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
     print("===== 楽天在庫更新対象 =====")
     print("")
 
-    for row in rows:
+    displayed_rows = rows if verbose else rows[:10]
+    for row in displayed_rows:
         print(
             f"[{row.get('store_code')}] "
             f"id={row.get('store_product_id')} "
@@ -499,6 +500,8 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
             f"variantId={row.get('sku_code') or ''}"
         )
         print(f"  stock: {row.get('current_stock')} -> {row.get('target_stock')}")
+        if not verbose:
+            continue
         print(
             f"  amazon: price={row.get('amazon_price')}, "
             f"point={row.get('amazon_point')}, qty={row.get('available_qty')}"
@@ -508,9 +511,11 @@ def print_targets(rows: list[dict[str, Any]]) -> None:
             f"system={row.get('system_error')}, reason={row.get('ng_reason') or ''}"
         )
         print("")
+    if len(rows) > len(displayed_rows):
+        print(f"表示は先頭{len(displayed_rows)}件のみです（対象は全{len(rows)}件）。全件の送信内容はJSONに保存します。")
 
 
-def print_skipped_rows(skipped_rows: list[tuple[dict[str, Any], str]]) -> None:
+def print_skipped_rows(skipped_rows: list[tuple[dict[str, Any], str]], *, verbose: bool = False) -> None:
     if not skipped_rows:
         return
 
@@ -518,8 +523,11 @@ def print_skipped_rows(skipped_rows: list[tuple[dict[str, Any], str]]) -> None:
     print("===== skipped inventory targets =====")
     print("")
 
-    for _, skip_reason in skipped_rows:
-        print(skip_reason)
+    displayed_rows = skipped_rows if verbose else skipped_rows[:10]
+    for _, skip_reason in displayed_rows:
+        print(skip_reason if verbose else str(skip_reason)[:300])
+    if len(skipped_rows) > len(displayed_rows):
+        print(f"スキップ理由は先頭{len(displayed_rows)}件のみ表示（全{len(skipped_rows)}件）。")
 
     print("")
 
@@ -534,6 +542,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=10, help="対象最大件数。0は全件")
     parser.add_argument("--batch-size", type=int, default=400, help="bulk-upsert 1回あたりの最大件数（楽天API上限: 400）")
     parser.add_argument("--output", default="", help="送信予定JSON/結果JSONの保存先。空なら自動")
+    parser.add_argument("--verbose-targets", action="store_true", help="調査用: 全件の対象・スキップ理由をログに表示")
     parser.add_argument("--asin", default="", help="指定ASINだけを対象にします（--force-zeroと組み合わせ）")
     parser.add_argument("--force-zero", action="store_true", help="指定ASINのRMS在庫とDB目標在庫を0にします")
 
@@ -570,9 +579,9 @@ def main() -> int:
         rows = fetch_inventory_targets(store_code=store_code, limit=args.limit)
     safe_rows, skipped_rows = split_safe_and_skipped_rows(rows)
 
-    print_targets(safe_rows)
-    print_skipped_rows(skipped_rows)
     print(f"inventory_target_count: {len(safe_rows)}")
+    print_targets(safe_rows, verbose=args.verbose_targets)
+    print_skipped_rows(skipped_rows, verbose=args.verbose_targets)
     if args.force_zero:
         print("manual_stock_zero: true")
     if skipped_rows:
