@@ -1,7 +1,6 @@
 import argparse
 import csv
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -113,72 +112,32 @@ def parse_normal_item_csv(path: Path, include_stock: bool) -> tuple[list[dict[st
     return targets, enc
 
 
+BATCH_SIZE = 500
+
+
 def fetch_current_rows(conn, store_code: str, targets: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    results: list[dict[str, Any]] = []
-
+    results = []
     with conn.cursor() as cur:
-        for t in targets:
-            cur.execute(
-                """
-                SELECT
-                    sp.id,
-                    s.store_code,
-                    sp.asin,
-                    sp.mall_item_code,
-                    sp.sku_code,
-                    sp.item_name,
-                    sp.current_price,
-                    sp.target_price,
-                    sp.current_stock,
-                    sp.target_stock
-                FROM store_products sp
-                JOIN stores s ON s.id = sp.store_id
-                WHERE s.mall = 'rakuten'
-                  AND s.store_code = %s
-                  AND sp.mall_item_code = %s
-                  AND COALESCE(sp.sku_code, '') = COALESCE(%s, '')
-                """,
-                (
-                    store_code,
-                    t["mall_item_code"],
-                    t["sku_code"],
-                ),
-            )
-            row = cur.fetchone()
-            if not row:
-                results.append({
-                    **t,
-                    "found": False,
-                    "error": "store_products に該当行なし",
-                })
-                continue
-
-            (
-                store_product_id,
-                found_store_code,
-                asin,
-                mall_item_code,
-                sku_code,
-                item_name,
-                current_price,
-                target_price,
-                current_stock,
-                target_stock,
-            ) = row
-
-            results.append({
-                **t,
-                "found": True,
-                "store_product_id": store_product_id,
-                "store_code": found_store_code,
-                "asin": asin,
-                "item_name": item_name,
-                "current_price": current_price,
-                "target_price": target_price,
-                "current_stock": current_stock,
-                "target_stock": target_stock,
-            })
-
+        for offset in range(0, len(targets), BATCH_SIZE):
+            batch = targets[offset:offset + BATCH_SIZE]
+            cur.execute("""
+                SELECT sp.id, s.store_code, sp.asin, sp.mall_item_code, sp.sku_code,
+                       sp.item_name, sp.current_price, sp.target_price, sp.current_stock, sp.target_stock
+                FROM store_products sp JOIN stores s ON s.id=sp.store_id
+                JOIN (SELECT DISTINCT * FROM unnest(%s::text[], %s::text[]) AS t(item,sku)) t
+                  ON sp.mall_item_code=t.item AND COALESCE(sp.sku_code,'')=t.sku
+                WHERE s.mall='rakuten' AND s.store_code=%s
+                """, ([t['mall_item_code'] for t in batch], [t['sku_code'] or '' for t in batch], store_code))
+            found = {}
+            for row in cur.fetchall():
+                key = (row[3], row[4] or '')
+                if key in found:
+                    raise ValueError(f"商品管理番号・SKUがDB内で重複しています: {key}")
+                found[key] = dict(zip(('store_product_id','store_code','asin','mall_item_code','sku_code',
+                                     'item_name','current_price','target_price','current_stock','target_stock'), row))
+            for target in batch:
+                row = found.get((target['mall_item_code'], target['sku_code'] or ''))
+                results.append({**target, **(row or {}), 'found': row is not None})
     return results
 
 
@@ -196,173 +155,89 @@ def get_existing_columns(conn, table_name: str) -> set[str]:
         return {r[0] for r in cur.fetchall()}
 
 
-def insert_price_update_log_if_possible(
-    conn,
-    *,
-    row: dict[str, Any],
-    status: str,
-    message: str,
-    update_type: str,
-) -> None:
-    """
-    price_update_logs の列構成が未確定でも落ちないように、
-    存在する列だけにINSERTする。
-    ログ挿入失敗で本体更新を止めない。
-    """
-    try:
-        columns = get_existing_columns(conn, "price_update_logs")
-        if not columns:
-            return
-
-        candidates: dict[str, Any] = {
-            "store_product_id": row.get("store_product_id"),
-            "asin": row.get("asin"),
-            "mall_item_code": row.get("mall_item_code"),
-            "sku_code": row.get("sku_code"),
-            "old_price": row.get("current_price"),
-            "new_price": row.get("new_price"),
-            "old_stock": row.get("current_stock"),
-            "new_stock": row.get("new_stock"),
-            "status": status,
-            "result": status,
-            "message": message,
-            "error_message": None if status == "success" else message,
-            "update_type": update_type,
-            "api_name": "rakuten_csv_normal_item",
-            "request_json": json.dumps({
-                "mall_item_code": row.get("mall_item_code"),
-                "sku_code": row.get("sku_code"),
-                "new_price": row.get("new_price"),
-                "new_stock": row.get("new_stock"),
-            }, ensure_ascii=False),
-            "response_json": json.dumps({
-                "source": "normal-item.csv",
-                "status": status,
-                "message": message,
-            }, ensure_ascii=False),
+def insert_batch_logs(conn, rows, columns, include_stock):
+    if not columns or not rows:
+        return
+    records = []
+    for row in rows:
+        stock = row.get('new_stock') if include_stock else None
+        record = {
+            'store_product_id': row['store_product_id'], 'asin': row.get('asin'),
+            'mall_item_code': row['mall_item_code'], 'sku_code': row['sku_code'],
+            'old_price': row.get('current_price'), 'new_price': row.get('new_price'),
+            'old_stock': row.get('current_stock'), 'new_stock': stock,
+            'status': 'success', 'result': 'success',
+            'message': 'normal-item.csv 成功確認後にDBへ反映', 'error_message': None,
+            'update_type': 'csv_price_stock' if stock is not None else 'csv_price',
+            'api_name': 'rakuten_csv_normal_item',
+            'request_json': {'mall_item_code': row['mall_item_code'], 'sku_code': row['sku_code'],
+                             'new_price': row.get('new_price'), 'new_stock': stock},
+            'response_json': {'source': 'normal-item.csv', 'status': 'success'},
         }
-
-        insert_cols = []
-        values = []
-
-        for col, value in candidates.items():
-            if col in columns:
-                insert_cols.append(col)
-                values.append(value)
-
-        # created_at / updated_at 系があればCURRENT_TIMESTAMPで入れる
-        timestamp_cols = []
-        for col in ["created_at", "updated_at", "logged_at"]:
-            if col in columns:
-                timestamp_cols.append(col)
-
-        if not insert_cols and not timestamp_cols:
-            return
-
-        col_sql = insert_cols + timestamp_cols
-        placeholders = ["%s"] * len(insert_cols) + ["CURRENT_TIMESTAMP"] * len(timestamp_cols)
-
-        sql = f"""
-            INSERT INTO price_update_logs ({", ".join(col_sql)})
-            VALUES ({", ".join(placeholders)})
-        """
-
-        with conn.cursor() as cur:
-            cur.execute(sql, values)
-
-    except Exception as e:
-        print(f"注意: price_update_logs への書き込みをスキップしました: {e}")
+        records.append(record)
+    names = sorted(columns.intersection(records[0]))
+    timestamps = sorted(columns.intersection({'created_at','updated_at','logged_at'}))
+    if not names and not timestamps:
+        return
+    # Column names come from the fixed allowlist above, not CSV input.
+    sql = (f"INSERT INTO price_update_logs ({','.join(names + timestamps)}) "
+           f"SELECT {','.join(['r.'+name for name in names] + ['CURRENT_TIMESTAMP']*len(timestamps))} "
+           "FROM jsonb_populate_recordset(NULL::price_update_logs,%s::jsonb) r")
+    # Log failures must not poison the price update transaction.
+    try:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(sql, (json.dumps(records, ensure_ascii=False),))
+    except Exception as exc:
+        print(f"注意: このバッチの価格更新ログを保存できませんでした: {exc}", flush=True)
 
 
-def apply_updates(
-    conn,
-    rows: list[dict[str, Any]],
-    include_stock: bool,
-    execute: bool,
-) -> tuple[int, int]:
-    updated = 0
-    skipped = 0
-
+def apply_updates(conn, rows, include_stock, execute, *, log_columns=None):
+    valid = [r for r in rows if r.get('found') and
+             (r.get('new_price') is not None or (include_stock and r.get('new_stock') is not None))]
+    if not execute:
+        return len(valid), len(rows)-len(valid)
+    # Duplicate CSV rows retain last-row-wins behavior.
+    unique = {r['store_product_id']: r for r in valid}
+    batch = [unique[key] for key in sorted(unique)]
+    if not batch:
+        return 0, len(rows)
     with conn.cursor() as cur:
-        for row in rows:
-            if not row.get("found"):
-                skipped += 1
-                print(
-                    f"SKIP row={row.get('row_no')} "
-                    f"Item={row.get('mall_item_code')} SKU={row.get('sku_code')} / {row.get('error')}"
-                )
-                continue
+        cur.execute("""
+            UPDATE store_products sp SET current_price=COALESCE(t.price,sp.current_price),
+                current_stock=COALESCE(t.stock,sp.current_stock),
+                api_last_synced_at=CURRENT_TIMESTAMP, api_last_error=NULL, updated_at=CURRENT_TIMESTAMP
+            FROM unnest(%s::bigint[],%s::bigint[],%s::integer[]) t(id,price,stock)
+            WHERE sp.id=t.id RETURNING sp.id
+            """, ([r['store_product_id'] for r in batch], [r.get('new_price') for r in batch],
+                  [r.get('new_stock') if include_stock else None for r in batch]))
+        updated_ids = {row[0] for row in cur.fetchall()}
+    updated_rows = [r for r in batch if r['store_product_id'] in updated_ids]
+    columns = log_columns if log_columns is not None else get_existing_columns(conn, 'price_update_logs')
+    insert_batch_logs(conn, updated_rows, columns, include_stock)
+    return len(updated_rows), len(rows)-len(updated_rows)
 
-            new_price = row.get("new_price")
-            new_stock = row.get("new_stock") if include_stock else None
 
-            if new_price is None and new_stock is None:
-                skipped += 1
-                print(
-                    f"SKIP id={row.get('store_product_id')} "
-                    f"Item={row.get('mall_item_code')} SKU={row.get('sku_code')} / 反映値なし"
-                )
-                continue
-
+def apply_targets(conn, store, targets, include_stock, execute):
+    updated = skipped = 0
+    columns = get_existing_columns(conn, 'price_update_logs') if execute else set()
+    # Short transactions: a failure rolls back only the current batch.
+    for offset in range(0, len(targets), BATCH_SIZE):
+        try:
+            rows = fetch_current_rows(conn, store, targets[offset:offset+BATCH_SIZE])
+            done, ignored = apply_updates(conn, rows, include_stock, execute, log_columns=columns)
             if execute:
-                if include_stock and new_stock is not None:
-                    cur.execute(
-                        """
-                        UPDATE store_products
-                        SET
-                            current_price = COALESCE(%s, current_price),
-                            current_stock = COALESCE(%s, current_stock),
-                            api_last_synced_at = CURRENT_TIMESTAMP,
-                            api_last_error = NULL,
-                            updated_at = CURRENT_TIMESTAMP
-                        WHERE id = %s
-                        """,
-                        (
-                            new_price,
-                            new_stock,
-                            row["store_product_id"],
-                        ),
-                    )
-                    update_type = "csv_price_stock"
-                else:
-                    cur.execute(
-                        """
-                        UPDATE store_products
-                        SET
-                            current_price = COALESCE(%s, current_price),
-                            api_last_synced_at = CURRENT_TIMESTAMP,
-                            api_last_error = NULL,
-                            updated_at = CURRENT_TIMESTAMP
-                        WHERE id = %s
-                        """,
-                        (
-                            new_price,
-                            row["store_product_id"],
-                        ),
-                    )
-                    update_type = "csv_price"
-
-                insert_price_update_log_if_possible(
-                    conn,
-                    row=row,
-                    status="success",
-                    message="normal-item.csv 成功確認後にDBへ反映",
-                    update_type=update_type,
-                )
-
-            updated += 1
-
-            print(
-                f"{'UPDATE' if execute else 'DRY'} "
-                f"id={row.get('store_product_id')} "
-                f"ASIN={row.get('asin')} "
-                f"Item={row.get('mall_item_code')} SKU={row.get('sku_code')}"
-            )
-            print(f"  price: {row.get('current_price')} -> {new_price}")
-            if include_stock and new_stock is not None:
-                print(f"  stock: {row.get('current_stock')} -> {new_stock}")
-            print(f"  name : {str(row.get('item_name') or '')[:80]}")
-
+                conn.commit()
+            else:
+                conn.rollback()
+            updated += done
+            skipped += ignored
+            print(f"CSV_DB_PROGRESS processed={min(offset+BATCH_SIZE,len(targets))}/{len(targets)} "
+                  f"updated={updated} skipped={skipped} committed={execute}", flush=True)
+        except Exception:
+            conn.rollback()
+            print(f"CSV反映失敗: 確定済み={updated}件 / 今回のバッチは取り消しました。", flush=True)
+            raise
     return updated, skipped
 
 
@@ -391,16 +266,8 @@ def main() -> int:
     conn = connect_db()
 
     try:
-        rows = fetch_current_rows(conn, args.store, targets)
-
-        print("===== DB反映プレビュー =====")
-        print("")
-
-        updated, skipped = apply_updates(
-            conn=conn,
-            rows=rows,
-            include_stock=args.include_stock,
-            execute=args.execute,
+        updated, skipped = apply_targets(
+            conn, args.store, targets, args.include_stock, args.execute
         )
 
         print("")
