@@ -567,12 +567,33 @@ def calc_target_for_row(row) -> dict:
     }
 
 
+def update_target_batch(conn, targets: list[dict]) -> set[int]:
+    """One round trip per batch; unchanged rows keep their timestamps."""
+    if not targets:
+        return set()
+    with conn.cursor() as cur:
+        cur.execute("""
+            UPDATE store_products AS sp
+            SET target_price = incoming.price, target_stock = incoming.stock,
+                updated_at = CURRENT_TIMESTAMP
+            FROM unnest(%s::bigint[], %s::integer[], %s::integer[])
+                AS incoming(id, price, stock)
+            WHERE sp.id = incoming.id
+              AND (sp.target_price IS DISTINCT FROM incoming.price
+                   OR sp.target_stock IS DISTINCT FROM incoming.stock)
+            RETURNING sp.id
+        """, ([t['store_product_id'] for t in targets],
+              [t['target_price'] for t in targets],
+              [t['target_stock'] for t in targets]))
+        return {row[0] for row in cur.fetchall()}
+
+
 def recalc_targets(
     conn,
     store_code: str | None = None,
     asins: list[str] | None = None,
     dry_run: bool = False,
-    verbose: bool = True,
+    verbose: bool = False,
 ) -> dict:
     rows = fetch_calc_targets(conn, store_code=store_code, asins=asins)
 
@@ -589,6 +610,7 @@ def recalc_targets(
     skipped = 0
     errors = 0
     targets: list[dict] = []
+    error_details: list[dict] = []
 
     if verbose:
         print("calculate target_price / target_stock start")
@@ -602,14 +624,6 @@ def recalc_targets(
         result = None
         try:
             result = calc_target_for_row(row)
-            if not dry_run:
-                update_store_product_target(
-                    conn,
-                    result["store_product_id"],
-                    result["target_price"],
-                    result["target_stock"],
-                )
-
             updated += 1
             # Callers which update one ASIN at a time need the exact calculated
             # values to confirm that the transaction reached store_products.
@@ -627,6 +641,8 @@ def recalc_targets(
         except Exception as e:
             errors += 1
             skipped += 1
+            error_details.append({'store_product_id': row[0], 'store_code': row[1],
+                                  'asin': row[10], 'error': str(e)})
             if verbose:
                 if result is None:
                     store_code_value = row[1]
@@ -643,6 +659,17 @@ def recalc_targets(
                     f"Item={item_code_value} / SKU={sku_code_value} / {e}"
                 )
 
+    changed_ids: set[int] = set()
+    if not dry_run:
+        try:
+            for offset in range(0, len(targets), 500):
+                changed_ids.update(update_target_batch(conn, targets[offset:offset + 500]))
+        except Exception:
+            # Never commit a partial batch set or report a DB failure as success.
+            conn.rollback()
+            raise
+    for target in targets:
+        target['db_updated'] = target['store_product_id'] in changed_ids
     if dry_run:
         conn.rollback()
     else:
@@ -658,6 +685,8 @@ def recalc_targets(
         "skipped": skipped,
         "errors": errors,
         "targets": targets,
+        "db_updated_count": len(changed_ids),
+        "error_details": error_details,
     }
 
 
@@ -683,6 +712,8 @@ def main() -> int:
     parser.add_argument("--asin", default="", help="Recalculate a single ASIN")
     parser.add_argument("--asin-list", default="", help="Recalculate comma-separated ASINs")
     parser.add_argument("--dry-run", action="store_true", help="Show result without updating DB")
+    parser.add_argument("--verbose-targets", action="store_true", help="Print every result for debugging")
+    parser.add_argument("--output", default="", help="Full calculation result JSON path")
     args = parser.parse_args()
 
     store_code = args.store.strip() or None
@@ -691,14 +722,24 @@ def main() -> int:
     conn = connect_db()
 
     try:
-        result = recalc_targets(conn, store_code=store_code, asins=asins, dry_run=args.dry_run, verbose=True)
-        if result["rows"] == 0:
-            print("No store_products found for calculation.")
-            return 0
+        print('価格・在庫の目標値を再計算しています。全件結果はJSONに保存します。', flush=True)
+        result = recalc_targets(conn, store_code=store_code, asins=asins, dry_run=args.dry_run, verbose=args.verbose_targets)
     finally:
         conn.close()
 
-    return 0
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    from uuid import uuid4
+    destination = Path(args.output) if args.output else (
+        Path(__file__).resolve().parents[1] / 'output' / 'target_recalc' /
+        f"target_recalc_{datetime.now():%Y%m%d_%H%M%S}_{uuid4().hex[:8]}.json")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    result['dry_run'] = args.dry_run
+    destination.write_text(json.dumps(result, ensure_ascii=False, default=str), encoding='utf-8')
+    print(f"再計算完了: 対象={result['rows']}件 / 計算成功={result['updated']}件 / DB変更={result.get('db_updated_count', 0)}件 / エラー={result['errors']}件")
+    print(f"全件結果JSON: {destination}")
+    return 1 if result['errors'] else 0
 
 
 if __name__ == "__main__":
