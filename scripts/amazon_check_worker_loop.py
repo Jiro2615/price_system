@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from db_config import connect_db
+from maintenance_control import maintenance_pause_requested
 from db_retry import DB_RETRY_EXIT_CODE, is_retryable_db_error
 from settings_loader import WORKER_TYPE_AMAZON, load_resolved_worker_settings
 
@@ -464,6 +465,9 @@ def main() -> int:
         last_db_error = ""
 
         while True:
+            if maintenance_pause_requested():
+                print('Maintenance pause requested. Current batch is complete; exiting.')
+                return 0
             resolved_worker = resolve_worker()
             if str(resolved_worker.get("desired_state", "")).strip().lower() == "stopped":
                 print("")
@@ -536,7 +540,11 @@ def main() -> int:
             wait_seconds = empty_sleep_seconds if empty_result else loop_sleep_seconds
             print("")
             print(f"Sleeping {wait_seconds} seconds before next loop.")
-            time.sleep(wait_seconds)
+            for elapsed in range(0, max(0, wait_seconds), 5):
+                if maintenance_pause_requested():
+                    print('Maintenance pause requested during idle wait; exiting.')
+                    return 0
+                time.sleep(min(5, wait_seconds - elapsed))
     except KeyboardInterrupt:
         print("")
         print("KeyboardInterrupt received. Exiting worker loop.")

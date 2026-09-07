@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 
-SCRIPTS_DIR = Path(r"C:\price_system\scripts")
+SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
@@ -179,8 +179,8 @@ class WorkerLoopTests(unittest.TestCase):
                 amazon_check_worker_loop,
                 "run_child_once",
                 side_effect=[
-                    (db_retry.DB_RETRY_EXIT_CODE, 1.0, False, {}, "temporary DB error"),
-                    (0, 1.0, True, {}, ""),
+                    (db_retry.DB_RETRY_EXIT_CODE, 1.0, False, {}, "temporary DB error", False),
+                    (0, 1.0, True, {}, "", False),
                 ],
             ) as mock_run_child, \
             patch.object(amazon_check_worker_loop, "wait_for_db_recovery") as mock_wait, \
@@ -196,7 +196,7 @@ class WorkerLoopTests(unittest.TestCase):
             patch.object(amazon_check_worker_loop, "load_resolved_worker_settings", return_value=self.resolved_worker), \
             patch.object(amazon_check_worker_loop, "cleanup_old_logs", return_value=0), \
             patch.object(amazon_check_worker_loop, "open_log_stream", return_value=(Path("worker.log"), io.StringIO())), \
-            patch.object(amazon_check_worker_loop, "run_child_once", return_value=(1, 1.0, False, {}, "bug")), \
+            patch.object(amazon_check_worker_loop, "run_child_once", return_value=(1, 1.0, False, {}, "bug", False)), \
             patch.object(amazon_check_worker_loop, "wait_for_db_recovery") as mock_wait:
             result = amazon_check_worker_loop.main()
 
@@ -212,6 +212,16 @@ class WorkerLoopTests(unittest.TestCase):
             result = amazon_check_worker_loop.main()
 
         self.assertEqual(result, 130)
+
+    def test_maintenance_pause_finishes_batch_without_starting_another(self) -> None:
+        with patch.object(sys, "argv", ["amazon_check_worker_loop.py", "--worker-number", "1"]), \
+            patch.object(amazon_check_worker_loop, "load_resolved_worker_settings", return_value=self.resolved_worker), \
+            patch.object(amazon_check_worker_loop, "cleanup_old_logs", return_value=0), \
+            patch.object(amazon_check_worker_loop, "open_log_stream", return_value=(Path("worker.log"), io.StringIO())), \
+            patch.object(amazon_check_worker_loop, "maintenance_pause_requested", side_effect=[False, True]), \
+            patch.object(amazon_check_worker_loop, "run_child_once", return_value=(0, 1.0, False, {}, "", False)) as child:
+            self.assertEqual(amazon_check_worker_loop.main(), 0)
+        child.assert_called_once()
 
 
 if __name__ == "__main__":

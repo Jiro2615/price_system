@@ -8,6 +8,7 @@ from typing import Any
 
 import requests
 from db_config import connect_db
+from maintenance_control import maintenance_pause_requested
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
 from rakuten_auth import build_rakuten_auth_header, resolve_rakuten_store_code
@@ -633,6 +634,10 @@ def main() -> int:
         chunks = split_chunks(safe_rows, args.batch_size)
 
         for index, chunk_rows in enumerate(chunks, start=1):
+            if maintenance_pause_requested():
+                result_summary['maintenance_paused'] = True
+                print('更新用一時停止: 現在のAPIバッチ完了後に停止しました。')
+                break
             print(f"===== batch {index}/{len(chunks)} 件数={len(chunk_rows)} =====")
             request_payload = build_payload(chunk_rows)
 

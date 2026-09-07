@@ -24,9 +24,9 @@ def run_is_enabled(run_id: str) -> bool:
     conn = connect_db()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT desired_state FROM job_runs WHERE run_id = %s", (run_id,))
+            cur.execute("SELECT desired_state,payload_json->>'_maintenance_pause_requested' FROM job_runs WHERE run_id = %s", (run_id,))
             row = cur.fetchone()
-            return bool(row and str(row[0] or "").lower() == "running")
+            return bool(row and str(row[0] or "").lower() == "running" and (len(row) < 2 or row[1] != 'true'))
     finally:
         conn.close()
 
