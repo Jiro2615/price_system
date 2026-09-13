@@ -137,7 +137,10 @@ def build_child_cmd(
     dry_run: bool = False,
     store_code: str = "",
     listed_only: bool = False,
+    browser_mode: str = "chrome",
 ) -> list[str]:
+    if browser_mode not in {"chrome", "shell"}:
+        raise ValueError("browser must be chrome or shell")
     cmd = [
         *py_cmd("price_check_from_db.py"),
         "--limit",
@@ -147,6 +150,7 @@ def build_child_cmd(
         worker_id,
         "--page-timeout",
         str(resolved_settings["page_timeout_ms"]["value"]),
+        "--browser", browser_mode,
     ]
     # Explicit ASIN batches also claim rows in amazon_check_stats.  This keeps
     # the same ASIN from being checked simultaneously by another PC.
@@ -394,6 +398,7 @@ def main() -> int:
     parser.add_argument("--listed-only", action="store_true", help="only active listed products mapped to --store-code")
     parser.add_argument("--dry-run", action="store_true", help="show target ASINs only without browser start or DB updates")
     parser.add_argument("--resolve-only", action="store_true", help="resolve settings and print child command without running it")
+    parser.add_argument("--browser", choices=["chrome", "shell"], default="chrome")
     args = parser.parse_args()
 
     if args.worker_number <= 0:
@@ -430,6 +435,7 @@ def main() -> int:
         store_code=args.store_code.strip(),
         listed_only=args.listed_only,
         dry_run=args.dry_run,
+        browser_mode=args.browser,
     )
 
     removed_logs = cleanup_old_logs(log_retention_days)
@@ -486,6 +492,7 @@ def main() -> int:
                 store_code=args.store_code.strip(),
                 listed_only=args.listed_only,
                 dry_run=args.dry_run,
+                browser_mode=args.browser,
             )
             loop_index += 1
             returncode, _elapsed, empty_result, worker_summary, child_error_line, child_stop_requested = run_child_once(
