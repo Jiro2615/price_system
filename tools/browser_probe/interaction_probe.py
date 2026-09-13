@@ -9,10 +9,23 @@ import sys
 import time
 from urllib.parse import urlparse
 
-from probe_support import ROOT, REPO, ASIN, FIELDS, Meter, no_db, challenge
+from probe_support import ROOT, REPO, ASIN, FIELDS, Meter, no_db, challenge, FatalProbeError, atomic_json
 from asin_plan import load_asins, make_plan, wait_turn, from_db
 
 ASINS = [ASIN, "B019SKZXV8", "B0F2HTH5H9"]
+
+
+async def stop_watcher(owner, paths):
+    while True:
+        if any(p.exists() for p in paths):
+            owner.cancel()
+            return
+        await asyncio.sleep(0.2)
+
+
+def child_exit_code(data):
+    # Product errors are observations, not a reason to abort the next round.
+    return int(bool(data.get("error") or data.get("stopped") or not data.get("cases")))
 
 
 async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, first="chrome"):
@@ -29,8 +42,11 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
               "scope": "anonymous; same browser/context reused; navigation, offer panel, purchase-option selection only; no cart/purchase/DB/Keepa/RMS"}
     result["requested_seconds"] = seconds
     deadline = time.monotonic() + seconds
-    meter = Meter()
+    atomic_json(out, result)
+    meter = Meter(out.with_suffix(".resources.json"))
     meter.start()
+    stop_paths = [out.parent / "STOP"] + ([sync / "STOP"] if sync else [])
+    watcher = asyncio.create_task(stop_watcher(asyncio.current_task(), stop_paths))
     try:
         async with async_playwright() as p:
             options = {"headless": mode == "shell"}
@@ -60,11 +76,19 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                       text:(el.innerText||el.getAttribute('aria-label')||'').slice(0,150)});
                   },true);""")
                 goto = page.goto
-                async def safe_goto(url, **kwargs):
-                    response = await goto(url, **kwargs)
+                safety_latched = False
+                async def check_safety():
+                    nonlocal safety_latched
                     body = await page.locator("body").inner_text(timeout=5000)
                     if challenge(page.url, body) or checker.is_amazon_confirmation_page(page.url, body):
-                        raise RuntimeError("Challenge/confirmation: stopped; no bypass")
+                        safety_latched = True
+                    if safety_latched:
+                        raise FatalProbeError("Challenge/confirmation: stopped; no bypass")
+                async def safe_goto(url, **kwargs):
+                    if safety_latched:
+                        raise FatalProbeError("Challenge previously detected; no further navigation")
+                    response = await goto(url, **kwargs)
+                    await check_safety()
                     return response
                 page.goto = safe_goto
                 import itertools
@@ -83,6 +107,7 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                         await page.goto("about:blank")
                         data = await asyncio.wait_for(checker.check_amazon_one(asin, page=page, page_timeout_ms=30000), 65)
                         case["baseline"] = {k: data.get(k) for k in FIELDS}
+                        await check_safety()
                         if data.get("system_error"):
                             raise RuntimeError("Baseline not valid: " + data.get("ng_reason", ""))
                         case["baseline_clicks"] = await page.evaluate("window.__probeClicks||[]")
@@ -173,31 +198,51 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                         # Return to product and rerun same parser after interactions. Reuses browser.
                         data2 = await asyncio.wait_for(checker.check_amazon_one(asin, page=page, page_timeout_ms=30000), 65)
                         case["after_navigation"] = {k: data2.get(k) for k in FIELDS}
+                        await check_safety()
                         case["same_after_navigation"] = case["baseline"] == case["after_navigation"]
+                    except asyncio.CancelledError:
+                        case["error"] = "Explicit stop requested during product"
+                        case["fatal"] = True
+                        result["cases"].append(case)
+                        raise
                     except Exception as exc:
                         case["error"] = f"{type(exc).__name__}: {exc}"
+                        # Detect challenges even when the production parser caught
+                        # the exception or an interaction navigated without goto.
+                        try:
+                            await check_safety()
+                        except FatalProbeError:
+                            safety_latched = True
+                        except Exception:
+                            pass
+                        case["fatal"] = isinstance(exc, FatalProbeError) or safety_latched or not browser.is_connected() or page.is_closed()
                     case["elapsed_seconds"] = round(time.monotonic()-started, 3)
                     case["sample_private_working_set_mib"] = round(meter.rows[-1][4]/2**20, 1)
                     result["cases"].append(case)
-                    out.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+                    atomic_json(out, result)
+                    if case.get("fatal"):
+                        result["error"] = "Stopped on safety boundary or closed browser"
+                        if sync:
+                            (sync / "STOP").touch()
+                        break
                     if sync:
                         (sync / f"{mode}_{case_index}.done").touch()
                     print(mode, asin, "offers", case.get("offer_count"), "toggle", case.get("restore_called_changed"), "error", case.get("error"), flush=True)
-                    if case.get("error"):
-                        result["error"] = "Stopped on case error; no retries or challenge bypass"
-                        break
                     await asyncio.sleep(10)
                 result["blocked_request_count"] = len(blocked)
             finally:
                 await browser.close()
+    except asyncio.CancelledError:
+        result["stopped"] = True
     except Exception as exc:
         result["error"] = f"{type(exc).__name__}: {exc}"
     finally:
+        watcher.cancel()
+        result["metrics"] = meter.finish()
+        result["resource_samples"] = meter.resource_samples()
+        atomic_json(out, result)
         if sync:
             (sync / f"{mode}.finished").touch()
-        result["metrics"] = meter.finish()
-        result["resource_samples"] = [{"seconds": r[5], "uss_mib": round(r[4]/2**20, 2), "host_cpu_percent": r[3]} for r in meter.rows]
-        out.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
 
 
 def stop_tree(process):
@@ -247,7 +292,7 @@ def main():
         if not args.output: parser.error("--output required")
         asyncio.run(run(args.mode, args.output, args.seconds, args.offer_limit, plan, args.sync, args.first))
         data = json.loads(args.output.read_text(encoding="utf-8"))
-        return 1 if data.get("error") or data.get("stopped") or not data.get("cases") or any(c.get("error") or not c.get("required_offers_loaded") for c in data.get("cases", [])) else 0
+        return child_exit_code(data)
     import platform
     import psutil
     import importlib.metadata
@@ -299,6 +344,10 @@ def main():
                     raise RuntimeError("Incomplete paired test")
             except (KeyboardInterrupt, RuntimeError, TimeoutError, OSError):
                 (sync / "STOP").touch()
+                # Give both children time to close and flush their final metrics.
+                grace = time.monotonic() + 20
+                while any(p.poll() is None for p in processes) and time.monotonic() < grace:
+                    time.sleep(0.2)
                 for process in processes:
                     if process.poll() is None:
                         stop_tree(process)

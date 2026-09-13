@@ -29,9 +29,21 @@ SELECTORS = {"title": "#productTitle", "price": "#corePriceDisplay_desktop_featu
              "destination": "#glow-ingress-line2", "offers": "#aod-offer-list"}
 
 
+class FatalProbeError(RuntimeError):
+    """Never continue after a safety boundary or broken browser."""
+
+
+def atomic_json(path, data):
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    temporary.replace(path)
+
+
 class Meter:
     """Sample only this test's process tree; shared RSS is not physical usage."""
-    def __init__(self):
+    def __init__(self, checkpoint_path=None):
+        self.checkpoint_path = checkpoint_path
+        self.last_checkpoint = 0.0
         self.root = psutil.Process()
         self.stop_event = threading.Event()
         self.last = {}
@@ -67,17 +79,38 @@ class Meter:
     def run(self):
         while not self.stop_event.wait(0.2):
             self.sample()
+            if time.monotonic() - self.last_checkpoint >= 2:
+                self.checkpoint()
 
     def start(self):
         psutil.cpu_percent()
         self.sample()
+        self.checkpoint()
         self.thread.start()
 
     def finish(self):
         self.stop_event.set()
         self.thread.join()
         self.sample()
-        elapsed = time.monotonic() - self.started
+        self.checkpoint()
+        return self.metrics()
+
+    def checkpoint(self):
+        if self.checkpoint_path is not None:
+            try:
+                atomic_json(self.checkpoint_path, {"metrics": self.metrics(),
+                    "resource_samples": self.resource_samples(), "partial": True})
+            except OSError:
+                # Preserve the previous atomic checkpoint and retry next time.
+                pass
+        self.last_checkpoint = time.monotonic()
+
+    def resource_samples(self):
+        return [{"seconds": r[5], "uss_mib": round(r[4]/2**20, 2),
+                 "host_cpu_percent": r[3]} for r in list(self.rows)]
+
+    def metrics(self):
+        elapsed = max(time.monotonic() - self.started, 0.000001)
         return {"elapsed_seconds": round(elapsed, 3), "cpu_seconds": round(self.cpu, 3),
                 "avg_cpu_percent_machine_capacity": round(100 * self.cpu / elapsed / psutil.cpu_count(), 2),
                 "peak_private_commit_mib": round(max(r[1] for r in self.rows) / 2**20, 1),
@@ -89,7 +122,7 @@ class Meter:
 
 
 def no_db(*args, **kwargs):
-    raise RuntimeError("DB access is forbidden by this probe")
+    raise FatalProbeError("DB access is forbidden by this probe")
 
 
 def challenge(url, body):

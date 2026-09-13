@@ -75,11 +75,16 @@ tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_pro
 
 Ctrl+Cまたは出力フォルダに空の STOP ファイルを作ると専用テストを停止します。
 専用プロセスツリーだけが対象で、本番Chromeを名前で一括終了しません。
-認証・CAPTCHA・取得エラーでは停止し、回避や無限リトライは行いません。
+商品単位の取得エラー（ギフト判定、タイムアウト等）はエラーを記録して次へ進みます。
+その商品は成功扱いにせず、同じラウンドの同じ位置で両方式の結果を残します。
+認証・CAPTCHA・DB禁止操作・ブラウザ切断では全体停止し、回避や無限リトライは行いません。
 
 output/browser_probe_日時/ に一覧スナップショット、機種情報、
 round*.json、ログ、最初の商品の画像、summary.json を保存します。Gitには含めません。
-強制終了では最後のメモリ集計が欠ける可能性があります。再集計:
+計測値は約2秒ごとに round*.resources.json へ別途保存します。
+停止時は最大20秒の保存猶予後、終了しない専用プロセスだけを強制停止します。
+最終集計がない場合は直近の保存値を使用し、summaryの metrics_partial=true と明示します。
+強制終了直前・電源断・ディスク書込失敗時の未保存分までは復元できません。再集計:
 
 ```powershell
 tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/summarize.py output/browser_probe_日時

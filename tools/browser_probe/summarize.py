@@ -24,6 +24,7 @@ def compare_cases(a, b):
     keys = set(a.get("baseline", {})) | set(b.get("baseline", {}))
     differences = sorted(k for k in keys if comparable(a.get("baseline", {}).get(k)) != comparable(b.get("baseline", {}).get(k)))
     return {"valid": valid, "baseline_matches": valid and not differences,
+            "comparison_status": "missing_side" if not a or not b else "product_error" if not valid else "different" if differences else "matched",
             "baseline_differences": differences,
             "captured_offers_match_except_countdown": bool(a.get("offers") and b.get("offers")) and comparable(a.get("offers")) == comparable(b.get("offers")),
             "necessary_offers_loaded_both": a.get("required_offers_loaded") is True and b.get("required_offers_loaded") is True}
@@ -33,8 +34,21 @@ def summarize(folder):
     runs = []
     raw = {}
     for path in sorted(folder.glob("round*_*.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
+        if path.name.endswith(".resources.json"):
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            data = {"mode": path.stem.rsplit("_", 1)[-1], "error": "Incomplete result file"}
         raw[path.stem] = data
+        metrics_partial = not bool(data.get("metrics"))
+        if metrics_partial:
+            try:
+                checkpoint = json.loads(path.with_suffix(".resources.json").read_text(encoding="utf-8"))
+                data["metrics"] = checkpoint["metrics"]
+                data["resource_samples"] = checkpoint["resource_samples"]
+            except (OSError, ValueError, KeyError):
+                pass
         cases = data.get("cases", [])
         tested = set(c["asin"] for c in cases)
         samples = data.get("resource_samples", [])
@@ -44,14 +58,19 @@ def summarize(folder):
         start = statistics.median(s["uss_mib"] for s in warm[:width]) if warm else None
         end = statistics.median(s["uss_mib"] for s in warm[-width:]) if warm else None
         runs.append({"file": path.name, "mode": data["mode"], "version": data.get("version"),
-                     "complete": bool(data.get("metrics") and cases and not data.get("error") and not data.get("stopped")),
+                     "complete": bool(not metrics_partial and cases and not data.get("error") and not data.get("stopped")),
+                     "metrics_partial": metrics_partial,
+                     "run_error": data.get("error"), "stopped": data.get("stopped", False),
                      "cases": len(cases), "errors": [c.get("error") for c in cases if c.get("error")],
+                     "product_errors": [{"index": c["index"], "asin": c["asin"], "error": c["error"],
+                                         "fatal": c.get("fatal", False)} for c in cases if c.get("error")],
                      "distinct_asins_tested": len(tested),
                      "all_selected_asins_tested": bool(tested) and not (set(data.get("asins", [])) - tested),
                      "untested_asins": sorted(set(data.get("asins", [])) - tested),
                      "insufficient_offers": [c["index"] for c in cases if not c.get("required_offers_loaded")],
                      "unknown_total_count": [c["index"] for c in cases if not c.get("count_known")],
-                     "changed_after_navigation": [c["index"] for c in cases if not c.get("same_after_navigation")],
+                     "changed_after_navigation": [c["index"] for c in cases if c.get("same_after_navigation") is False],
+                     "navigation_comparison_not_tested": [c["index"] for c in cases if c.get("same_after_navigation") is None],
                      "metrics": data.get("metrics"),
                      "warm_uss_start_mib": start, "warm_uss_end_mib": end,
                      "warm_uss_change_mib": None if start is None else round(end-start, 2)})
