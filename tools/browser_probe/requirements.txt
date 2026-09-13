@@ -1,0 +1,6 @@
+playwright==1.60.0
+psutil==7.2.2
+beautifulsoup4
+psycopg[binary]
+python-dotenv
+requests
