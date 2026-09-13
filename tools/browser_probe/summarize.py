@@ -4,6 +4,7 @@ from pathlib import Path
 import statistics
 import sys
 import re
+from datetime import datetime
 
 
 def comparable(value):
@@ -35,6 +36,7 @@ def summarize(folder):
         data = json.loads(path.read_text(encoding="utf-8"))
         raw[path.stem] = data
         cases = data.get("cases", [])
+        tested = set(c["asin"] for c in cases)
         samples = data.get("resource_samples", [])
         # Compare first/last quartile AFTER initial warmup, not launch/teardown.
         warm = [s for s in samples if s["seconds"] >= 60]
@@ -44,6 +46,9 @@ def summarize(folder):
         runs.append({"file": path.name, "mode": data["mode"], "version": data.get("version"),
                      "complete": bool(data.get("metrics") and cases and not data.get("error") and not data.get("stopped")),
                      "cases": len(cases), "errors": [c.get("error") for c in cases if c.get("error")],
+                     "distinct_asins_tested": len(tested),
+                     "all_selected_asins_tested": bool(tested) and not (set(data.get("asins", [])) - tested),
+                     "untested_asins": sorted(set(data.get("asins", [])) - tested),
                      "insufficient_offers": [c["index"] for c in cases if not c.get("required_offers_loaded")],
                      "unknown_total_count": [c["index"] for c in cases if not c.get("count_known")],
                      "changed_after_navigation": [c["index"] for c in cases if not c.get("same_after_navigation")],
@@ -59,11 +64,14 @@ def summarize(folder):
         for index in range(max(len(a), len(b))):
             ca = a[index] if index < len(a) else {}
             cb = b[index] if index < len(b) else {}
+            gap = abs((datetime.fromisoformat(ca["utc"]) - datetime.fromisoformat(cb["utc"])).total_seconds()) if ca.get("utc") and cb.get("utc") else None
             pairs.append({"round": repetition, "index": index, "asin": ca.get("asin") or cb.get("asin"),
+                          "start_time_gap_seconds": gap,
                           "same_asin": bool(ca.get("asin")) and ca.get("asin") == cb.get("asin"),
                           **compare_cases(ca, cb)})
     result = {"expected_runs": expected, "observed_runs": len(runs),
               "all_runs_complete": len(runs) == expected and all(r["complete"] for r in runs),
+              "all_selected_asins_tested_in_each_run": len(runs) == expected and all(r["all_selected_asins_tested"] for r in runs),
               "paired_observations": pairs,
               "note": "Memory growth is not by itself proof of a leak. Review raw per-ASIN results for time-varying prices and delivery. No automatic production adoption.",
               "runs": runs}

@@ -1,13 +1,25 @@
-# 実運用PCでのブラウザ比較（本番切替ではありません）
+# 多品種・長時間ブラウザ比較（本番への切替ではありません）
 
-必須ASIN B07QP2L8LC と B019SKZXV8、B0F2HTH5H9 を匿名ブラウザで反復取得します。
-出品・注文・カート追加・DB接続と保存は行いません。本番ワーカーの設定変更や再起動は不要です。
-ChromeとHeadless Shellを同じPCで比較します。Chrome自体のインストールが必要です。
+## 通常の使い方
+
+最新の feature/rakuten-listing をpullし、初回セットアップ済みなら
+tools/browser_probe/run_probe.cmd をダブルクリックしてください。
+
+標準では通常処理のDB接続設定を使い、amazon_productsから
+「未チェック、または6時間以上前にチェック」のASINを古い順に最大100件取得します。
+price_check_from_db.py の通常選択と同じ条件です。
+必須 B07QP2L8LC、定期購入確認用 B019SKZXV8、数量差確認用 B0F2HTH5H9 を追加。
+追加商品10件ごとにこの3商品を再挿入し、一巡後は同じ順序で巡回します。
+
+DB接続は開始時のASIN取得だけ。サーバー側の読み取り専用トランザクションを指定します。
+checked_at、価格、在庫、ジョブ状態、ロック、DBスキーマを更新しません。
+ブラウザ側の取得処理では従来通りDB接続・保存を禁止。出品・購入・カート追加も行いません。
+DB取得失敗や対象0件で固定3件に黙って切り替えることはありません。
 
 ## 初回セットアップ
 
-このブランチを取得したリポジトリのルートでPowerShellを開き、以下を1行ずつ実行してください。
-専用の仮想環境を作るため、既存ワーカーのPythonパッケージは変更しません。
+リポジトリのルートでPowerShellを開いて実行します。system32では実行しません。
+既存ワーカーとは別の仮想環境を使用します。Chrome本体のインストールも必要です。
 
 ```powershell
 py -3.12 -m venv tools/browser_probe/.venv
@@ -15,55 +27,67 @@ tools/browser_probe/.venv/Scripts/python.exe -m pip install -r tools/browser_pro
 tools/browser_probe/.venv/Scripts/python.exe -m playwright install chromium --only-shell
 ```
 
-## 実行
-
-まず短い動作確認（各方式1回、最低3商品。約2〜5分）:
-
-```powershell
-tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_probe.py --seconds 1 --rounds 1
-```
-
-問題なければ tools/browser_probe/run_probe.cmd をダブルクリックします。
-標準はChrome→Shell→Shell→Chromeの順で各15分、計約1時間です。
-各試験内はブラウザを再起動せず再利用。商品間10秒休止。末尾の処理により予定時間を超過する場合があります。
-本番ワーカーと同時に動かすとPC全体の負荷が増え、測定条件も変わります。まず通常ジョブが止まっている時間帯で実施してください。
-
-長めの比較（各30分×各2回、計約2時間）:
+通常のワーカーでstats方式を使っている場合は、期限・状態・優先順をその方式に合わせます。
+ただし検証では仕事の確保（UPDATEやFOR UPDATE）を行いません。
 
 ```powershell
-tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_probe.py --seconds 1800 --rounds 2
+tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_probe.py --use-stats
 ```
 
-先頭20件は既存処理の検査上限です。総件数が分かる場合はその少ない方を必要件数とします。
-必要件数まで追加読み込みし、未達は記録して終了コード1。総件数不明も明記します。
-拡張検証は --offer-limit 40 などで最大100件まで指定可能。全件読込を保証するものではありません。
-価格順の並びや表示総数の意味も生結果・画像で確認してください。
+対象数と時間を変更する例（最大100件、各ラウンド30分×2回）:
+
+```powershell
+tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_probe.py --db-limit 100 --hours 6 --seconds 1800 --rounds 2
+```
+
+## 比較方法と所要時間
+
+両方式とも専用匿名ブラウザを起動したまま再利用し、
+商品AのChrome→商品AのShell→商品BのChrome→商品BのShell、と交互に取得します。
+第2ラウンドではShellを先にします。対象一覧は開始時に一度保存し、両方で共有します。
+取得開始時刻の差も保存します。同時刻ではないためAmazon側の変動を完全には排除できません。
+
+標準は各ラウンド15分×2回、計約30分＋末尾処理時間です。
+以前の方式とは異なり、両ブラウザが同時に存在しますがページの検査は交互です。
+待機中のCPU・メモリも測定値に含むため、旧方式の数字とは直接比較しないでください。
+PC全体のメモリ負荷が増えます。まず本番ジョブが止まっている時間帯に実行してください。
+本番ワーカー・QNAPの設定変更や再起動は不要です。
+
+最低3商品を確認した後は時間制限で止まります。100件すべてを処理する保証ではありません。
+summary.json の distinct_asins_tested と untested_asins を確認し、未検証が多ければ時間を延ばします。
+約0.2秒間隔の専有メモリ推移と、取得価格・数量・出品者・配送等の差分を記録します。
+必要出品件数は先頭20件（表示総数が少なければその件数）。--offer-limit 40 などで最大100件に拡張できます。
+在庫切れなど出品一覧がない商品も取得結果を残しますが、件数判定は未達・不明となり得ます。
+必要件数未達は合格扱いにしません。画像は各ラウンド冒頭3件だけ保存します。
+
+## 短い確認とファイル入力
+
+DBを使わない固定3件の動作確認は、明示的に --smoke を指定します。
+
+```powershell
+tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/interaction_probe.py --smoke --seconds 1 --rounds 1
+```
+
+任意で --asin-file ファイル名 も使用可能です（UTF-8、1行1件テキスト、またはASIN列のCSV）。
+通常運用では指定不要です。
 
 ## 停止と結果
 
-Ctrl+Cで専用テストプロセスだけを停止します。本番Chromeを名前で一括終了しません。
-または画面に出る出力フォルダに空の STOP ファイルを作ると、現在の商品が終了した時点で停止します。
-認証・CAPTCHAや取得エラー時は自動再試行せず終了。途中結果は成功扱いにしません。
+Ctrl+Cまたは出力フォルダに空の STOP ファイルを作ると専用テストを停止します。
+専用プロセスツリーだけが対象で、本番Chromeを名前で一括終了しません。
+認証・CAPTCHA・取得エラーでは停止し、回避や無限リトライは行いません。
 
-結果は output/browser_probe_日時/ に保存されGit対象外です。各方式のJSON、ログ、最初の3商品の画像、
-商品ごとの取得内容・クリック証跡・必要件数判定、約0.2秒間隔の専有メモリ推移を保存します。
-途中停止では最終リソース記録が欠ける場合があります。
+output/browser_probe_日時/ に一覧スナップショット、機種情報、
+round*.json、ログ、最初の商品の画像、summary.json を保存します。Gitには含めません。
+強制終了では最後のメモリ集計が欠ける可能性があります。再集計:
 
 ```powershell
 tools/browser_probe/.venv/Scripts/python.exe tools/browser_probe/summarize.py output/browser_probe_日時
 ```
 
-正常完了時は summary.json を自動作成します。途中終了後は上のコマンドで集計できます。
-生成した summary.json と各 round*.json / log を渡してください。画像には商品ページの表示情報が含まれます。
-稼働PCでの実測結果を確認してから採用判断します。今回のpushのみでは本番のブラウザは変わりません。
-ChromeとShellのバージョン差、取得時刻による価格・配送・締切の変化、他プロセスの負荷に注意。
-専有メモリの増加だけでリークと断定せず、ウォームアップ後の推移と反復間の再現性を見ます。
+summary.json と round*.json / log を渡してください。
+all_runs_complete は実行完了であり、情報の完全一致・本番採用合格ではありません。
+メモリ増加だけでリークと断定せず、ウォームアップ後の推移と反復間の再現性を確認します。
 
-## push前の短時間検証（2026-09-13）
-
-自動テストに加え、Chrome/Shell各1回・3商品で起動から結果保存まで動作確認。
-必要な8件・20件・10件は双方で取得。各方式内で操作前後の取得結果は一致。
-ただしB0F2HTH5H9では2,792円の同価格出品から異なる出品者を選び、購入可能数量がChrome 2個 / Shell 15個。
-B019SKZXV8の出品カードにも差分あり。時刻・同価格出品の順序・ブラウザ差のどれが原因かは未確定。
-そのため本ツールは検証用であり、採用済みの切替機能ではありません。
-長時間検証と実運用PC検証は未完了です。summaryのall_runs_completeは実行完了であり、情報一致の合格判定ではありません。
+既知: 以前の短時間試験でB0F2HTH5H9は同価格2,792円でも選択出品者が異なり数量2個/15個の差が出ました。
+時刻・同価格出品順・ブラウザ差の原因は未確定。多品種・実運用PCでの実測後に採用判断します。

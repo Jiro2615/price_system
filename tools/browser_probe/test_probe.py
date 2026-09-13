@@ -1,9 +1,54 @@
 import unittest
 from summarize import comparable, compare_cases
 from probe_support import REPO, no_db, challenge
+from asin_plan import make_plan, CONTROLS, load_asins, wait_turn, from_db
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch, MagicMock
+import asyncio
+import sys
 
 
 class ProbeTests(unittest.TestCase):
+    def test_multivariety_controls(self):
+        others = [f"B{i:09d}" for i in range(21)]
+        plan = make_plan(others + others)
+        self.assertEqual(plan[:3], CONTROLS)
+        self.assertEqual(plan[13:16], CONTROLS)
+        self.assertEqual(set(plan), set(others + CONTROLS))
+
+    def test_input(self):
+        with TemporaryDirectory() as folder:
+            p = Path(folder) / "asins.txt"
+            p.write_text("b07qp2l8lc &#x20;\nB07QP2L8LC\n", encoding="utf-8")
+            self.assertEqual(load_asins(p), ["B07QP2L8LC"])
+            p.write_text("bad", encoding="utf-8")
+            with self.assertRaises(ValueError): load_asins(p)
+
+    def test_paired_turn(self):
+        with TemporaryDirectory() as folder:
+            p = Path(folder)
+            self.assertTrue(asyncio.run(wait_turn(p, "chrome", "chrome", 0)))
+            self.assertTrue(asyncio.run(wait_turn(p, "shell", "shell", 0)))
+            (p / "chrome_0.done").touch()
+            self.assertTrue(asyncio.run(wait_turn(p, "shell", "chrome", 0)))
+            (p / "chrome.finished").touch()
+            self.assertFalse(asyncio.run(wait_turn(p, "shell", "chrome", 1)))
+            (p / "STOP").touch()
+            self.assertFalse(asyncio.run(wait_turn(p, "chrome", "chrome", 0)))
+
+    def test_db_select_only(self):
+        sys.path.insert(0, str(REPO))
+        for stats in (False, True):
+            with patch("scripts.db_config.connect_db") as connect:
+                cursor = connect.return_value.__enter__.return_value.cursor.return_value.__enter__.return_value
+                cursor.fetchall.return_value = [("B07QP2L8LC",)]
+                self.assertEqual(from_db(use_stats=stats), ["B07QP2L8LC"])
+                self.assertIn("default_transaction_read_only=on", connect.call_args.kwargs["options"])
+                sql = cursor.execute.call_args.args[0].upper()
+                self.assertTrue(sql.strip().startswith("SELECT"))
+                for forbidden in ("UPDATE ", "INSERT ", "DELETE ", "FOR UPDATE"):
+                    self.assertNotIn(forbidden, sql)
     def test_relative_repo(self):
         self.assertTrue((REPO / "scripts" / "price_check_one_asin_db.py").is_file())
 

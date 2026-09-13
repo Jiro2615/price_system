@@ -10,11 +10,13 @@ import time
 from urllib.parse import urlparse
 
 from probe_support import ROOT, REPO, ASIN, FIELDS, Meter, no_db, challenge
+from asin_plan import load_asins, make_plan, wait_turn, from_db
 
 ASINS = [ASIN, "B019SKZXV8", "B0F2HTH5H9"]
 
 
-async def run(mode, out, seconds=900, offer_limit=20):
+async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, first="chrome"):
+    plan = plan or ASINS
     sys.path.insert(0, str(REPO))
     import scripts.db_config as db
     db.connect_db = no_db
@@ -23,7 +25,7 @@ async def run(mode, out, seconds=900, offer_limit=20):
     import scripts.price_check_one_asin_db as checker
     checker.connect_db = checker.save_to_db = no_db
     from playwright.async_api import async_playwright
-    result = {"mode": mode, "utc": datetime.now(timezone.utc).isoformat(), "asins": ASINS, "cases": [],
+    result = {"mode": mode, "utc": datetime.now(timezone.utc).isoformat(), "asins": list(dict.fromkeys(plan)), "plan": plan, "cases": [],
               "scope": "anonymous; same browser/context reused; navigation, offer panel, purchase-option selection only; no cart/purchase/DB/Keepa/RMS"}
     result["requested_seconds"] = seconds
     deadline = time.monotonic() + seconds
@@ -66,11 +68,14 @@ async def run(mode, out, seconds=900, offer_limit=20):
                     return response
                 page.goto = safe_goto
                 import itertools
-                for case_index, asin in enumerate(itertools.cycle(ASINS)):
+                for case_index, asin in enumerate(itertools.cycle(plan)):
                     if (out.parent / "STOP").exists():
                         result["stopped"] = True
                         break
-                    if case_index >= len(ASINS) and time.monotonic() >= deadline:
+                    if sync and not await wait_turn(sync, mode, first, case_index):
+                        result["stopped"] = (sync / "STOP").exists()
+                        break
+                    if (not sync or mode == first) and case_index >= len(ASINS) and time.monotonic() >= deadline:
                         break
                     case = {"index": case_index, "asin": asin, "utc": datetime.now(timezone.utc).isoformat()}
                     started = time.monotonic()
@@ -175,6 +180,8 @@ async def run(mode, out, seconds=900, offer_limit=20):
                     case["sample_private_working_set_mib"] = round(meter.rows[-1][4]/2**20, 1)
                     result["cases"].append(case)
                     out.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+                    if sync:
+                        (sync / f"{mode}_{case_index}.done").touch()
                     print(mode, asin, "offers", case.get("offer_count"), "toggle", case.get("restore_called_changed"), "error", case.get("error"), flush=True)
                     if case.get("error"):
                         result["error"] = "Stopped on case error; no retries or challenge bypass"
@@ -186,6 +193,8 @@ async def run(mode, out, seconds=900, offer_limit=20):
     except Exception as exc:
         result["error"] = f"{type(exc).__name__}: {exc}"
     finally:
+        if sync:
+            (sync / f"{mode}.finished").touch()
         result["metrics"] = meter.finish()
         result["resource_samples"] = [{"seconds": r[5], "uss_mib": round(r[4]/2**20, 2), "host_cpu_percent": r[3]} for r in meter.rows]
         out.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
@@ -214,12 +223,29 @@ def main():
     parser.add_argument("--seconds", type=int, default=900)
     parser.add_argument("--rounds", type=int, default=2)
     parser.add_argument("--offer-limit", type=int, default=20)
+    parser.add_argument("--asin-file", type=Path)
+    parser.add_argument("--db-limit", type=int, default=100)
+    parser.add_argument("--hours", type=int, default=6)
+    parser.add_argument("--use-stats", action="store_true")
+    parser.add_argument("--smoke", action="store_true", help="Explicit fixed-three-product smoke test")
+    parser.add_argument("--sync", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--first", choices=["chrome", "shell"], default="chrome", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.asin_file and args.smoke:
+        parser.error("Choose --asin-file or --smoke, not both")
+    if not 1 <= args.db_limit <= 1000 or not 0 <= args.hours <= 8760:
+        parser.error("db-limit 1..1000; hours 0..8760")
+    try:
+        selected = ASINS if args.smoke else load_asins(args.asin_file) if args.asin_file else from_db(args.db_limit, args.hours, args.use_stats)
+        plan = make_plan(selected)
+    except Exception as exc:
+        # Connection exceptions may contain connection details. Keep console generic.
+        parser.error("ASIN selection failed (" + type(exc).__name__ + "). Check DB configuration / due targets or input file. No fallback.")
     if not 1 <= args.seconds <= 14400 or not 1 <= args.rounds <= 10 or not 1 <= args.offer_limit <= 100:
         parser.error("seconds 1..14400, rounds 1..10, offer-limit 1..100")
     if args.mode:
         if not args.output: parser.error("--output required")
-        asyncio.run(run(args.mode, args.output, args.seconds, args.offer_limit))
+        asyncio.run(run(args.mode, args.output, args.seconds, args.offer_limit, plan, args.sync, args.first))
         data = json.loads(args.output.read_text(encoding="utf-8"))
         return 1 if data.get("error") or data.get("stopped") or not data.get("cases") or any(c.get("error") or not c.get("required_offers_loaded") for c in data.get("cases", [])) else 0
     import platform
@@ -238,23 +264,49 @@ def main():
         manifest["git_revision"] = None
     (out / "machine.json").write_text(json.dumps(manifest, default=str, indent=2), encoding="utf-8")
     print("Output:", out, "\\nStop: Ctrl+C or create STOP file in that folder.", flush=True)
+    # Snapshot once; both children read exactly the same list, never the DB.
+    snapshot = out / "asins.txt"
+    snapshot.write_text("\n".join(selected) + "\n", encoding="utf-8")
+    manifest["selection"] = {"source": "smoke" if args.smoke else "file" if args.asin_file else "DB",
+                             "unique_asins": list(dict.fromkeys(plan)), "plan": plan,
+                             "paired": True}
+    (out / "machine.json").write_text(json.dumps(manifest, default=str, indent=2), encoding="utf-8")
+    from contextlib import ExitStack
     for repetition in range(args.rounds):
-        for mode in (["chrome", "shell"] if repetition % 2 == 0 else ["shell", "chrome"]):
-            if (out / "STOP").exists(): return 1
-            name = f"round{repetition+1}_{mode}"
-            with (out / (name + ".log")).open("w", encoding="utf-8") as log:
-                process = subprocess.Popen([sys.executable, __file__, "--mode", mode,
-                    "--output", str(out / (name + ".json")), "--seconds", str(args.seconds),
-                    "--offer-limit", str(args.offer_limit)], stdout=log, stderr=subprocess.STDOUT,
-                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-                try:
-                    process.wait(timeout=args.seconds + 600)
-                except (KeyboardInterrupt, subprocess.TimeoutExpired):
-                    stop_tree(process)
-                    print("Stopped test tree; results may be partial.", flush=True)
-                    return 1
-            print(name, "finished", process.returncode, flush=True)
-            if process.returncode: return 1
+        first = "chrome" if repetition % 2 == 0 else "shell"
+        sync = out / f"round{repetition+1}_sync"
+        sync.mkdir()
+        processes = []
+        with ExitStack() as stack:
+            try:
+                for mode in [first, "shell" if first == "chrome" else "chrome"]:
+                    name = f"round{repetition+1}_{mode}"
+                    log = stack.enter_context((out / (name + ".log")).open("w", encoding="utf-8"))
+                    process = subprocess.Popen([sys.executable, __file__, "--mode", mode,
+                        "--output", str(out / (name + ".json")), "--seconds", str(args.seconds),
+                        "--offer-limit", str(args.offer_limit), "--asin-file", str(snapshot),
+                        "--sync", str(sync), "--first", first], stdout=log, stderr=subprocess.STDOUT,
+                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                    processes.append(process)
+                timeout = time.monotonic() + args.seconds + 600
+                while any(p.poll() is None for p in processes):
+                    if (out / "STOP").exists() or any(p.poll() not in (None, 0) for p in processes):
+                        raise RuntimeError("Stopped or incomplete paired test")
+                    if time.monotonic() >= timeout:
+                        raise TimeoutError("Paired test timeout")
+                    time.sleep(0.2)
+                if any(p.returncode for p in processes):
+                    raise RuntimeError("Incomplete paired test")
+            except (KeyboardInterrupt, RuntimeError, TimeoutError, OSError):
+                (sync / "STOP").touch()
+                for process in processes:
+                    if process.poll() is None:
+                        stop_tree(process)
+                from summarize import summarize
+                summarize(out)
+                print("Stopped; partial results saved:", out, flush=True)
+                return 1
+        print("Paired round", repetition + 1, "finished", flush=True)
     from summarize import summarize
     summarize(out)
     print("Complete. Results:", out, flush=True)
