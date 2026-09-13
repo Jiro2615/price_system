@@ -29,13 +29,20 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(child_exit_code(data), 1)
         self.assertIsNotNone(data["metrics"])
 
-    def fake_run(self, authentication):
+    def test_single_read_count_and_no_extra_operations(self):
+        data = self.fake_run(False, single=True)
+        self.assertEqual(len(data["cases"]), 3)
+        self.assertEqual([c["index"] for c in data["cases"]], [50, 51, 52])
+        self.assertTrue(all(not c.get("error") and "after_navigation" not in c for c in data["cases"]))
+
+    def fake_run(self, authentication, single=False):
         sys.path.insert(0, str(REPO))
         import scripts.price_check_one_asin_db as checker
         page = MagicMock()
         page.url = "about:blank"
         page.is_closed.return_value = False
         page.add_init_script = AsyncMock()
+        page.evaluate = AsyncMock(return_value=[])
         page.locator.return_value.inner_text = AsyncMock(return_value="Product")
 
         async def goto(url, **kwargs):
@@ -61,7 +68,7 @@ class RecoveryTests(unittest.TestCase):
                     await page.goto("https://www.amazon.co.jp/ap/signin")
                 except Exception:
                     pass  # Simulate the production parser swallowing exceptions.
-            return {"asin": asin, "system_error": True,
+            return {"asin": asin, "system_error": not single,
                     "ng_reason": "ギフト不可（Amazon.co.jp直販例外の未確認）"}
 
         real_sleep = asyncio.sleep
@@ -77,7 +84,7 @@ class RecoveryTests(unittest.TestCase):
                 stack.enter_context(patch(target))
             stack.enter_context(patch("interaction_probe.asyncio.sleep", new=quick_sleep))
             out = Path(folder) / "round1_chrome.json"
-            asyncio.run(run("chrome", out, seconds=-1))
+            asyncio.run(run("chrome", out, seconds=-1, case_limit=3 if single else 0, index_offset=50 if single else 0))
             return json.loads(out.read_text(encoding="utf-8"))
 
     def test_partial_resources_are_recovered_not_complete(self):

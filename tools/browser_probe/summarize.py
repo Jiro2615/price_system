@@ -58,7 +58,10 @@ def summarize(folder):
         start = statistics.median(s["uss_mib"] for s in warm[:width]) if warm else None
         end = statistics.median(s["uss_mib"] for s in warm[-width:]) if warm else None
         runs.append({"file": path.name, "mode": data["mode"], "version": data.get("version"),
-                     "complete": bool(not metrics_partial and cases and not data.get("error") and not data.get("stopped")),
+                     "complete": bool(not metrics_partial and cases and not data.get("error") and not data.get("stopped") and (not data.get("requested_cases") or len(cases) == data["requested_cases"])),
+                     "profile": data.get("profile", "interaction"),
+                     "restart_cycles": data.get("cycles", []),
+                     "requested_cases": data.get("requested_cases"),
                      "metrics_partial": metrics_partial,
                      "run_error": data.get("error"), "stopped": data.get("stopped", False),
                      "cases": len(cases), "errors": [c.get("error") for c in cases if c.get("error")],
@@ -67,8 +70,9 @@ def summarize(folder):
                      "distinct_asins_tested": len(tested),
                      "all_selected_asins_tested": bool(tested) and not (set(data.get("asins", [])) - tested),
                      "untested_asins": sorted(set(data.get("asins", [])) - tested),
-                     "insufficient_offers": [c["index"] for c in cases if not c.get("required_offers_loaded")],
-                     "unknown_total_count": [c["index"] for c in cases if not c.get("count_known")],
+                     "insufficient_offers": [c["index"] for c in cases if c.get("required_offers_loaded") is False],
+                     "unknown_total_count": [c["index"] for c in cases if c.get("count_known") is False],
+                     "offer_loading_not_tested": [c["index"] for c in cases if "required_offers_loaded" not in c],
                      "changed_after_navigation": [c["index"] for c in cases if c.get("same_after_navigation") is False],
                      "navigation_comparison_not_tested": [c["index"] for c in cases if c.get("same_after_navigation") is None],
                      "metrics": data.get("metrics"),

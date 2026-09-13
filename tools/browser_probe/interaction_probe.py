@@ -28,7 +28,7 @@ def child_exit_code(data):
     return int(bool(data.get("error") or data.get("stopped") or not data.get("cases")))
 
 
-async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, first="chrome"):
+async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, first="chrome", case_limit=0, index_offset=0):
     plan = plan or ASINS
     sys.path.insert(0, str(REPO))
     import scripts.db_config as db
@@ -41,11 +41,15 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
     result = {"mode": mode, "utc": datetime.now(timezone.utc).isoformat(), "asins": list(dict.fromkeys(plan)), "plan": plan, "cases": [],
               "scope": "anonymous; same browser/context reused; navigation, offer panel, purchase-option selection only; no cart/purchase/DB/Keepa/RMS"}
     result["requested_seconds"] = seconds
+    result["requested_cases"] = case_limit or None
+    result["profile"] = "single_read" if case_limit else "interaction"
     deadline = time.monotonic() + seconds
     atomic_json(out, result)
     meter = Meter(out.with_suffix(".resources.json"))
     meter.start()
     stop_paths = [out.parent / "STOP"] + ([sync / "STOP"] if sync else [])
+    if case_limit:
+        stop_paths.append(out.parent.parent / "STOP")
     watcher = asyncio.create_task(stop_watcher(asyncio.current_task(), stop_paths))
     try:
         async with async_playwright() as p:
@@ -93,15 +97,17 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                 page.goto = safe_goto
                 import itertools
                 for case_index, asin in enumerate(itertools.cycle(plan)):
+                    if case_limit and case_index >= case_limit:
+                        break
                     if (out.parent / "STOP").exists():
                         result["stopped"] = True
                         break
-                    if sync and not await wait_turn(sync, mode, first, case_index):
+                    if sync and not await wait_turn(sync, mode, first, case_index + index_offset):
                         result["stopped"] = (sync / "STOP").exists()
                         break
-                    if (not sync or mode == first) and case_index >= len(ASINS) and time.monotonic() >= deadline:
+                    if not case_limit and (not sync or mode == first) and case_index >= len(ASINS) and time.monotonic() >= deadline:
                         break
-                    case = {"index": case_index, "asin": asin, "utc": datetime.now(timezone.utc).isoformat()}
+                    case = {"index": case_index + index_offset, "asin": asin, "utc": datetime.now(timezone.utc).isoformat()}
                     started = time.monotonic()
                     try:
                         await page.goto("about:blank")
@@ -111,6 +117,9 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                         if data.get("system_error"):
                             raise RuntimeError("Baseline not valid: " + data.get("ng_reason", ""))
                         case["baseline_clicks"] = await page.evaluate("window.__probeClicks||[]")
+                        if case_limit:
+                            # Count-driven profile performs exactly one normal parser call.
+                            raise SingleReadComplete()
                         # A successful production fallback may leave AOD open.
                         # Reload a clean document before testing purchase options.
                         dialogs = page.locator("#all-offers-display[role='dialog']")
@@ -200,6 +209,8 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                         case["after_navigation"] = {k: data2.get(k) for k in FIELDS}
                         await check_safety()
                         case["same_after_navigation"] = case["baseline"] == case["after_navigation"]
+                    except SingleReadComplete:
+                        pass
                     except asyncio.CancelledError:
                         case["error"] = "Explicit stop requested during product"
                         case["fatal"] = True
@@ -226,10 +237,12 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
                             (sync / "STOP").touch()
                         break
                     if sync:
-                        (sync / f"{mode}_{case_index}.done").touch()
+                        (sync / f"{mode}_{case_index + index_offset}.done").touch()
                     print(mode, asin, "offers", case.get("offer_count"), "toggle", case.get("restore_called_changed"), "error", case.get("error"), flush=True)
                     await asyncio.sleep(10)
                 result["blocked_request_count"] = len(blocked)
+                from restart_probe import process_snapshot
+                result["before_close"] = process_snapshot()
             finally:
                 await browser.close()
     except asyncio.CancelledError:
@@ -241,8 +254,12 @@ async def run(mode, out, seconds=900, offer_limit=20, plan=None, sync=None, firs
         result["metrics"] = meter.finish()
         result["resource_samples"] = meter.resource_samples()
         atomic_json(out, result)
-        if sync:
+        if sync and not case_limit:
             (sync / f"{mode}.finished").touch()
+
+
+class SingleReadComplete(Exception):
+    """Internal branch out of optional interaction checks; not a product error."""
 
 
 def stop_tree(process):
@@ -267,6 +284,8 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--seconds", type=int, default=900)
     parser.add_argument("--rounds", type=int, default=2)
+    parser.add_argument("--restart-every", type=int, default=0, help="Single-read cases per full browser restart; 0 keeps interaction profile")
+    parser.add_argument("--cycles", type=int, default=3)
     parser.add_argument("--offer-limit", type=int, default=20)
     parser.add_argument("--asin-file", type=Path)
     parser.add_argument("--db-limit", type=int, default=100)
@@ -276,6 +295,8 @@ def main():
     parser.add_argument("--sync", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--first", choices=["chrome", "shell"], default="chrome", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if not 0 <= args.restart_every <= 1000 or not 1 <= args.cycles <= 10:
+        parser.error("restart-every 0..1000; cycles 1..10")
     if args.asin_file and args.smoke:
         parser.error("Choose --asin-file or --smoke, not both")
     if not 1 <= args.db_limit <= 1000 or not 0 <= args.hours <= 8760:
@@ -290,7 +311,11 @@ def main():
         parser.error("seconds 1..14400, rounds 1..10, offer-limit 1..100")
     if args.mode:
         if not args.output: parser.error("--output required")
-        asyncio.run(run(args.mode, args.output, args.seconds, args.offer_limit, plan, args.sync, args.first))
+        if args.restart_every:
+            from restart_probe import run_cycles
+            asyncio.run(run_cycles(run, args.mode, args.output, plan, args.restart_every, args.cycles, args.sync, args.first))
+        else:
+            asyncio.run(run(args.mode, args.output, args.seconds, args.offer_limit, plan, args.sync, args.first))
         data = json.loads(args.output.read_text(encoding="utf-8"))
         return child_exit_code(data)
     import platform
@@ -330,10 +355,11 @@ def main():
                     process = subprocess.Popen([sys.executable, __file__, "--mode", mode,
                         "--output", str(out / (name + ".json")), "--seconds", str(args.seconds),
                         "--offer-limit", str(args.offer_limit), "--asin-file", str(snapshot),
+                        "--restart-every", str(args.restart_every), "--cycles", str(args.cycles),
                         "--sync", str(sync), "--first", first], stdout=log, stderr=subprocess.STDOUT,
                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
                     processes.append(process)
-                timeout = time.monotonic() + args.seconds + 600
+                timeout = time.monotonic() + (args.restart_every * args.cycles * 180 + 600 if args.restart_every else args.seconds + 600)
                 while any(p.poll() is None for p in processes):
                     if (out / "STOP").exists() or any(p.poll() not in (None, 0) for p in processes):
                         raise RuntimeError("Stopped or incomplete paired test")
