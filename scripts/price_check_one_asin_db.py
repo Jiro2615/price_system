@@ -855,7 +855,9 @@ async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optiona
     return min(candidates, key=lambda item: item["price"]) if candidates else None
 
 
-async def create_amazon_page(*, start_minimized: bool = False) -> tuple[Any, Any, Any, Any]:
+async def create_amazon_page(*, start_minimized: bool = False, browser_mode: str = "chrome") -> tuple[Any, Any, Any, Any]:
+    if browser_mode not in {"chrome", "shell"}:
+        raise ValueError("browser_mode must be chrome or shell")
     playwright = await async_playwright().start()
     launch_args = [
         "--disable-blink-features=AutomationControlled",
@@ -864,18 +866,25 @@ async def create_amazon_page(*, start_minimized: bool = False) -> tuple[Any, Any
     ]
     if start_minimized:
         launch_args.append("--start-minimized")
-    browser = await playwright.chromium.launch(
-        channel="chrome",
-        headless=False,
-        args=launch_args,
-    )
-
-    context = await browser.new_context(
-        viewport={"width": 1280, "height": 900},
-        locale="ja-JP",
-    )
-
-    page = await context.new_page()
+    browser = None
+    try:
+        if browser_mode == "shell":
+            # Same bundled headless-shell engine as the read-only comparison.
+            browser = await playwright.chromium.launch(headless=True)
+        else:
+            browser = await playwright.chromium.launch(channel="chrome", headless=False, args=launch_args)
+        context = await browser.new_context(
+            viewport={"width": 1280, "height": 900}, locale="ja-JP",
+            **({"service_workers": "block"} if browser_mode == "shell" else {}),
+        )
+        page = await context.new_page()
+    except BaseException:
+        try:
+            if browser is not None:
+                await browser.close()
+        finally:
+            await playwright.stop()
+        raise
     return playwright, browser, context, page
 
 

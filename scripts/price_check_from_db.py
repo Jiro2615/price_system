@@ -687,7 +687,12 @@ async def main() -> int:
     parser.add_argument("--system-error-only", action="store_true", help="amazon_products.system_error = TRUE のASINだけを再チェックする")
     parser.add_argument("--worker-id", default="", help="stats方式で使うワーカーID。未指定なら自動生成")
     parser.add_argument("--page-timeout", type=int, default=60000, help="page.goto の timeout(ms)")
+    parser.add_argument("--browser", choices=["chrome", "shell"],
+                        default=os.environ.get("PRICE_STOCK_BROWSER", "chrome"),
+                        help="価格在庫チェック専用。既定Chrome。Shellは50件ごとに完全再起動")
     args = parser.parse_args()
+    if args.browser not in {"chrome", "shell"}:
+        parser.error("PRICE_STOCK_BROWSER must be chrome or shell")
 
     if args.limit <= 0:
         print("--limit は 1以上にしてください。")
@@ -701,6 +706,7 @@ async def main() -> int:
     print(f"use_stats={args.use_stats}")
     print(f"system_error_only={args.system_error_only}")
     print(f"page_timeout={args.page_timeout}")
+    print(f"browser={args.browser}; restart_every={'50' if args.browser == 'shell' else 'existing policy'}")
     worker_id = args.worker_id.strip() or build_worker_id()
     started_at_dt = datetime.now()
     started_at_text = started_at_dt.strftime("%Y/%m/%d %H:%M:%S")
@@ -807,11 +813,16 @@ async def main() -> int:
     shared_page = None
 
     try:
-        print("共有Chrome/pageを起動します。")
-        playwright, browser, context, shared_page = await create_amazon_page()
+        print(f"共有browser/pageを起動します: {args.browser}")
+        playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
         print("共有Chrome/page起動完了")
 
         for idx, asin in enumerate(asins, start=1):
+            if args.browser == "shell" and idx > 1 and (idx - 1) % 50 == 0:
+                print("50件処理済み: Shellを完全終了・再起動します。")
+                await close_amazon_page(playwright, browser, context, shared_page)
+                playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
+                page_reset_count += 1
             metrics["checked_count"] += 1
             asin_started_perf = time.perf_counter()
             print(f"===== {idx}/{len(asins)} {asin} =====")
@@ -827,7 +838,7 @@ async def main() -> int:
                     print("page/context/browser closed を検知したため、共有page再作成後に同じASINを1回だけ再試行します。")
                     page_reset_count += 1
                     await close_amazon_page(playwright, browser, context, shared_page)
-                    playwright, browser, context, shared_page = await create_amazon_page()
+                    playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
                     print("共有Chrome/page再初期化完了")
                     data = await check_amazon_one(asin, page=shared_page, page_timeout_ms=args.page_timeout)
 
@@ -871,7 +882,7 @@ async def main() -> int:
                     print("共有pageの再作成が必要なため、次の商品に進む前にChrome/pageを再初期化します。")
                     page_reset_count += 1
                     await close_amazon_page(playwright, browser, context, shared_page)
-                    playwright, browser, context, shared_page = await create_amazon_page()
+                    playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
                     print("共有Chrome/page再初期化完了")
 
             except Exception as e:
@@ -888,7 +899,7 @@ async def main() -> int:
                     print("エラー後の共有Chrome/page再初期化を試みます。")
                     page_reset_count += 1
                     await close_amazon_page(playwright, browser, context, shared_page)
-                    playwright, browser, context, shared_page = await create_amazon_page()
+                    playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
                     print("共有Chrome/page再初期化完了")
                 except Exception as reset_error:
                     print(f"共有Chrome/page再初期化エラー: {reset_error}")
