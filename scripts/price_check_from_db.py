@@ -15,6 +15,7 @@ from typing import Any
 from calc_store_targets import recalc_targets_for_asins
 from db_config import connect_db
 from db_retry import DB_RETRY_EXIT_CODE, TemporaryDbError, run_with_db_retry
+from desktop_check_status import DesktopCheckStatus
 from price_check_one_asin_db import check_amazon_one, close_amazon_page, create_amazon_page, save_to_db
 
 
@@ -1986,13 +1987,16 @@ async def main() -> int:
     context = None
     shared_page = None
 
+    desktop_status = DesktopCheckStatus(enabled=args.browser == "shell")
     try:
+        desktop_status.update(0, len(asins), phase="ブラウザ起動中")
         print("共有Chrome/pageを起動します。")
         print(f"browser={args.browser}")
         playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
         print("共有Chrome/page起動完了")
 
         for idx, asin in enumerate(asins, start=1):
+            desktop_status.update(idx - 1, len(asins), asin, "価格・在庫チェック中")
             if args.browser == "shell" and idx > 1 and (idx - 1) % 50 == 0:
                 await close_amazon_page(playwright, browser, context, shared_page)
                 playwright, browser, context, shared_page = await create_amazon_page(browser_mode=args.browser)
@@ -2156,11 +2160,15 @@ async def main() -> int:
                     shared_page = None
 
             asin_elapsed = time.perf_counter() - asin_started_perf
+            desktop_status.update(idx, len(asins), asin, "処理済み（エラーを含む）")
             print(f"asin={asin} elapsed={asin_elapsed:.1f}s result={asin_result_label(data) if 'data' in locals() and isinstance(data, dict) else 'error'}")
             print("")
 
     finally:
-        await close_amazon_page(playwright, browser, context, shared_page)
+        try:
+            await close_amazon_page(playwright, browser, context, shared_page)
+        finally:
+            desktop_status.close()
 
     finished_at_dt = datetime.now()
     elapsed_seconds = round(time.perf_counter() - started_perf, 3)
