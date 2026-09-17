@@ -9,6 +9,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from scripts.listing.models import sanitize_for_output
+from scripts.rakuten_credential_client import central_credentials
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -61,6 +62,10 @@ def _first_env(names: tuple[str, ...]) -> str:
 
 
 def rakuten_auth_env_status(store_code: str = "") -> dict[str, Any]:
+    _load_env_once()
+    if central_credentials(store_code or "rakuten_1") is not None:
+        return {"store_code": store_code, "service_names": ["central"], "license_names": ["central"],
+                "service_configured": True, "license_configured": True, "configured": True, "missing_keys": []}
     service_names = _store_scoped_names(store_code, SECRET_ENV_NAMES)
     license_names = _store_scoped_names(store_code, LICENSE_ENV_NAMES)
     service_configured = bool(_first_env(service_names))
@@ -91,8 +96,10 @@ def build_rakuten_auth_headers(
 ) -> dict[str, str]:
     service_names = _store_scoped_names(store_code, SECRET_ENV_NAMES)
     license_names = _store_scoped_names(store_code, LICENSE_ENV_NAMES)
-    service_secret = _first_env(service_names)
-    license_key = _first_env(license_names)
+    _load_env_once()
+    central = central_credentials(store_code or "rakuten_1")
+    service_secret = central["service_secret"] if central is not None else _first_env(service_names)
+    license_key = central["license_key"] if central is not None else _first_env(license_names)
     if not service_secret:
         expected = " / ".join(service_names)
         raise RuntimeError(f"Rakuten service secret is empty for store_code={store_code or 'default'}: {ENV_PATH} (set one of {expected})")
