@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
+try:
+    from .rakuten_credential_client import central_credentials
+except ImportError:
+    from rakuten_credential_client import central_credentials
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -50,6 +54,10 @@ def load_rakuten_auth(store_code: str) -> dict[str, str]:
     load_dotenv(ENV_PATH)
 
     env_prefix = _normalize_store_env_prefix(store_code)
+    central = central_credentials(store_code)
+    if central is not None:
+        return {"store_code": store_code, "env_prefix": env_prefix,
+                "service_secret_env": "central", "license_key_env": "central", **central}
     service_names = [f"{env_prefix}_SERVICE_SECRET"]
     license_names = [f"{env_prefix}_LICENSE_KEY"]
 
