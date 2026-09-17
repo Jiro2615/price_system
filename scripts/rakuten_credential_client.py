@@ -38,9 +38,10 @@ def unix_credentials(path, parsed, body, headers):
         connection.sock.connect(str(path))
         connection.request("POST", parsed.path, body, {**headers, "X-Forwarded-Proto": "https"})
         response = connection.getresponse()
+        raw = response.read(8192)
         if response.status != 200:
             raise ValueError("Unix transport access denied")
-        return json.loads(response.read(8192))
+        return json.loads(raw)
     finally:
         connection.close()
 
