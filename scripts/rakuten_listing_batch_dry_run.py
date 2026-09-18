@@ -26,7 +26,7 @@ from scripts.price_check_one_asin_db import create_amazon_page
 
 ASIN_RE = re.compile(r"^[A-Z0-9]{10}$")
 MAX_ASINS = 10000
-FORCE_BYPASS_RULES = frozenset({"blacklist", "past_ng", "prohibited_words", "missing_attributes", "seller_count", "regulated_evidence"})
+FORCE_BYPASS_RULES = frozenset({"blacklist", "past_ng", "prohibited_words", "missing_attributes", "seller_count", "regulated_evidence", "rakuten_marketplace_evidence"})
 # Current Keepa plan refills 20 tokens/minute.  Metadata-only prechecks cost
 # one product token, so this leaves a small safety margin while adding no wait
 # during the much slower Amazon-page path.
