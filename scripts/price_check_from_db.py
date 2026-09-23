@@ -771,7 +771,22 @@ def _claim_active_listed_store_asins_without_retry(
                       OR (
                           COALESCE(ap.system_error, FALSE) = FALSE
                           AND COALESCE(s.check_interval_hours, 0) > 0
-                          AND COALESCE(s.check_interval_hours, 0) <> %(long_zero_interval_hours)s
+                          AND (
+                              COALESCE(s.check_interval_hours, 0) <> %(long_zero_interval_hours)s
+                              OR NOT (
+                                  SELECT COUNT(*) > 0 AND BOOL_AND(
+                                      COALESCE(z.current_stock, -1) = 0
+                                      AND z.stock_zero_since IS NOT NULL
+                                      AND z.stock_zero_since <= CURRENT_TIMESTAMP
+                                          - (%(long_zero_days)s || ' days')::interval
+                                  )
+                                  FROM store_products z
+                                  WHERE z.asin = s.asin
+                                    AND COALESCE(z.enabled, FALSE) = TRUE
+                                    AND COALESCE(z.force_stop, FALSE) = FALSE
+                                    AND COALESCE(z.current_status, '') NOT IN ('', 'delete_pending', 'deleted')
+                              )
+                          )
                       )
                  ))
             )
@@ -802,6 +817,7 @@ def _claim_active_listed_store_asins_without_retry(
                 "reason_pattern": f"%{reason_contains}%",
                 "store_code": store_code,
                 "long_zero_interval_hours": LONG_ZERO_STOCK_CHECK_INTERVAL_HOURS,
+                "long_zero_days": LONG_ZERO_STOCK_DAYS,
             })
             rows = cur.fetchall()
         conn.commit()

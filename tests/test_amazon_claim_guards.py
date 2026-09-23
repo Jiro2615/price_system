@@ -52,7 +52,8 @@ class ClaimSqlTests(unittest.TestCase):
             );
             CREATE TEMP TABLE amazon_products (asin text, system_error boolean, ng_reason text, checked_at timestamp);
             CREATE TEMP TABLE stores (id int, store_code text);
-            CREATE TEMP TABLE store_products (asin text, store_id int, enabled boolean, force_stop boolean, current_status text);
+            CREATE TEMP TABLE store_products (asin text, store_id int, enabled boolean, force_stop boolean, current_status text,
+                current_stock int DEFAULT 1, stock_zero_since timestamptz);
             INSERT INTO stores VALUES (1, 'rakuten_2');
         """)
         # Fail closed if any query would resolve to a persistent table.
@@ -66,13 +67,13 @@ class ClaimSqlTests(unittest.TestCase):
             (%s,%s,CURRENT_TIMESTAMP + %s::interval,CURRENT_TIMESTAMP + %s::interval)""",
             (asin,status,delay,lock_delay))
         self.q.execute("INSERT INTO amazon_products VALUES (%s,%s,%s,NULL)", (asin,error,reason))
-        self.q.execute("INSERT INTO store_products VALUES (%s,1,TRUE,FALSE,'listed')", (asin,))
+        self.q.execute("INSERT INTO store_products (asin,store_id,enabled,force_stop,current_status) VALUES (%s,1,TRUE,FALSE,'listed')", (asin,))
 
     def claim(self, name, worker="worker-a", error_only=True, reason=""):
         self.q.execute(claim_sql(name), {"limit": 100, "worker_id": worker,
             "lock_minutes": 30, "system_error_only": error_only, "reason_contains": reason,
             "reason_pattern": "%" + reason + "%", "store_code": "rakuten_2",
-            "long_zero_interval_hours": 36})
+            "long_zero_interval_hours": 36, "long_zero_days": 5})
         return {row[0] for row in self.q.fetchall()}
 
     def test_error_recheck_honors_schedule_and_existing_claims(self):
