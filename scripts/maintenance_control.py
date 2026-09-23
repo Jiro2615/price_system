@@ -1,4 +1,4 @@
-"""Read-only cooperative pause signal, checked only between worker batches."""
+"""Cooperative pause signal checked at safe product or worker-batch boundaries."""
 import os
 from db_config import connect_db
 

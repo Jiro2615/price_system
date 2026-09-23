@@ -16,6 +16,7 @@ from calc_store_targets import recalc_targets_for_asins
 from db_config import connect_db
 from db_retry import DB_RETRY_EXIT_CODE, TemporaryDbError, run_with_db_retry
 from desktop_check_status import DesktopCheckStatus
+from maintenance_control import maintenance_pause_requested
 from price_check_one_asin_db import check_amazon_one, close_amazon_page, create_amazon_page, save_to_db
 
 
@@ -402,7 +403,7 @@ def get_amazon_product_states(asins: list[str]) -> dict[str, dict[str, Any]]:
         conn.close()
 
 
-def release_claimed_asins(asins: list[str]) -> int:
+def release_claimed_asins(asins: list[str], worker_id: str | None = None) -> int:
 
     if not asins:
 
@@ -428,13 +429,15 @@ def release_claimed_asins(asins: list[str]) -> int:
 
     """
 
+    if worker_id is not None:
+        sql += " AND status = 'processing' AND worker_id = %s"
     conn = connect_db()
 
     try:
 
         with conn.cursor() as cur:
 
-            cur.execute(sql, (asins,))
+            cur.execute(sql, (asins, worker_id) if worker_id is not None else (asins,))
 
             released = cur.rowcount
 
@@ -1627,10 +1630,10 @@ def get_amazon_product_states(asins: list[str]) -> dict[str, dict[str, Any]]:
     )
 
 
-def release_claimed_asins(asins: list[str]) -> int:
+def release_claimed_asins(asins: list[str], worker_id: str | None = None) -> int:
 
     return run_with_db_retry(
-        lambda: _release_claimed_asins_without_retry(asins),
+        lambda: _release_claimed_asins_without_retry(asins, worker_id),
         description=f"release_claimed_asins count={len(asins)}",
         logger=print,
     )
@@ -1996,6 +1999,14 @@ async def main() -> int:
         print("共有Chrome/page起動完了")
 
         for idx, asin in enumerate(asins, start=1):
+            # Check outside the per-product error handler: a pause is not a
+            # product error. The previous product's saves have all completed.
+            if run_with_db_retry(maintenance_pause_requested, description="product boundary pause check", logger=print):
+                remaining = asins[idx - 1:]
+                if args.use_stats:
+                    release_claimed_asins(remaining, worker_id=worker_id)
+                print(f"Maintenance pause: product boundary reached; remaining={len(remaining)} released for resume.")
+                break
             desktop_status.update(idx - 1, len(asins), asin, "価格・在庫チェック中")
             if args.browser == "shell" and idx > 1 and (idx - 1) % 50 == 0:
                 await close_amazon_page(playwright, browser, context, shared_page)
@@ -2195,7 +2206,7 @@ async def main() -> int:
             print(f"claimed_count    : {metrics['claimed_count']}")
             print(f"checked_count    : {metrics['checked_count']}")
             print(f"success_count    : {metrics['success_count']}")
-        print(f"今回チェック件数: {len(asins)}")
+        print(f"今回チェック件数: {metrics['checked_count']}")
         print(f"変化あり件数  : {changed_count}")
         print(f"安定件数      : {stable_count}")
         print(f"システムエラー件数: {system_error_count}")
