@@ -822,7 +822,7 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
     except Exception:
         return None, False
     # ``すべての出品`` is a virtual scroller on some product pages.  Check the
-    # first 20 price-sorted offers to keep price checks responsive.
+    # entire advertised offer list before choosing a candidate.
     expected_count = 0
     total = page.locator("#aod-total-offer-count").first
     try:
@@ -830,9 +830,8 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
     except (TypeError, ValueError):
         pass
 
-    max_offer_inspection = min(expected_count, 20) if expected_count > 0 else 20
     stalled_loads = 0
-    while await offers.count() < max_offer_inspection:
+    while expected_count <= 0 or await offers.count() < expected_count:
         more = page.locator("#aod-show-more-offers")
         try:
             before = await offers.count()
@@ -855,6 +854,16 @@ async def read_lowest_amazon_fulfilled_offer_with_status(
                     break
         except Exception:
             break
+
+    loaded_count = await offers.count()
+    if expected_count <= 0 or loaded_count < expected_count:
+        # A partial list cannot establish the cheapest eligible offer or
+        # prove that no eligible offer exists. Let the caller record a
+        # system error instead of a completed business decision.
+        raise RuntimeError(
+            f"Amazon全出品の読み込み未完了（取得 {loaded_count}件 / "
+            f"総件数 {expected_count if expected_count > 0 else '不明'}）。再確認が必要です。"
+        )
 
     candidates: list[dict[str, Any]] = []
     for index in range(await offers.count()):
