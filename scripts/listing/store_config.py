@@ -229,6 +229,7 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
         rakuten_target_price_floor=_to_optional_positive_int(rakuten_target_price_floor),
         shipping_method_group=_get_env(store_code, "SHIPPING_METHOD_GROUP", ""),
         cabinet=get_store_cabinet_config(store_code),
+        image_overlay=dict(_get_store_cabinet_settings(store_code).get("listing_image_overlay") or {}),
         management_suffix=_get_env(store_code, "MANAGEMENT_SUFFIX", "187") or "187",
         send_inventory_delivery_ids=_to_bool(_get_env(store_code, "SEND_INVENTORY_DELIVERY_IDS", ""), False),
         listing_image_limit=_to_optional_positive_int(_get_env(store_code, "LISTING_IMAGE_LIMIT", str(DEFAULT_LISTING_IMAGE_LIMIT))),

@@ -78,7 +78,7 @@
 | --- | --- |
 | `reference/legacy_listing/catlist_rakuten.txt` | Keepa category_id から楽天 genreId への対応。カテゴリ不明時の最初の確認先。 |
 | `reference/legacy_listing/属性定義書.txt` | genreIdごとの必須属性・属性仕様の旧定義。 |
-| `reference/legacy_listing/shuppinlist_rakuten.txt` | 旧出品済み一覧。既出品なら外部アクセス前に `already_listed` で止める。 |
+| `reference/legacy_listing/shuppinlist_rakuten.txt` | 旧出品済み一覧の保管資料。現行の既出品判定はDBの有効な現在行を使用し、このファイルは読み込まない。 |
 | `reference/legacy_listing/blacklist.txt` | 出品除外ASINなど。 |
 | `reference/legacy_listing/kakoNG_rakuten.txt` | 過去NG。 |
 | `reference/legacy_listing/kinsiword_rakuten.txt` | 禁止語。 |
@@ -87,6 +87,17 @@
 | `reference/legacy_listing/警告ありメーカ.txt` | メーカー警告マスター。 |
 
 `kinsiword_other.txt` は欠落している環境があります。`--allow-missing-master` の場合はwarningとして継続する仕様です。
+
+### 5.1 現行のDB優先読み込みとバッチ高速判定（2026-09-13）
+
+- 通常の出品準備は `load_active_master_data` から読み込む。DBマスターが有効なら旧TXT/JSONを開かず、欠落ファイル警告も生成しない。DB未移行と明示的に確認できた場合のみ旧ファイルを使う。DB障害時は旧ルールへフォールバックせずエラーで止める。
+- 旧ファイルは移行・比較用に残す。`load_master_data` 自体はファイル専用のままなので、移行スクリプトからDBへ循環読み込みしない。
+- バッチの最初の段階で、現在の出品済み・過去NG・ブラックリストを除外する。出品済みは `store_products` の有効な現在行を対象ASINごとにまとめて取得（1クエリ最大1,000 ASIN）。過去の実行履歴や `shuppinlist_rakuten.txt` を永久除外の根拠にしない。削除済み・削除待ちなど既存の除外条件を維持する。
+- `BatchLocalData` はバッチ/店舗ごとに作り、マスター・初期判定用設定・出品済みデータを実行スレッド間で共有する。30秒経過後の次回利用時に再取得する。期限切れデータでDB障害を隠さない。ASIN固有の許可フレーズ照会は初期除外判定には不要で、通過商品の内容判定だけで使う。
+- 初期判定を通過した商品だけKeepaへ進み、Keepaも通過した時点で初めてChromeを起動する。全件が初期判定で落ちればKeepa・Chrome・RMSは呼ばない。
+- 実出品直前は共有キャッシュを使わず、最新DBのルール・店舗設定・現在の出品済みを使って再判定する。取得済みAmazon/Keepa情報は再利用する。途中のブラックリスト追加などでNGになった場合、または再判定でDB障害が起きた場合は送信しない。既存の条件無視指定・店舗の過去NG除外設定・既出品更新モードは維持する。
+- 対象は `rakuten_listing_batch_dry_run.py` と `rakuten_listing_batch_execute.py`。単品準備もDB優先読み込みになるが、バッチ共有キャッシュは使わない。起動済みワーカーには遡及適用されないため、実行PC側のコード更新後に開始するバッチから有効。DBマイグレーションは不要。
+- 模擬テスト: `py -3.12 -m unittest discover -s tests -p "test_listing_batch_*.py"`。実出品や本番DBへの書き込みは行わない。
 
 ## 6. 主要CLI
 
@@ -679,10 +690,11 @@ py -B -m unittest tests.test_rakuten_listing_payload -v
 
 ## 21. 今後の運用メモ
 
+- LifeForestの先頭画像ロゴ・送料無料合成は [出品画像加工](listing_image_overlay.md) を参照。実行PCへの依存ライブラリ・画像資産の反映が必要。既存商品の一括更新は行わない。
+
 - 標準画像数は1枚。必要ならstore設定または環境変数で増やす。
 - 仮genreは登録を止めないための仕組み。RMS確認後にルールへ反映する。
 - 代表カラーは現運用では `-` 許容方針。ただしgenreごとに必要なら見直す。
 - 実登録後はRMS目視、必要ならRMSで編集、その結果をルールへ戻す。
 - API仕様は `spec_pages` を正とし、実APIで得た差分はこのドキュメントまたは専用docsへ追記する。
 - DB syncは実登録成功後の標準後処理候補。まずpreview、次に `--execute`。
-

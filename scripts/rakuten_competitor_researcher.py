@@ -268,7 +268,17 @@ def choose_amazon_candidate(
     return {**item, "match_score": round(score, 4), "match_method": "amazon_title_search"}
 
 
+def clean_product_search_title(title: str) -> str:
+    # Search-only cleanup: preserve source titles and product specification labels.
+    for phrase in ("【楽天ランキング1位獲得】", "【送料無料】"):
+        title = title.replace(phrase, " ")
+    return normalize_space(title)
+
+
 async def amazon_search_candidates(page, query: str, page_timeout_ms: int, wait_seconds: float) -> list[dict[str, str]]:
+    query = clean_product_search_title(query)
+    if not query:
+        return []
     url = f"https://www.amazon.co.jp/s?k={quote_plus(query[:400])}"
     await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
     if wait_seconds:

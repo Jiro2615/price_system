@@ -163,6 +163,7 @@ class StoreSettings:
     rakuten_target_price_floor: Optional[int] = None
     shipping_method_group: str = ""
     cabinet: dict[str, Any] = field(default_factory=dict)
+    image_overlay: dict[str, Any] = field(default_factory=dict)
     management_suffix: str = "187"
     min_avg90_new_offer_count: Optional[float] = None
     min_avg90_sellers: Optional[float] = None

@@ -238,6 +238,10 @@ def apply_database_master_snapshot(master_data: MasterData, store_code: str) -> 
     snapshot = load_database_master_snapshot(store_code)
     if snapshot is None:
         return master_data
+    return apply_master_snapshot(master_data, snapshot)
+
+
+def apply_master_snapshot(master_data: MasterData, snapshot: ListingMasterDbSnapshot) -> MasterData:
     cleanup_replacements, legacy_spacing_replacements = split_replacement_rules(snapshot.replacements, snapshot.prohibited_rakuten)
     master_data.blacklist = snapshot.blacklist
     master_data.prohibited_words_rakuten = snapshot.prohibited_rakuten

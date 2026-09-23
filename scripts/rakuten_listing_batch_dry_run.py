@@ -21,6 +21,7 @@ from scripts.listing.prepare_service import (
     prepare_listing,
 )
 from scripts.listing.amazon_bridge import fetch_amazon_result
+from scripts.listing.batch_local_data import BatchLocalData, LazyAmazonPages
 from scripts.price_check_one_asin_db import create_amazon_page
 
 
@@ -84,10 +85,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
 
     # Keepa's token refill is shared, so Keepa stays serial. Amazon checks can
     # run in the requested number of visible tabs after a candidate passes it.
-    playwright, browser, context, page = await create_amazon_page()
-    prepare_pages = [page]
-    for _ in range(1, args.prepare_workers):
-        prepare_pages.append(await context.new_page())
+    local_data = BatchLocalData(args.store, args.master_dir, asins, args.allow_missing_master)
+    prepare_pages = LazyAmazonPages(create_amazon_page, args.prepare_workers)
 
     local_precheck_workers = min(4, max(2, args.prepare_workers * 2))
     pipeline_buffer_size = max(50, args.prepare_workers * 10)
@@ -114,6 +113,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 request,
                 amazon_fetcher=lambda _asin, _timeout: amazon_result,
                 keepa_fetcher=lambda _asin: keepa_result,
+                batch_local_data=local_data,
             )
             print(f"LISTING_PREPARE_TAB_DONE tab={tab_number}/{args.prepare_workers} index={index} asin={asin}", flush=True)
             return result
@@ -143,7 +143,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
             )
             try:
-                result = await asyncio.to_thread(precheck_local_listing_exclusion, request)
+                result = await asyncio.to_thread(precheck_local_listing_exclusion, request, batch_local_data=local_data)
                 if result is not None:
                     await prepared_queue.put((index, asin, result))
                 else:
@@ -163,7 +163,10 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 if now < next_keepa_precheck_at:
                     await asyncio.sleep(next_keepa_precheck_at - now)
                 next_keepa_precheck_at = asyncio.get_running_loop().time() + KEEPA_PRECHECK_MIN_INTERVAL_SECONDS
-                keepa_block, keepa_result = await asyncio.to_thread(precheck_keepa_before_amazon, request)
+                keepa_block, keepa_result = await asyncio.to_thread(
+                    precheck_keepa_before_amazon, request,
+                    prepare_kwargs={"batch_local_data": local_data},
+                )
                 if keepa_block is not None:
                     await prepared_queue.put((index, asin, keepa_block))
                 else:
@@ -174,13 +177,16 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             await amazon_candidate_queue.put(None)
 
     async def run_amazon_precheck_worker(tab_number: int) -> None:
-        amazon_page = prepare_pages[tab_number - 1]
         while True:
             candidate = await amazon_candidate_queue.get()
             if candidate is None:
                 return
             index, asin, request, keepa_result = candidate
-            result = await prepare_amazon_candidate(index, asin, request, keepa_result, amazon_page, tab_number)
+            try:
+                amazon_page = await prepare_pages.get(tab_number)
+                result = await prepare_amazon_candidate(index, asin, request, keepa_result, amazon_page, tab_number)
+            except Exception as exc:
+                result = system_error(asin, exc)
             await prepared_queue.put((index, asin, result))
 
     async def close_local_stage() -> None:

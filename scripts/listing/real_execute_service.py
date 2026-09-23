@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 from scripts.listing.image_downloader import download_image_plan, requests_http_get
 from scripts.listing.image_validator import validate_downloaded_images
+from scripts.listing.image_overlay import overlay_downloader
 from scripts.listing.cabinet_rotation import CabinetRotationError, resolve_cabinet_upload_folder
 from scripts.listing.listing_execute_service import ExecuteListingRequest, execute_listing
 from scripts.listing.preflight_service import load_json
@@ -409,7 +410,12 @@ def build_real_execute_result(
     store_settings["cabinet"] = resolved_cabinet
     dry_run_result["store_settings"] = store_settings
 
-    image_downloader = image_downloader or download_image_plan
+    image_downloader = image_downloader or overlay_downloader(
+        download_image_plan, store_code=request.store,
+        shop_url=str((dry_run_result.get("store_settings", {}).get("cabinet") or {}).get("shop_url") or ""),
+        item_payload=dry_run_result.get("item_payload") or {},
+        settings=store_settings.get("image_overlay") or {},
+    )
     image_validator = image_validator or validate_downloaded_images
     image_client = image_client or RakutenImageClient()
     item_client = item_client or RakutenItemClient()

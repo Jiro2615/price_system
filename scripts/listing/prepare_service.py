@@ -97,6 +97,18 @@ def find_existing_listing_for_store(asin: str, store_code: str) -> dict[str, Any
     return find_existing_listing(asin, store_code)
 
 
+def load_preparation_masters(request, master_data_loader, batch_local_data=None):
+    if batch_local_data is not None:
+        batch_local_data.validate_scope(request)
+        return batch_local_data.masters()
+    if not request.offline and master_data_loader is load_master_records:
+        from scripts.listing.master_loader import load_active_master_data
+        return load_active_master_data(Path(request.master_dir), request.store_code, request.allow_missing_master)
+    # Preserve explicit injected loaders and file-based offline fixtures.
+    masters = master_data_loader(Path(request.master_dir), request.allow_missing_master)
+    return apply_store_master_overrides(masters, Path(request.master_dir), request.store_code)
+
+
 def precheck_local_listing_exclusion(
     request: PrepareListingRequest,
     *,
@@ -104,17 +116,24 @@ def precheck_local_listing_exclusion(
     master_data_loader: Callable[[Path, bool], MasterData] = load_master_records,
     common_settings_loader: Callable[..., tuple[ListingCommonSettings, list[str]]] = load_common_settings,
     existing_listing_lookup: Callable[[str, str], dict[str, Any] | None] = find_existing_listing_for_store,
+    batch_local_data=None,
 ) -> dict[str, object] | None:
     """Return a local-only exclusion result before opening an Amazon page."""
     asin = request.asin.strip().upper()
     mode = "offline" if request.offline else "dry_run"
     warnings: list[str] = []
-    store_settings = _resolve_store_settings(request, store_settings_loader)
-    common_settings, common_setting_warnings = common_settings_loader(store_settings)
+    if batch_local_data is not None:
+        batch_local_data.validate_scope(request)
+        store_settings = batch_local_data.settings(store_settings_loader)
+        common_settings, common_setting_warnings = batch_local_data.common_settings(common_settings_loader, store_settings)
+        existing_listing_lookup = batch_local_data.existing
+    else:
+        store_settings = _resolve_store_settings(request, store_settings_loader)
+        common_settings, common_setting_warnings = common_settings_loader(store_settings)
     warnings.extend(common_setting_warnings)
-    master_data = master_data_loader(Path(request.master_dir), request.allow_missing_master)
-    master_data = apply_store_master_overrides(master_data, Path(request.master_dir), request.store_code)
-    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
+    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
+    # ASIN phrase exceptions cannot override duplicates, blacklist or past-NG.
+    # Load them only for candidates that reach the content evaluator.
 
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
     if existing_listing and not request.update_existing:
@@ -397,6 +416,7 @@ def _base_result(
             "back_order_delivery_time_id": store_settings.back_order_delivery_time_id,
             "ship_from_ids": store_settings.ship_from_ids,
             "cabinet": getattr(store_settings, "cabinet", {}) or {},
+            "image_overlay": getattr(store_settings, "image_overlay", {}) or {},
         },
         "seller_count_evaluation": seller_count_evaluation,
         "review_checklist": review_checklist,
@@ -482,6 +502,7 @@ def prepare_listing(
     management_number_builder: Callable[[str], object] = generate_management_number_bundle,
     item_payload_builder: Callable[..., dict[str, object]] = build_item_payload,
     inventory_payload_builder: Callable[..., dict[str, object]] = build_inventory_payload,
+    batch_local_data=None,
 ) -> dict[str, object]:
     asin = request.asin.strip().upper()
     warnings: list[str] = []
@@ -495,13 +516,11 @@ def prepare_listing(
     store_settings = _resolve_store_settings(request, store_settings_loader)
     common_settings, common_setting_warnings = common_settings_loader(store_settings)
     warnings.extend(common_setting_warnings)
-    master_data = master_data_loader(Path(request.master_dir), request.allow_missing_master)
-    master_data = apply_store_master_overrides(
-        master_data,
-        Path(request.master_dir),
-        request.store_code,
-    )
+    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
     master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
+
+    if batch_local_data is not None:
+        existing_listing_lookup = batch_local_data.existing
 
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
     if existing_listing and not request.update_existing:

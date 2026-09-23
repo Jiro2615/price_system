@@ -139,6 +139,8 @@ def apply_store_allowed_phrase_overrides(
     master_data: MasterData,
     master_dir: Path,
     store_code: str,
+    *,
+    use_database: bool = True,
 ) -> MasterData:
     """Merge an optional store-specific allow-list on top of shared rules."""
     normalized_store_code = str(store_code or "").strip()
@@ -175,9 +177,30 @@ def apply_store_allowed_phrase_overrides(
         }
     # PostgreSQL becomes the active source only after the explicit legacy
     # import completes. Until then this safely preserves file-based behavior.
+    if not use_database:
+        return master_data
     from scripts.listing.listing_master_db import apply_database_master_snapshot
 
     return apply_database_master_snapshot(master_data, normalized_store_code)
+
+
+def load_active_master_data(master_dir: Path, store_code: str, allow_missing: bool = False) -> MasterData:
+    """DB-first operational load; legacy files are only for unmigrated stores.
+
+    A failed DB read must propagate, never silently fall back to old rules.
+    The file-only loader remains available to migration and fixture tools.
+    """
+    from scripts.listing.listing_master_db import load_database_master_snapshot, apply_master_snapshot
+
+    snapshot = load_database_master_snapshot(store_code)
+    if snapshot is not None:
+        empty = MasterData(
+            blacklist=set(), kako_ng={}, replacements=[], prohibited_words_rakuten=[],
+            prohibited_words_other=[], listed_asins={}, category_map={}, attribute_definitions={},
+        )
+        return apply_master_snapshot(empty, snapshot)
+    legacy = load_master_data(master_dir, allow_missing=allow_missing)
+    return apply_store_allowed_phrase_overrides(legacy, master_dir, store_code, use_database=False)
 
 
 def load_master_data(master_dir: Path, allow_missing: bool = False) -> MasterData:

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import tempfile
+import asyncio
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
+from urllib.parse import parse_qs, urlsplit
 
 from scripts.rakuten_competitor_researcher import (
     amazon_keyword_context,
+    amazon_search_candidates,
+    clean_product_search_title,
     choose_amazon_candidate,
     fetch_html,
     load_store_urls,
@@ -17,6 +21,27 @@ from scripts.rakuten_competitor_researcher import (
 
 
 class RakutenCompetitorResearcherTests(unittest.TestCase):
+    def test_search_title_removes_only_requested_phrases(self):
+        title = '【楽天ランキング1位獲得】【送料無料】 商品 【2個セット】 赤 【送料無料】'
+        self.assertEqual(clean_product_search_title(title), '商品 【2個セット】 赤')
+        self.assertIn('【送料無料】', title)
+        self.assertEqual(clean_product_search_title('普通の商品'), '普通の商品')
+
+    def test_amazon_search_uses_cleaned_query(self):
+        page = Mock()
+        page.goto = AsyncMock()
+        page.locator.return_value.inner_text = AsyncMock(return_value='search')
+        page.locator.return_value.evaluate_all = AsyncMock(return_value=[])
+        asyncio.run(amazon_search_candidates(page, '【楽天ランキング1位獲得】商品【送料無料】', 30000, 0))
+        url = page.goto.call_args.args[0]
+        self.assertEqual(parse_qs(urlsplit(url).query)['k'], ['商品'])
+
+    def test_empty_cleaned_query_does_not_navigate(self):
+        page = Mock()
+        page.goto = AsyncMock()
+        self.assertEqual(asyncio.run(amazon_search_candidates(page, '【送料無料】', 30000, 0)), [])
+        page.goto.assert_not_called()
+
     def test_normalize_store_url_accepts_only_rakuten_store_search(self) -> None:
         url, sid = normalize_store_url("https://search.rakuten.co.jp/search/mall/?sid=427886")
         self.assertEqual(url, "https://search.rakuten.co.jp/search/mall/?sid=427886")

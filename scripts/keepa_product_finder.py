@@ -349,7 +349,29 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]], *,
         conn.close()
 
 
-def category_nodes_for_full_scan(root_category_id: int) -> list[int]:
+def select_full_scan_nodes(rows: list[tuple], selected_ids: list[int]) -> list[int]:
+    """Resolve selected nodes and descendants, without widening to siblings."""
+    nodes = {int(row[0]) for row in rows if int(row[0]) > 0}
+    if not selected_ids:
+        return sorted(nodes)
+    if not set(selected_ids).issubset(nodes):
+        raise ValueError("選択カテゴリが対象ルートの一覧にありません。カテゴリ一覧を再取得してください")
+    children: dict[int, list[int]] = {}
+    for category_id, parent_id in rows:
+        if parent_id is not None:
+            children.setdefault(int(parent_id), []).append(int(category_id))
+    pending = list(selected_ids)
+    found: set[int] = set()
+    while pending:
+        node = pending.pop()
+        if node in found:
+            continue
+        found.add(node)
+        pending.extend(children.get(node, []))
+    return sorted(found)
+
+
+def category_nodes_for_full_scan(root_category_id: int, selected_ids: list[int] | None = None) -> list[int]:
     """Return every direct category node under one cached root.
 
     ``categories_include`` only matches products directly assigned to a node.
@@ -361,7 +383,7 @@ def category_nodes_for_full_scan(root_category_id: int) -> list[int]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT category_id
+                SELECT category_id, parent_category_id
                 FROM keepa_category_catalog
                 WHERE domain_id = 5
                   AND (root_category_id = %s OR category_id = %s)
@@ -369,7 +391,9 @@ def category_nodes_for_full_scan(root_category_id: int) -> list[int]:
                 """,
                 (root_category_id, root_category_id),
             )
-            return list(dict.fromkeys(int(row[0]) for row in cur.fetchall() if int(row[0]) > 0))
+            return select_full_scan_nodes(cur.fetchall(), selected_ids or [])
+    except ValueError:
+        raise
     except Exception as exc:
         raise RuntimeError(
             "対象ルートのカテゴリ一覧が共有DBにありません。"
@@ -513,15 +537,14 @@ def full_category_scan(
     root_categories = integer_values(args.root_categories, "ルートカテゴリ")
     if len(root_categories) != 1:
         raise ValueError("全件カテゴリ走査はルートカテゴリを1つ選択してください")
-    if integer_values(args.include_categories, "対象カテゴリ"):
-        raise ValueError("全件カテゴリ走査では対象カテゴリを指定せず、ルートカテゴリだけを選択してください")
+    selected_categories = integer_values(args.include_categories, "対象カテゴリ")
     if args.fetch_product_metadata:
         raise ValueError("全件カテゴリ走査では商品情報の追加取得は利用できません。ASIN高速取得のまま実行してください")
     if args.min_sales_rank is None or args.max_sales_rank is None:
         raise ValueError("全件カテゴリ走査では販売ランクの下限・上限を指定してください")
 
     root_category_id = root_categories[0]
-    category_nodes = category_nodes_for_full_scan(root_category_id)
+    category_nodes = category_nodes_for_full_scan(root_category_id, selected_categories)
     if not category_nodes:
         raise RuntimeError("対象ルートのカテゴリが0件です。対象カテゴリ一覧を再取得してください")
 

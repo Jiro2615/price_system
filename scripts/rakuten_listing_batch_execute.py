@@ -9,6 +9,7 @@ from pathlib import Path
 
 from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins, parse_bypass_rules
 from scripts.listing.amazon_bridge import fetch_amazon_result
+from scripts.listing.batch_local_data import BatchLocalData, LazyAmazonPages
 from scripts.listing.mock_execute_service import build_mock_execute_result
 from scripts.listing.models import sanitize_for_output, to_jsonable
 from scripts.listing.preflight_service import build_preflight_result
@@ -59,6 +60,24 @@ def save_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(to_jsonable(sanitize_for_output(payload)), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def revalidate_prepared_listing(args, asin, dry):
+    amazon_result = dry.get("amazon_result")
+    keepa_result = dry.get("keepa_result")
+    if amazon_result is None or keepa_result is None:
+        raise ValueError("Missing acquired observations for final listing revalidation")
+    request = PrepareListingRequest(
+        asin=asin, store_code=args.store, master_dir=args.master_dir, dry_run=True,
+        allow_missing_master=args.allow_missing_master, page_timeout_ms=args.page_timeout,
+        update_existing=args.update_existing, bypass_rules=args.bypass_rules,
+        require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
+        management_number=str(dry.get("management_number") or ""),
+    )
+    return prepare_listing(
+        request, amazon_fetcher=lambda _asin, _timeout: amazon_result,
+        keepa_fetcher=lambda _asin: keepa_result,
+    )
+
+
 async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     if not (args.execute and args.approved and args.confirm_real_api and args.allow_live_transport):
         raise ValueError("--execute --approved --confirm-real-api --allow-live-transport are required")
@@ -69,12 +88,10 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     args.bypass_rules = parse_bypass_rules(args.ignore_rules)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
-    playwright, browser, context, page = await create_amazon_page()
+    local_data = BatchLocalData(args.store, args.master_dir, asins, args.allow_missing_master)
     completed = 0
     cabinet_folder_resolver = CachedCabinetUploadFolderResolver()
-    prepare_pages = [page]
-    for _ in range(1, args.prepare_workers):
-        prepare_pages.append(await context.new_page())
+    prepare_pages = LazyAmazonPages(create_amazon_page, args.prepare_workers)
 
     # 最速の経路は、ローカル判定・Keepa・Amazon・RMSを独立させること。
     # Keepa は契約トークンを守るため1本・一定間隔、Amazonはページごとに
@@ -117,6 +134,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 request,
                 amazon_fetcher=lambda _asin, _timeout: amazon_result,
                 keepa_fetcher=lambda _asin: keepa_result,
+                batch_local_data=local_data,
             )
             print(
                 f"LISTING_PREPARE_TAB_DONE tab={tab_number}/{args.prepare_workers} "
@@ -151,7 +169,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
             )
             try:
-                dry = await asyncio.to_thread(precheck_local_listing_exclusion, request)
+                dry = await asyncio.to_thread(precheck_local_listing_exclusion, request, batch_local_data=local_data)
                 if dry is not None:
                     await prepared_queue.put((index, asin, dry))
                     continue
@@ -171,7 +189,10 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 if now < next_keepa_precheck_at:
                     await asyncio.sleep(next_keepa_precheck_at - now)
                 next_keepa_precheck_at = asyncio.get_running_loop().time() + KEEPA_PRECHECK_MIN_INTERVAL_SECONDS
-                keepa_block, keepa_result = await asyncio.to_thread(precheck_keepa_before_amazon, request)
+                keepa_block, keepa_result = await asyncio.to_thread(
+                    precheck_keepa_before_amazon, request,
+                    prepare_kwargs={"batch_local_data": local_data},
+                )
                 if keepa_block is not None:
                     await prepared_queue.put((index, asin, keepa_block))
                 else:
@@ -182,20 +203,18 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             await amazon_candidate_queue.put(None)
 
     async def run_amazon_precheck_worker(tab_number: int) -> None:
-        amazon_page = prepare_pages[tab_number - 1]
         while True:
             candidate = await amazon_candidate_queue.get()
             if candidate is None:
                 return
             index, asin, request, keepa_result = candidate
-            dry = await prepare_amazon_candidate(
-                index,
-                asin,
-                request,
-                keepa_result,
-                amazon_page,
-                tab_number,
-            )
+            try:
+                amazon_page = await prepare_pages.get(tab_number)
+                dry = await prepare_amazon_candidate(
+                    index, asin, request, keepa_result, amazon_page, tab_number,
+                )
+            except Exception as exc:
+                dry = {"asin": asin, "final_status": "system_error", "error": str(exc)}
             await prepared_queue.put((index, asin, dry))
 
     async def close_local_stage() -> None:
@@ -217,9 +236,21 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         nonlocal completed
         if dry.get("final_status") == "system_error" and not dry.get("management_number"):
             return dry
+        if dry.get("listing_status") in {"already_listed", "business_ng"}:
+            return {**dry, "final_status": dry["listing_status"], "external_actions_performed": False}
         item_dir = args.output_dir / asin
         item_dir.mkdir(exist_ok=True)
         try:
+            if dry.get("listing_status") == "eligible":
+                # Screening can be queued for minutes. Re-evaluate with fresh
+                # DB rules/settings/duplicates immediately before execution.
+                # Reuse the already acquired Amazon/Keepa observations only;
+                # never reuse the batch rule cache for this safety gate.
+                dry = await asyncio.to_thread(
+                    revalidate_prepared_listing, args, asin, dry,
+                )
+                if dry.get("listing_status") in {"already_listed", "business_ng"}:
+                    return {**dry, "final_status": dry["listing_status"], "external_actions_performed": False}
             management = str(dry.get("management_number") or "")
             dry_path = item_dir / "dry_run.json"; save_json(dry_path, dry)
             preflight = await asyncio.to_thread(

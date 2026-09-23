@@ -3,3 +3,4 @@ beautifulsoup4
 psycopg[binary]
 python-dotenv
 requests
+Pillow>=10.4,<13
