@@ -37,6 +37,7 @@ from scripts.listing.keepa_product_client import KeepaClient, load_keepa_api_key
 
 
 KEEPA_QUERY_ENDPOINT = "https://api.keepa.com/query"
+KEEPA_BESTSELLERS_ENDPOINT = "https://api.keepa.com/bestsellers"
 ASIN_PATTERN = re.compile(r"^[A-Z0-9]{10}$")
 # Keepa permits up to 10,000 ASINs for the first Product Finder page.  The
 # UI warns about the matching product-metadata token cost before such a large
@@ -667,6 +668,54 @@ def full_category_scan(
     }
 
 
+def ranking_candidates(session, api_key, args):
+    """Fetch selected nodes directly; never expand nodes or fall back to Finder."""
+    selected = integer_values(args.include_categories, "対象カテゴリ")
+    roots = integer_values(args.root_categories, "ルートカテゴリ")
+    categories = selected or roots
+    if not categories:
+        raise ValueError("ランキング取得ではカテゴリを選択してください")
+    if len(categories) > 50:
+        raise ValueError("ランキング取得は一度に50カテゴリまで選択してください")
+    rows_by_asin = {}
+    reports = []
+    for category in categories:
+        if len(rows_by_asin) >= args.candidate_limit:
+            break
+        params = {"key": api_key, "domain": 5, "category": category, "variations": 1}
+        if category not in roots:
+            params["sublist"] = 1
+        payload = request_json(session, "GET", KEEPA_BESTSELLERS_ENDPOINT, params=params)
+        listing = payload.get("bestSellersList")
+        if listing is not None and not isinstance(listing, dict):
+            raise ValueError("Keepaランキング応答の形式が不正です")
+        if listing and str(listing.get("categoryId", category)) != str(category):
+            raise ValueError("KeepaランキングのカテゴリIDが一致しません")
+        raw_asins = (listing or {}).get("asinList") or []
+        if not isinstance(raw_asins, list):
+            raise ValueError("KeepaランキングASIN一覧の形式が不正です")
+        for rank, raw in enumerate(raw_asins, 1):
+            asin = str(raw).strip().upper()
+            if not ASIN_PATTERN.fullmatch(asin):
+                continue
+            source = {"category_id": category, "list_position": rank,
+                      "sublist": params.get("sublist", 0), "last_update": (listing or {}).get("lastUpdate")}
+            if asin not in rows_by_asin:
+                if len(rows_by_asin) >= args.candidate_limit:
+                    continue
+                rows_by_asin[asin] = asin_only_candidates([asin], {"source": "bestsellers", "ranking_sources": []})[0]
+            rows_by_asin[asin]["finder_selection"]["ranking_sources"].append(source)
+        reports.append({"category_id": category, "list_available": listing is not None,
+                        "returned_count": len(raw_asins), "tokens": token_snapshot(payload)})
+        # Keep successful categories if a later request fails. Re-runs replace this run's rows.
+        save_candidates(args.run_id, args.store, list(rows_by_asin.values()))
+        print("KEEPA_RANKING_PROGRESS " + json.dumps({"candidate_count": len(rows_by_asin), "category": reports[-1]}), flush=True)
+    return {"candidate_count": len(rows_by_asin), "categories": reports,
+            "ranking": True, "product_metadata_fetched": False,
+            "candidate_limit": args.candidate_limit,
+            "limit_reached": len(rows_by_asin) >= args.candidate_limit}
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Find listing candidates through the Keepa Product Finder API")
     parser.add_argument("--run-id", required=True)
@@ -693,8 +742,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--amazon-in-stock", action="store_true")
     parser.add_argument("--fetch-product-metadata", action="store_true")
     parser.add_argument("--full-category-coverage", action="store_true")
+    parser.add_argument("--ranking", action="store_true")
     parser.add_argument("--token-reserve", type=int, default=100)
     args = parser.parse_args()
+    if args.ranking and (args.full_category_coverage or args.fetch_product_metadata or args.page):
+        raise ValueError("ランキング取得は全件走査・商品情報追加取得・ページ指定と併用できません")
     args.store = str(args.store).strip().lower()
     args.run_id = str(args.run_id).strip()
     if not args.run_id or not args.store:
@@ -741,7 +793,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    selection = make_selection(args)
+    selection = {"source": "bestsellers"} if args.ranking else make_selection(args)
     # At least current_COUNT_NEW_gte is always present, so the finder query
     # is never an unbounded all-products request.
     api_key = load_keepa_api_key()
@@ -752,7 +804,10 @@ def main() -> int:
         + json.dumps({"run_id": args.run_id, "store": args.store, "selection": selection}, ensure_ascii=False),
         flush=True,
     )
-    if args.full_category_coverage:
+    if args.ranking:
+        summary = ranking_candidates(session, api_key, args)
+        summary.update({"run_id": args.run_id, "store": args.store, "started_at": started, "selection": selection})
+    elif args.full_category_coverage:
         summary = full_category_scan(session, api_key, args, selection)
         summary.update(
             {
