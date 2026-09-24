@@ -779,9 +779,9 @@ async def open_all_offers(page) -> None:
     try:
         await click_force(ingress.first)
         offers = page.locator("#aod-offer-list #aod-offer")
-        await offers.first.wait_for(state="visible", timeout=10000)
-    except Exception:
-        return
+        await offers.first.wait_for(state="visible", timeout=30000)
+    except Exception as exc:
+        raise RuntimeError("Amazon全出品の読み込み未完了（一覧の初期表示に失敗）。再確認が必要です。") from exc
 
     # ``すべての出品`` is a virtual scroller on some product pages.  Check the
     # entire advertised offer list before choosing a candidate.
@@ -792,7 +792,6 @@ async def open_all_offers(page) -> None:
     except (TypeError, ValueError):
         pass
 
-    stalled_loads = 0
     while expected_count <= 0 or await offers.count() < expected_count:
         more = page.locator("#aod-show-more-offers")
         try:
@@ -807,13 +806,16 @@ async def open_all_offers(page) -> None:
                     "element => { element.scrollTop = element.scrollHeight; "
                     "element.dispatchEvent(new Event('scroll', { bubbles: true })); }"
                 )
-            await page.wait_for_timeout(700)
-            if await offers.count() > before:
-                stalled_loads = 0
-            else:
-                stalled_loads += 1
-                if stalled_loads >= 3:
-                    break
+            # Return immediately on progress, but allow slow network responses
+            # 15 seconds before classifying the list as incomplete.
+            await page.wait_for_function(
+                "before => document.querySelectorAll('#aod-offer-list #aod-offer').length > before",
+                arg=before, timeout=15000, polling=250,
+            )
+            try:
+                expected_count = int(((await total.get_attribute("value")) or "0").strip())
+            except (TypeError, ValueError):
+                pass
         except Exception:
             break
 
@@ -826,6 +828,18 @@ async def open_all_offers(page) -> None:
             f"Amazon全出品の読み込み未完了（取得 {loaded_count}件 / "
             f"総件数 {expected_count if expected_count > 0 else '不明'}）。再確認が必要です。"
         )
+
+    # Card containers can appear before their contents. Do not inspect empty
+    # skeletons and remember them as permanently ineligible offers.
+    try:
+        await page.wait_for_function(
+            """() => [...document.querySelectorAll('#aod-offer-list #aod-offer')].every(
+                card => card.innerText.trim() && card.querySelector('#aod-offer-shipsFrom')
+                && card.querySelector('#aod-offer-price, .a-price'))""",
+            timeout=15000, polling=250,
+        )
+    except Exception as exc:
+        raise RuntimeError("Amazon全出品の読み込み未完了（出品内容が未表示）。再確認が必要です。") from exc
 
 
 async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optional[dict[str, Any]]:

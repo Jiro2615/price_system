@@ -61,6 +61,10 @@ class OfferLoadingTests(unittest.IsolatedAsyncioTestCase):
         page = Mock()
         page.locator.side_effect = nodes.__getitem__
         page.wait_for_timeout = AsyncMock()
+        async def wait_for_function(expression, **kwargs):
+            if 'arg' in kwargs and state['loaded'] <= kwargs['arg']:
+                raise TimeoutError('delayed response timed out')
+        page.wait_for_function = AsyncMock(side_effect=wait_for_function)
         return page, state
 
     async def test_more_button_loads_all_75(self):
@@ -83,7 +87,8 @@ class OfferLoadingTests(unittest.IsolatedAsyncioTestCase):
         page, state = self.page(stalled=True)
         with self.assertRaisesRegex(RuntimeError, "読み込み未完了"):
             await loader()(page)
-        self.assertEqual(state["loads"], 3)
+        self.assertEqual(state["loads"], 1)
+        self.assertEqual(page.wait_for_function.call_args.kwargs['timeout'], 15000)
 
     async def test_unknown_total_is_not_success(self):
         page, state = self.page("", stalled=True)
@@ -93,6 +98,29 @@ class OfferLoadingTests(unittest.IsolatedAsyncioTestCase):
     async def test_loading_error_is_not_success(self):
         page, state = self.page(fail=True)
         with self.assertRaisesRegex(RuntimeError, "読み込み未完了"):
+            await loader()(page)
+
+    async def test_initial_timeout_is_not_no_candidates(self):
+        page, state = self.page()
+        page.locator('#aod-offer-list #aod-offer').first.wait_for.side_effect = TimeoutError('initial')
+        with self.assertRaisesRegex(RuntimeError, '初期表示'):
+            await loader()(page)
+
+    async def test_late_response_waits_for_progress(self):
+        page, state = self.page('20', stalled=True)
+        async def delayed(expression, **kwargs):
+            if 'arg' in kwargs:
+                self.assertEqual(kwargs['timeout'], 15000)
+                state['loaded'] = 20
+        page.wait_for_function.side_effect = delayed
+        await loader()(page)
+        self.assertEqual(state['loaded'], 20)
+        self.assertEqual(state['loads'], 1)
+
+    async def test_skeleton_cards_are_not_no_candidates(self):
+        page, state = self.page('10')
+        page.wait_for_function.side_effect = TimeoutError('empty content')
+        with self.assertRaisesRegex(RuntimeError, '出品内容'):
             await loader()(page)
 
 
