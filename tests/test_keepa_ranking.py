@@ -23,32 +23,40 @@ class RankingTests(unittest.TestCase):
         return scope, args, calls, saved
 
     def test_direct_subcategory_and_provenance(self):
-        s,a,c,w = self.setup_scope([{'bestSellersList':{'categoryId':5267102051,'asinList':['B000000001','B000000001','bad','B000000002']}}])
+        s,a,c,w = self.setup_scope([{'bestSellersList':{'categoryId':5267102051,'asinList':['B000000001','B000000001','bad','B000000002']}}, {'bestSellersList':None}])
         result=s['ranking_candidates'](None,'test',a)
         self.assertEqual(result['candidate_count'],2)
-        self.assertEqual(c,[{'key':'test','domain':5,'category':5267102051,'variations':1,'sublist':1}])
+        self.assertEqual([p['sublist'] for p in c],[0,1])
+        self.assertTrue(all(p['category']==5267102051 for p in c))
         self.assertIsNone(w[-1][0]['category_id'])
         self.assertEqual(w[-1][0]['finder_selection']['ranking_sources'][0]['category_id'],5267102051)
 
     def test_missing_list_no_finder_fallback(self):
-        s,a,c,w=self.setup_scope([{'bestSellersList':None}])
+        s,a,c,w=self.setup_scope([{'bestSellersList':None},{'bestSellersList':None}])
         result=s['ranking_candidates'](None,'test',a)
-        self.assertEqual(len(c),1)
+        self.assertEqual(len(c),2)
         self.assertEqual(w[-1],[])
         self.assertFalse(result['categories'][0]['list_available'])
 
     def test_root_and_global_limit(self):
         s,a,c,w=self.setup_scope([{'bestSellersList':{'asinList':['B000000001','B000000002']}}],categories='1,2',root='1',limit=1)
         s['ranking_candidates'](None,'test',a)
-        self.assertNotIn('sublist',c[0])
+        self.assertEqual(c[0]['sublist'],0)
         self.assertEqual(len(c),1)
         self.assertEqual(len(w[-1]),1)
 
     def test_cross_category_duplicate(self):
-        s,a,c,w=self.setup_scope([{'bestSellersList':{'asinList':['B000000001']}},{'bestSellersList':{'asinList':['B000000001','B000000002']}}],categories='2,3',root='1')
+        s,a,c,w=self.setup_scope([{'bestSellersList':{'asinList':['B000000001']}},{'bestSellersList':None},{'bestSellersList':{'asinList':['B000000001','B000000002']}},{'bestSellersList':None}],categories='2,3',root='1')
         s['ranking_candidates'](None,'test',a)
         self.assertEqual(len(w[-1]),2)
         self.assertEqual(len(w[-1][0]['finder_selection']['ranking_sources']),2)
+
+    def test_both_lists_even_when_first_fills_cap(self):
+        s,a,c,w=self.setup_scope([{'bestSellersList':{'asinList':['B000000001','B000000002','B000000003']}},{'bestSellersList':{'asinList':['B000000004','B000000001']}}],limit=3)
+        s['ranking_candidates'](None,'test',a)
+        self.assertEqual(len(c),2)
+        self.assertEqual([r['asin'] for r in w[-1]],['B000000001','B000000004','B000000002'])
+        self.assertEqual([r['sublist'] for r in w[-1][0]['finder_selection']['ranking_sources']],[0,1])
 
     def test_empty_selection_and_bad_response(self):
         s,a,c,w=self.setup_scope([],categories='',root='')

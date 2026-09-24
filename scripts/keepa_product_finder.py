@@ -682,31 +682,38 @@ def ranking_candidates(session, api_key, args):
     for category in categories:
         if len(rows_by_asin) >= args.candidate_limit:
             break
-        params = {"key": api_key, "domain": 5, "category": category, "variations": 1}
-        if category not in roots:
-            params["sublist"] = 1
-        payload = request_json(session, "GET", KEEPA_BESTSELLERS_ENDPOINT, params=params)
-        listing = payload.get("bestSellersList")
-        if listing is not None and not isinstance(listing, dict):
-            raise ValueError("Keepaランキング応答の形式が不正です")
-        if listing and str(listing.get("categoryId", category)) != str(category):
-            raise ValueError("KeepaランキングのカテゴリIDが一致しません")
-        raw_asins = (listing or {}).get("asinList") or []
-        if not isinstance(raw_asins, list):
-            raise ValueError("KeepaランキングASIN一覧の形式が不正です")
-        for rank, raw in enumerate(raw_asins, 1):
+        lists = []
+        # Fetch both before applying the global limit; do not drop sublist=1
+        # merely because sublist=0 filled the entire budget.
+        for sublist in ([0] if category in roots else [0, 1]):
+            params = {"key": api_key, "domain": 5, "category": category, "variations": 1, "sublist": sublist}
+            payload = request_json(session, "GET", KEEPA_BESTSELLERS_ENDPOINT, params=params)
+            listing = payload.get("bestSellersList")
+            if listing is not None and not isinstance(listing, dict):
+                raise ValueError("Keepaランキング応答の形式が不正です")
+            if listing and str(listing.get("categoryId", category)) != str(category):
+                raise ValueError("KeepaランキングのカテゴリIDが一致しません")
+            raw_asins = (listing or {}).get("asinList") or []
+            if not isinstance(raw_asins, list):
+                raise ValueError("KeepaランキングASIN一覧の形式が不正です")
+            lists.append((sublist, raw_asins, (listing or {}).get("lastUpdate")))
+            reports.append({"category_id": category, "sublist": sublist, "list_available": listing is not None,
+                            "returned_count": len(raw_asins), "tokens": token_snapshot(payload)})
+        # Alternate list positions so a user-specified small cap represents both lists.
+        entries = [(rank, sublist, raw, updated) for sublist, asins, updated in lists
+                   for rank, raw in enumerate(asins, 1)]
+        entries.sort(key=lambda item: (item[0], item[1]))
+        for rank, sublist, raw, updated in entries:
             asin = str(raw).strip().upper()
             if not ASIN_PATTERN.fullmatch(asin):
                 continue
             source = {"category_id": category, "list_position": rank,
-                      "sublist": params.get("sublist", 0), "last_update": (listing or {}).get("lastUpdate")}
+                      "sublist": sublist, "last_update": updated}
             if asin not in rows_by_asin:
                 if len(rows_by_asin) >= args.candidate_limit:
                     continue
                 rows_by_asin[asin] = asin_only_candidates([asin], {"source": "bestsellers", "ranking_sources": []})[0]
             rows_by_asin[asin]["finder_selection"]["ranking_sources"].append(source)
-        reports.append({"category_id": category, "list_available": listing is not None,
-                        "returned_count": len(raw_asins), "tokens": token_snapshot(payload)})
         # Keep successful categories if a later request fails. Re-runs replace this run's rows.
         save_candidates(args.run_id, args.store, list(rows_by_asin.values()))
         print("KEEPA_RANKING_PROGRESS " + json.dumps({"candidate_count": len(rows_by_asin), "category": reports[-1]}), flush=True)
@@ -751,10 +758,10 @@ def parse_args() -> argparse.Namespace:
     args.run_id = str(args.run_id).strip()
     if not args.run_id or not args.store:
         raise ValueError("run_id and store are required")
-    max_candidate_limit = MAX_FULL_SCAN_CANDIDATE_LIMIT if args.full_category_coverage else MAX_CANDIDATE_LIMIT
+    max_candidate_limit = MAX_FULL_SCAN_CANDIDATE_LIMIT if args.full_category_coverage else (20000 if args.ranking else MAX_CANDIDATE_LIMIT)
     if args.candidate_limit < 50 or args.candidate_limit > max_candidate_limit:
         raise ValueError(f"candidate-limit must be 50 to {max_candidate_limit}")
-    if not args.full_category_coverage and (args.page < 0 or args.page * args.candidate_limit >= 10000):
+    if not args.full_category_coverage and not args.ranking and (args.page < 0 or args.page * args.candidate_limit >= 10000):
         raise ValueError("page and candidate-limit must stay within Keepa's 10,000-result paging limit")
     if args.token_reserve < 0 or args.token_reserve > 1000:
         raise ValueError("token-reserve must be between 0 and 1000")
