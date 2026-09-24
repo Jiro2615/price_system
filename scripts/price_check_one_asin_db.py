@@ -1,6 +1,8 @@
 import argparse
 import asyncio
 import builtins
+import json
+import platform
 import re
 import sys
 from datetime import date, datetime
@@ -232,6 +234,41 @@ def is_gift_or_amazon_official(in_text: str, page_text: str = "") -> bool:
     if is_amazon_delivery_origin_offer_text(in_text):
         return False
     return "ギフト" in (in_text or "") or is_amazon_official_offer_text(in_text) or is_amazon_official_offer_text(page_text)
+
+
+def shipping_log_excerpt(text: str, limit: int = 320) -> str:
+    """Keep bounded delivery evidence, not prices, quantities or addresses."""
+    lines = str(text or "").splitlines()
+    selected = []
+    for index, line in enumerate(lines):
+        if re.search(r"お届け先|届け先|場所を更新", line):
+            continue
+        if re.search(r"配送|発送|お届け|配達|到着|明日|翌日|本日|今日|\d+月\d+日|\d+.*週間", line):
+            selected.append(re.sub(r"\s+", " ", line).strip())
+            # Delivery dates sometimes occupy a separate following line.
+            if index + 1 < len(lines) and re.match(r"^\s*(?:\d+月|明日|翌日|本日|今日)", lines[index + 1]):
+                selected.append(re.sub(r"\s+", " ", lines[index + 1]).strip())
+    return " | ".join(dict.fromkeys(selected))[:limit]
+
+
+def log_shipping_evidence(asin: str, text: str, status: str, message: str, source: str = "buybox") -> None:
+    """One bounded line in the existing worker log; no new files or I/O to DB."""
+    try:
+        worker = ""
+        for index, arg in enumerate(sys.argv):
+            if arg == "--worker-id" and index + 1 < len(sys.argv):
+                worker = sys.argv[index + 1]
+            elif arg.startswith("--worker-id="):
+                worker = arg.split("=", 1)[1]
+        print("SHIPPING_EVIDENCE " + json.dumps({
+            "at": now_dt().isoformat(timespec="seconds"), "asin": asin,
+            "worker": worker[:80], "host": platform.node()[:80],
+            "source": source, "status": status, "message": message[:80],
+            "text": shipping_log_excerpt(text),
+        }, ensure_ascii=False))
+    except Exception:
+        # Diagnostics must never turn a successful check into a failure.
+        pass
 
 
 def parse_shipping_status(in_text: str) -> tuple[str, str]:
@@ -1058,6 +1095,7 @@ async def check_amazon_one(
                     result["gift_available"] = True
                     result["shipping_status"] = f"Amazon発送最安: {lowest_offer['delivery']}"
                     result["selected_offer"] = lowest_offer
+                    log_shipping_evidence(asin, lowest_offer['delivery'], "OK", "Amazon発送最安", "offer")
                     return result
 
                 # ``#corePriceDisplay_desktop_feature_div`` is also present
@@ -1223,6 +1261,7 @@ async def check_amazon_one(
                 qty = parse_available_qty(in_text)
             apply_minimum_order_block(result, minimum_order_quantity)
             shipping_status, shipping_message = parse_shipping_status(in_text)
+            log_shipping_evidence(asin, in_text, shipping_status, shipping_message)
 
             if shipping_status != "OK":
                 result["business_ng"] = True
