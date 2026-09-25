@@ -14,13 +14,21 @@ from scripts.listing.prohibited_word_masking import analyze_prohibited_word_issu
 
 
 POLICY_VERSION = "listing_text_20260925"
+LEGACY_MODE = "legacy"
+CONTEXTUAL_MODE = "contextual_v1"
 # Only the reviewed legacy short terms change meaning. Other master entries,
 # including official-shop claims and regulated-product terms, stay in force.
 WORD_OR_BRAND_TERMS = frozenset({"OU", "ＯＲ", "イラ", "スリー", "スキン", "スカルプ"})
-CONTEXTUAL_CLAIM_TERMS = frozenset({
+LEGACY_MANDATORY_FORBIDDEN_WORDS = (
     "治癒", "治す", "予防", "防ぐ", "改善", "効能", "効果", "疲労回復", "老化防止",
     "血液サラサラ", "バストアップ", "デトックス", "脂肪燃焼", "代謝促進", "精力剤", "性的機能",
-})
+)
+CONTEXTUAL_CLAIM_TERMS = frozenset(LEGACY_MANDATORY_FORBIDDEN_WORDS)
+
+
+def normalize_listing_text_policy_mode(value: object) -> str:
+    """Unset/unknown settings retain the pre-trial behavior."""
+    return CONTEXTUAL_MODE if value == CONTEXTUAL_MODE else LEGACY_MODE
 
 
 def plain_text(value: str) -> str:
@@ -122,7 +130,17 @@ def advertising_expression_matches(fields: dict[str, str]) -> list[dict[str, Any
 def analyze_listing_text_policy(
     fields: dict[str, str], forbidden_words: list[str], allowed_phrase_rules: dict[str, list[str]],
     *, brand: str = "", separate_check_rules: dict[str, list[dict[str, Any]]] | None = None,
+    mode: str = LEGACY_MODE, include_legacy_mandatory: bool = True,
 ) -> dict[str, Any]:
+    if normalize_listing_text_policy_mode(mode) == LEGACY_MODE:
+        # Before the trial, mandatory terms were added to title/descriptions
+        # only. Attributes used the master entries alone. Preserve both paths.
+        words = list(dict.fromkeys(forbidden_words + (
+            list(LEGACY_MANDATORY_FORBIDDEN_WORDS) if include_legacy_mandatory else []
+        )))
+        return analyze_prohibited_word_issues(
+            fields, words, allowed_phrase_rules, separate_check_rules=separate_check_rules,
+        )
     strict_words = list(dict.fromkeys(word for word in forbidden_words if word in WORD_OR_BRAND_TERMS))
     contains_words = [word for word in forbidden_words
                       if word not in WORD_OR_BRAND_TERMS and word not in CONTEXTUAL_CLAIM_TERMS]

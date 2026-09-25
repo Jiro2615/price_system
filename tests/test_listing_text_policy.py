@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from scripts.listing.listing_text_policy import (
@@ -10,6 +11,7 @@ from scripts.listing.listing_text_policy import (
 )
 from scripts.listing.listing_evaluator import evaluate_listing, _is_quasi_drug_allowed_match
 from scripts.listing.models import AmazonCheckResult, KeepaProductData, ListingCommonSettings, MasterData, StoreSettings
+from scripts.listing.prepare_service import _base_result
 
 
 class TextPolicyTests(unittest.TestCase):
@@ -17,6 +19,7 @@ class TextPolicyTests(unittest.TestCase):
         return analyze_listing_text_policy(
             {"title": text}, list(WORD_OR_BRAND_TERMS) if words is None else words,
             {}, brand=brand,
+            mode="contextual_v1",
         )["matched_forbidden_words"]
 
     def test_brand_substrings_pass(self):
@@ -96,6 +99,7 @@ class TextPolicyTests(unittest.TestCase):
     def test_allowed_phrase_never_masks_explicit_claim(self):
         result = analyze_listing_text_policy(
             {"title": "ニキビを治す"}, ["治す"], {"治す": ["ニキビを治す"]},
+            mode="contextual_v1",
         )
         self.assertTrue(result["matched_forbidden_words"])
 
@@ -124,6 +128,7 @@ class EvaluatorTextPolicyTests(unittest.TestCase):
             use_amazon_point=False, profit_mode="amount", profit_rate=0, profit_amount=300,
             fixed_cost=0, rounding_unit=1, normal_delivery_date_id=1, back_order_delivery_date_id=1,
             normal_delivery_time_id=1, back_order_delivery_time_id=1, ship_from_ids=["1"],
+            listing_text_policy_mode="contextual_v1",
         )
         self.amazon = AmazonCheckResult(
             requested_asin=self.asin, page_asin=self.asin, title="10 Count ハイライト",
@@ -155,6 +160,24 @@ class EvaluatorTextPolicyTests(unittest.TestCase):
         self.assertEqual(self.amazon.title, result.title)
         self.assertIn("潤滑効果", result.description_pc)
 
+    def test_evaluator_switches_back_to_legacy_and_other_store_stays_legacy(self):
+        self.store = replace(self.store, store_code="rakuten_1", listing_text_policy_mode="legacy")
+        self.assertEqual("business_ng", self.evaluate().listing_status)
+        self.store = replace(self.store, store_code="rakuten_2", listing_text_policy_mode="contextual_v1")
+        self.assertEqual("eligible", self.evaluate().listing_status)
+        self.store = replace(self.store, listing_text_policy_mode="legacy")
+        self.assertEqual("business_ng", self.evaluate().listing_status)
+
+    def test_result_records_selected_mode(self):
+        for mode in ("legacy", "contextual_v1"):
+            with self.subTest(mode=mode):
+                result = _base_result(
+                    mode="offline", asin=self.asin, amazon_result=self.amazon, keepa_result=self.keepa,
+                    listing_status="business_ng", listing_reason="test", warnings=[], missing_master_files=[],
+                    master_dir=Path("."), store_settings=replace(self.store, listing_text_policy_mode=mode),
+                    common_settings=ListingCommonSettings(min_avg90_new_offer_count=3.5),
+                )
+                self.assertEqual(mode, result["store_settings"]["listing_text_policy_mode"])
     def test_true_brand_cannot_use_marketplace_popularity_exception(self):
         result = self.evaluate(keepa_result=replace(self.keepa, brand="OU"))
         self.assertEqual("business_ng", result.listing_status)

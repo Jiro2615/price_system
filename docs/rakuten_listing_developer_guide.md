@@ -474,7 +474,13 @@ seller count共通設定:
 
 ### 2026-09-25: 短いブランド語と効果表現の分離
 
-出品時は `scripts/listing/listing_text_policy.py` を経由する。タイトル、PC/SP説明、属性に同じポリシーを適用し、Keepaのブランド欄も確認する。元の商品文言を書き換えて通過させる処理ではない。
+店舗設定の「禁止語・効果表現の判定方式」で店舗ごとに選択する。初期値は **従来方式** (`legacy`)。未設定・不明な値も従来方式で判定する。試験対象の店舗だけ **新方式** (`contextual_v1`) に切り替え、必要なら従来方式へ戻せる。
+
+保存先は既存の `store_settings.order_fulfillment_settings_json.listing_text_policy_mode`。DBマイグレーションや各PCの `.env` 編集は不要。古いクライアントがこの項目を省略した場合は保存値を維持し、不正な指定値は保存前に拒否する。出品評価は店舗の `StoreSettings` 経由で選択し、判定結果JSONの `store_settings.listing_text_policy_mode` に採用方式を記録する。
+
+**中央Webと全出品担当PCを更新してから試験を始める。** `f48ac80` のみのPCは店舗切替に未対応で新方式を常用する。更新後、店舗1は従来方式のまま、店舗2で新方式を選んで「保存」する。中央Webの反映・再起動は稼働中ジョブを確認して別途行う。既存バッチには最大30秒の店舗設定キャッシュがあるため、比較試験の切替はジョブ停止中に行う。選択を変えるだけでは既存商品や過去NG、ジョブのASIN一覧は変更しない。
+
+以下は **新方式** の仕様。出品時は `scripts/listing/listing_text_policy.py` を経由する。タイトル、PC/SP説明、属性に同じポリシーを適用し、Keepaのブランド欄も確認する。元の商品文言を書き換えて通過させる処理ではない。従来方式は前回変更前の部分一致・効果語判定（属性への必須語追加の有無も含む）を維持する。
 
 - 対象は確認済みの6語 `OU / ＯＲ / イラ / スリー / スキン / スカルプ`。有効な禁止語マスターに含まれる場合だけ、文字列の一部一致ではなく、単語の境界（空白・括弧等）またはブランド欄の単語一致で止める。全角半角と大文字小文字は同一視し、長音符は保持する。
 - `Count / Touch / Corn / Performance / ハイライト / スリム / スリーク` 内の部分一致は止めない。日本語の形態素解析やブランドの別名推定は行わない。`OU` 単独、`【イラ】`、ブランド欄の `OR` などは止める。
@@ -494,7 +500,7 @@ py -3.12 C:\rakuten\price_system_listing\scripts\preview_listing_text_policy_pas
 
 対象は自動記録のうち、変更した語だけでNGになった旧記録。手動NG・他の禁止語との混在・根拠不足の記録は候補に含めない。候補は「再判定が必要」の意味であり、出品可を意味しない。保存された短い文脈だけで解除せず、別途承認を得て対象を絞り、最新の商品全文と通常の全条件で再判定する。コマンドはDB更新もジョブ作成もせず、既存の出力ファイルも上書きしない。
 
-検証: `py -3.12 -m unittest tests.test_listing_text_policy tests.test_listing_text_policy_past_ng -v`。DB/API送信なしのテストで、実出品による検証ではない。
+検証: `py -3.12 -m unittest tests.test_listing_text_policy tests.test_listing_text_policy_modes tests.test_listing_text_policy_past_ng -v`。DB/API送信なしのテストで、実出品による検証ではない。
 
 ## 14. 属性解決
 

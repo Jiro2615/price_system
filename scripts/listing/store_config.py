@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from scripts.db_config import connect_db
 from scripts.listing.models import StoreSettings
+from scripts.listing.listing_text_policy import normalize_listing_text_policy_mode
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -209,6 +210,7 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
     if not ship_from_ids:
         raise RuntimeError(f"ship_from_ids is empty: store_code={store_code}")
 
+    saved_listing_settings = _get_store_cabinet_settings(store_code)
     return StoreSettings(
         store_id=int(store_id),
         store_code=str(resolved_store_code),
@@ -229,7 +231,8 @@ def get_store_settings(store_code: str, *, amazon_price: int | None = None) -> S
         rakuten_target_price_floor=_to_optional_positive_int(rakuten_target_price_floor),
         shipping_method_group=_get_env(store_code, "SHIPPING_METHOD_GROUP", ""),
         cabinet=get_store_cabinet_config(store_code),
-        image_overlay=dict(_get_store_cabinet_settings(store_code).get("listing_image_overlay") or {}),
+        image_overlay=dict(saved_listing_settings.get("listing_image_overlay") or {}),
+        listing_text_policy_mode=normalize_listing_text_policy_mode(saved_listing_settings.get("listing_text_policy_mode")),
         management_suffix=_get_env(store_code, "MANAGEMENT_SUFFIX", "187") or "187",
         send_inventory_delivery_ids=_to_bool(_get_env(store_code, "SEND_INVENTORY_DELIVERY_IDS", ""), False),
         listing_image_limit=_to_optional_positive_int(_get_env(store_code, "LISTING_IMAGE_LIMIT", str(DEFAULT_LISTING_IMAGE_LIMIT))),

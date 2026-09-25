@@ -169,6 +169,7 @@ class StoreSettings:
     min_avg90_sellers: Optional[float] = None
     send_inventory_delivery_ids: bool = False
     listing_image_limit: Optional[int] = None
+    listing_text_policy_mode: str = "legacy"
 
 
 @dataclass

@@ -560,6 +560,7 @@ def evaluate_listing(
         master_data.allowed_phrase_rules,
         brand=keepa_result.brand or "",
         separate_check_rules=master_data.allowed_phrase_separate_checks,
+        mode=store_settings.listing_text_policy_mode,
     )
     allowed_phrase_matches.extend(prohibited_analysis["allowed_phrase_matches"])
     matched_forbidden_words.extend(prohibited_analysis["matched_forbidden_words"])
@@ -751,6 +752,8 @@ def evaluate_listing(
             list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other),
             master_data.allowed_phrase_rules,
             separate_check_rules=master_data.allowed_phrase_separate_checks,
+            mode=store_settings.listing_text_policy_mode,
+            include_legacy_mandatory=False,
         )
         allowed_phrase_matches.extend(attribute_analysis["allowed_phrase_matches"])
         matched_forbidden_words.extend(attribute_analysis["matched_forbidden_words"])

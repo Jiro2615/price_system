@@ -17,6 +17,7 @@ from scripts.listing.image_plan import build_image_download_plan
 from scripts.listing.listing_evaluator import evaluate_listing
 from scripts.listing.management_number import build_management_number_bundle_from_selected, generate_management_number_bundle
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, ResolvedField, StoreSettings
+from scripts.listing.listing_text_policy import normalize_listing_text_policy_mode
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload
 
@@ -409,6 +410,7 @@ def _base_result(
         },
         "store_settings": {
             "store_code": store_settings.store_code,
+            "listing_text_policy_mode": normalize_listing_text_policy_mode(store_settings.listing_text_policy_mode),
             "max_stock": store_settings.max_stock,
             "normal_delivery_date_id": store_settings.normal_delivery_date_id,
             "back_order_delivery_date_id": store_settings.back_order_delivery_date_id,
