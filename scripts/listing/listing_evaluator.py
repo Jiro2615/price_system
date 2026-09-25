@@ -7,7 +7,8 @@ from scripts.listing.book_format import digital_book_reason, prepend_book_format
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, ResolvedField, StoreSettings
-from scripts.listing.prohibited_word_masking import analyze_prohibited_word_issues, detect_legacy_spacing_reviews
+from scripts.listing.prohibited_word_masking import detect_legacy_spacing_reviews
+from scripts.listing.listing_text_policy import analyze_listing_text_policy
 from scripts.listing.provisional_genre import suggest_provisional_genre
 from scripts.listing.rakuten_marketplace_policy import (
     MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
@@ -17,14 +18,6 @@ from scripts.listing.rakuten_marketplace_policy import (
     rakuten_listing_count_for_jan,
 )
 
-
-# These effectiveness/sexual-function expressions remain non-overridable even
-# if the same JAN is already listed on Rakuten.  Product-category terms such as
-# "医薬部外品" are intentionally not included here.
-MANDATORY_COMPLIANCE_FORBIDDEN_WORDS = (
-    "治癒", "治す", "予防", "防ぐ", "改善", "効能", "効果", "疲労回復", "老化防止",
-    "血液サラサラ", "バストアップ", "デトックス", "脂肪燃焼", "代謝促進", "精力剤", "性的機能",
-)
 
 # These are not generally permitted words.  They can only be used when the
 # same JAN has been confirmed as a Japanese quasi-drug and the mandatory
@@ -182,6 +175,8 @@ def same_jan_prohibited_word_exception(
     """
     if not matched_words:
         return None
+    if any(item.get("rule_kind") in {"advertising_expression", "brand", "whole_word"} for item in matched_words):
+        return None
     jan_code = str(keepa_result.ean or "").strip()
     cosmetics_category = is_cosmetics_category(keepa_result.category_tree)
     same_jan_listing_count = rakuten_listing_count_for_jan(jan_code)
@@ -315,6 +310,8 @@ def _build_quasi_drug_descriptions(title: str, keepa_result: KeepaProductData, e
 
 
 def _is_quasi_drug_allowed_match(item: dict[str, object], evidence: dict[str, object]) -> bool:
+    if item.get("rule_kind") == "advertising_expression":
+        return False
     if not evidence:
         return False
     allowed = QUASI_DRUG_CONDITIONALLY_ALLOWED_WORDS if evidence.get("product_category") == "医薬部外品" else COSMETICS_CONDITIONALLY_ALLOWED_WORDS
@@ -553,14 +550,15 @@ def evaluate_listing(
         # Do not let legacy product-word cleanup rules alter them.
         description_pc, description_sp = _build_quasi_drug_descriptions(title, keepa_result, quasi_drug_evidence)
 
-    prohibited_analysis = analyze_prohibited_word_issues(
+    prohibited_analysis = analyze_listing_text_policy(
         {
             "title": title,
             "description_pc": description_pc,
             "description_sp": description_sp,
         },
-        list(dict.fromkeys(list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other) + list(MANDATORY_COMPLIANCE_FORBIDDEN_WORDS))),
+        list(dict.fromkeys(list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other))),
         master_data.allowed_phrase_rules,
+        brand=keepa_result.brand or "",
         separate_check_rules=master_data.allowed_phrase_separate_checks,
     )
     allowed_phrase_matches.extend(prohibited_analysis["allowed_phrase_matches"])
@@ -748,7 +746,7 @@ def evaluate_listing(
         attribute_fields[f"attribute:{attr_name}"] = cleaned_value
 
     if attribute_fields:
-        attribute_analysis = analyze_prohibited_word_issues(
+        attribute_analysis = analyze_listing_text_policy(
             attribute_fields,
             list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other),
             master_data.allowed_phrase_rules,
