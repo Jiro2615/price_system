@@ -253,6 +253,12 @@ resume:
 
 実登録成功後、ローカルDBへ同期します。`--execute` がなければpreviewだけです。
 
+代表画像の実アップロード先は `store_products.rakuten_image_url` / `rakuten_image_path`
+へ保存します。画像URLが登録済みの商品は上書きしません。保存先のサブフォルダも保持し、
+`rakuten_api_snapshots` の保存期限（30日）を過ぎても注文画面の画像を表示できます。
+この保存は `save_snapshot=False` の場合も行います。過去分の補完は Web Orchestrator の
+`scripts/repair_product_images.py` を使用します（予定一覧を作成後、明示的に適用）。
+
 ```powershell
 py -u -m scripts.rakuten_listing_db_sync `
   --result-json output\listing\B00HLBPOBQ_real_execute_result.json `

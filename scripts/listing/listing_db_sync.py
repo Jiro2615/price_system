@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from psycopg.types.json import Jsonb
 
@@ -407,6 +409,54 @@ def _record_uploaded_images(cur: Any, sync: dict[str, Any], store_id: int) -> No
         )
 
 
+def _persist_main_image(cur: Any, sync: dict[str, Any], store_id: int) -> None:
+    """Keep the confirmed main image even when API snapshots expire."""
+    raw = sync.get("raw_execute_result") or {}
+    locations = raw.get("rakuten_image_urls_after") or []
+    payload = raw.get("executed_item_payload") or {}
+    if not locations:
+        images = payload.get("images") or []
+        if images and images[0].get("type", "CABINET") == "CABINET":
+            locations = [images[0].get("location")]
+    if not locations:
+        uploads = raw.get("image_upload_results") or []
+        if uploads:
+            locations = [uploads[0].get("rakuten_image_url")]
+    if not locations:
+        return
+    location = str(locations[0] or "").strip()
+    parsed = urlsplit(location)
+    path = _normalize_cabinet_path(location)
+    if (not path or any(part in ("", ".", "..") for part in path.split("/"))
+            or not re.search(r"\.(?:jpe?g|png|gif|webp)$", path, re.I)):
+        return
+    cur.execute("SELECT order_fulfillment_settings_json->>'rakuten_shop_url' FROM store_settings WHERE store_id=%s", (store_id,))
+    row = cur.fetchone()
+    prefix = re.sub(r"[^A-Za-z0-9]+", "_", sync["store_code"]).upper()
+    shop = str((row[0] if row else None) or os.getenv(prefix + "_SHOP_URL")
+               or os.getenv(prefix + "_CABINET_SHOP_URL") or "").strip().strip("/")
+    if shop.startswith(("http://", "https://")):
+        shop = urlsplit(shop).path.strip("/")
+    if parsed.scheme or parsed.netloc:
+        if (parsed.scheme not in ("http", "https") or parsed.hostname not in
+                ("shop.r10s.jp", "tshop.r10s.jp", "image.rakuten.co.jp") or parsed.username or parsed.password):
+            return
+        parts = parsed.path.strip("/").split("/")
+        if len(parts) < 4 or parts[1] != "cabinet" or (shop and parts[0] != shop):
+            return
+        shop = shop or parts[0]
+    url = f"https://tshop.r10s.jp/{shop}/cabinet/{path}" if re.fullmatch(r"[A-Za-z0-9_-]+", shop) else None
+    # Never replace an existing image or a conflicting saved path. If the
+    # shop slug is unavailable, the confirmed path still survives retention.
+    cur.execute("""UPDATE store_products SET rakuten_image_url=%s,
+        rakuten_image_path=%s,rakuten_image_type='CABINET'
+        WHERE store_id=%s AND mall_item_code=%s
+          AND NULLIF(BTRIM(rakuten_image_url),'') IS NULL
+          AND (NULLIF(BTRIM(rakuten_image_path),'') IS NULL OR LTRIM(rakuten_image_path,'/')=%s)
+          AND COALESCE(NULLIF(rakuten_image_type,''),'CABINET')='CABINET'""",
+        (url, '/' + path, store_id, sync["management_number"], path))
+
+
 def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
     sync = _extract_sync_payload(request)
     result = _build_preview(sync, execute=request.execute, save_snapshot=request.save_snapshot)
@@ -418,6 +468,7 @@ def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
             store_id = _get_store_id(cur, sync["store_code"])
             _upsert_amazon_product(cur, sync)
             _update_or_insert_store_product(cur, sync, store_id)
+            _persist_main_image(cur, sync, store_id)
             _ensure_uploaded_image_table(cur)
             _record_uploaded_images(cur, sync, store_id)
             if request.save_snapshot:
