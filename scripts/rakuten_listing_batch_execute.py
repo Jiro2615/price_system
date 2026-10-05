@@ -23,6 +23,7 @@ from scripts.listing.real_execute_service import RealExecuteRequest, build_real_
 from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
+from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
 from scripts.price_check_one_asin_db import create_amazon_page
 
 
@@ -90,7 +91,15 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     results_path = args.output_dir / "results.jsonl"
     local_data = BatchLocalData(args.store, args.master_dir, asins, args.allow_missing_master)
     completed = 0
-    cabinet_folder_resolver = CachedCabinetUploadFolderResolver()
+    priority_refresh = args.update_existing and len(asins) == 1
+    def refresh_stage(stage, **details):
+        if priority_refresh:
+            print("LISTING_REFRESH_STAGE " + json.dumps({"stage": stage, **details}, ensure_ascii=False), flush=True)
+
+    # Only emitted by a process which uses the shared write slot below. Old
+    # already-running workers never advertise this, so agents keep them serial.
+    print(f"LISTING_WRITE_PROTOCOL {LISTING_WRITE_PROTOCOL_VERSION}", flush=True)
+    refresh_stage("preparing")
     prepare_pages = LazyAmazonPages(create_amazon_page, args.prepare_workers)
 
     # 最速の経路は、ローカル判定・Keepa・Amazon・RMSを独立させること。
@@ -276,9 +285,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 allow_existing_update=args.update_existing,
             )
             readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
-            result = await asyncio.to_thread(
-                build_real_execute_result,
-                RealExecuteRequest(
+            def execute_and_sync():
+                result = build_real_execute_result(RealExecuteRequest(
                     readiness_json=readiness_path,
                     dry_run_json=dry_path,
                     preflight_json=preflight_path,
@@ -294,19 +302,24 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                     confirm_store=args.store,
                     allow_live_transport=True,
                     content_refresh=args.update_existing,
-                ),
-                cabinet_folder_resolver=cabinet_folder_resolver,
-            )
-            save_json(item_dir / "execute.json", result)
-            if result.get("final_status") == "completed" and not args.update_existing:
-                db_sync = await asyncio.to_thread(
-                    sync_listing_result_to_db,
-                    ListingDbSyncRequest(result_json=item_dir / "execute.json", dry_run_json=dry_path, store=args.store, execute=True),
-                )
-                result["db_sync"] = db_sync
-                if not db_sync.get("external_db_writes_performed"):
-                    result["final_status"] = "db_sync_failed"
+                ), cabinet_folder_resolver=CachedCabinetUploadFolderResolver())
+                # Refresh the folder lookup for each slot: another process
+                # may have consumed Cabinet capacity since the previous item.
                 save_json(item_dir / "execute.json", result)
+                if result.get("final_status") == "completed" and not args.update_existing:
+                    db_sync = sync_listing_result_to_db(
+                        ListingDbSyncRequest(result_json=item_dir / "execute.json", dry_run_json=dry_path, store=args.store, execute=True))
+                    result["db_sync"] = db_sync
+                    if not db_sync.get("external_db_writes_performed"):
+                        result["final_status"] = "db_sync_failed"
+                    save_json(item_dir / "execute.json", result)
+                return result
+
+            refresh_stage("waiting_write")
+            result = await asyncio.to_thread(
+                run_with_listing_write_slot, args.store, execute_and_sync,
+                priority=priority_refresh, on_acquired=lambda: refresh_stage("updating"),
+            )
             if result.get("final_status") == "completed":
                 completed += 1
             return result
@@ -332,6 +345,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 break
             index, asin, dry = prepared_item
             result = await execute_one(index, asin, dry)
+            refresh_stage("completed" if result.get("final_status") == "completed" else "failed",
+                          final_status=str(result.get("final_status") or "unknown"))
             result["batch_index"] = index
             handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
             print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)

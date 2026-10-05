@@ -24,6 +24,50 @@ def arguments(folder):
 
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_refresh_and_bulk_write_and_db_sync_are_inside_slot(self):
+        for refresh in (False, True):
+            with self.subTest(refresh=refresh), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+                module = execute_batch
+                stack.enter_context(patch("psycopg.connect", side_effect=AssertionError("Live DB forbidden")))
+                stack.enter_context(patch("requests.sessions.Session.request", side_effect=AssertionError("HTTP forbidden")))
+                stack.enter_context(patch.object(module, "BatchLocalData"))
+                stack.enter_context(patch.object(module, "precheck_local_listing_exclusion", return_value=None))
+                stack.enter_context(patch.object(module, "precheck_keepa_before_amazon", return_value=(None, "keepa")))
+                stack.enter_context(patch.object(module, "create_amazon_page", new_callable=AsyncMock,
+                    return_value=(None, None, SimpleNamespace(new_page=AsyncMock(return_value="p2")), "p1")))
+                stack.enter_context(patch.object(module, "fetch_amazon_result", new_callable=AsyncMock, return_value="amazon"))
+                dry = {"asin": "B000TEST01", "listing_status": "eligible", "management_number": "item",
+                       "amazon_result": "amazon", "keepa_result": "keepa"}
+                stack.enter_context(patch.object(module, "prepare_listing", return_value=dry))
+                stack.enter_context(patch.object(module, "revalidate_prepared_listing", return_value=dry))
+                for name in ("build_preflight_result", "build_mock_execute_result", "build_real_readiness_result"):
+                    stack.enter_context(patch.object(module, name, return_value={}))
+                inside = []
+                calls = []
+                def slot(store, action, *, priority, on_acquired):
+                    self.assertEqual(store, "shop"); self.assertEqual(priority, refresh)
+                    inside.append(True)
+                    try:
+                        on_acquired()
+                        return action()
+                    finally: inside.clear()
+                stack.enter_context(patch.object(module, "run_with_listing_write_slot", side_effect=slot))
+                def execute(request, **kwargs):
+                    self.assertTrue(inside)
+                    self.assertEqual(request.content_refresh, refresh)
+                    calls.append("rms")
+                    return {"final_status": "completed"}
+                stack.enter_context(patch.object(module, "build_real_execute_result", side_effect=execute))
+                def sync(*_):
+                    self.assertTrue(inside); calls.append("db")
+                    return {"external_db_writes_performed": True}
+                stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=sync))
+                args = arguments(folder); args.update_existing = refresh
+                await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
+                self.assertEqual(calls, ["rms"] if refresh else ["rms", "db"])
+                row = json.loads((Path(folder) / "results.jsonl").read_text())
+                self.assertEqual(row["final_status"], "completed")
+
     async def test_both_batches_reject_all_without_browser_keepa_or_rms(self):
         for module in (dry_batch, execute_batch):
             with self.subTest(module=module.__name__), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
