@@ -6,6 +6,8 @@ does not import DB clients, run a listing, stop workers, or change settings.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Mapping
+import hashlib
 import html
 import json
 import os
@@ -31,15 +33,36 @@ def redact(value: object, secrets: tuple[str, ...]) -> str:
     return re.sub(r"[A-Za-z0-9_+=/\-]{24,}", "[TOKEN omitted]", text)[:800]
 
 
+def scrub_error_body(value: object, secrets: tuple[str, ...], depth: int = 0) -> object:
+    """Remove named secrets even when the API uses an unfamiliar error shape."""
+    if depth > 3:
+        return "[nested content omitted]"
+    if isinstance(value, dict):
+        result = {}
+        for key, item in list(value.items())[:20]:
+            normalized_key = re.sub(r"[^a-z]", "", str(key).lower())
+            sensitive = any(word in normalized_key for word in
+                            ("password", "secret", "token", "authorization", "cookie", "accesskey", "apikey", "applicationid"))
+            result[redact(key, secrets)] = "[REDACTED]" if sensitive else scrub_error_body(item, secrets, depth + 1)
+        return result
+    if isinstance(value, list):
+        return [scrub_error_body(item, secrets, depth + 1) for item in value[:5]]
+    return redact(value, secrets)
+
+
 def diagnose(keyword: str = "シャープペン", timeout: float = 15.0) -> list[dict]:
     load_dotenv(ENV_PATH)
     application_id = os.getenv("RAKUTEN_WEB_SERVICE_APPLICATION_ID", "").strip()
     access_key = os.getenv("RAKUTEN_WEB_SERVICE_ACCESS_KEY", "").strip()
-    records = [{"stage": "settings", "application_id_present": bool(application_id),
+    records = [{"stage": "settings", "diagnostic_version": 2, "application_id_present": bool(application_id),
                 "access_key_present": bool(access_key)}]
     if not application_id or not access_key:
         records.append({"stage": "result", "error": "credentials_missing"})
         return records
+    # A short one-way marker allows cross-PC comparison without sharing keys.
+    records[0]["credentials_marker"] = hashlib.sha256(
+        ("rakuten-marketplace-credentials:v1\n" + application_id + "\n" + access_key).encode("utf-8")
+    ).hexdigest()[:16]
     try:
         # Same endpoint, credentials, and filters as the production search.
         # Do not follow redirects with a credential-bearing header.
@@ -53,19 +76,30 @@ def diagnose(keyword: str = "シャープペン", timeout: float = 15.0) -> list
         records.append({"stage": "transport_error", "exception_type": type(exc).__name__})
         return records
     result = {"stage": "response", "status": response.status_code}
+    if not response.ok and isinstance(response.headers, Mapping):
+        result["response_headers"] = {name: redact(response.headers[name], (application_id, access_key))
+                                      for name in ("Content-Type", "Server", "X-Amzn-ErrorType", "X-Cache")
+                                      if name in response.headers}
     try:
         body = response.json()
     except ValueError:
         result["error"] = "non_json_response"
+        if not response.ok:
+            result["error_body_excerpt"] = redact(response.text, (application_id, access_key))
         records.append(result)
         return records
     if not isinstance(body, dict):
         result["error"] = "unexpected_json_shape"
+        if not response.ok:
+            result["error_body_excerpt"] = redact(json.dumps(scrub_error_body(body, (application_id, access_key)), ensure_ascii=False), (application_id, access_key))
         records.append(result)
         return records
     for name in ("error", "error_description", "message", "code"):
         if name in body:
             result[name] = redact(body[name], (application_id, access_key))
+    if not response.ok:
+        result["error_body_fields"] = [redact(name, (application_id, access_key)) for name in list(body)[:20]]
+        result["error_body_excerpt"] = redact(json.dumps(scrub_error_body(body, (application_id, access_key)), ensure_ascii=False), (application_id, access_key))
     if response.ok:
         count = body.get("count")
         result["search_count"] = count if isinstance(count, int) and not isinstance(count, bool) else None

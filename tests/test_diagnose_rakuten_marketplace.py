@@ -29,7 +29,7 @@ class DiagnosticTests(unittest.TestCase):
 
     def response(self, status, body):
         self.get.return_value = Mock(status_code=status, ok=200 <= status < 300,
-                                     json=Mock(return_value=body))
+                                     json=Mock(return_value=body), headers={}, text="forbidden")
 
     def test_success_reads_once_without_outputting_product_data_or_keys(self):
         self.response(200, {"count": 30, "items": [{"itemName": KEY}]})
@@ -73,6 +73,44 @@ class DiagnosticTests(unittest.TestCase):
     def test_encoded_credentials_are_redacted(self):
         secret = "fake+special/secret="
         self.assertNotIn(quote(secret, safe=""), diagnostic.redact(quote(secret, safe=""), (secret,)))
+
+    def test_unfamiliar_403_body_is_visible_with_nested_secrets_removed(self):
+        self.response(403, {"errors": [{"reason": "access denied", "access_key": "unknown-short-key",
+                                       "credentials": {"password": "secret-password"}}], "applicationId": APP})
+        self.get.return_value.headers = {"Server": "gateway", "Content-Type": "application/json",
+                                         "Set-Cookie": "private-cookie"}
+        result = diagnostic.diagnose()[-1]
+        self.assertEqual(result["status"], 403)
+        self.assertIn("errors", result["error_body_fields"])
+        self.assertIn("access denied", result["error_body_excerpt"])
+        output = json.dumps(result)
+        for secret in (APP, KEY, "unknown-short-key", "secret-password", "private-cookie"):
+            self.assertNotIn(secret, output)
+        self.assertEqual(result["response_headers"]["Server"], "gateway")
+
+    def test_empty_403_body_is_explicitly_reported(self):
+        self.response(403, {})
+        result = diagnostic.diagnose()[-1]
+        self.assertEqual(result["error_body_fields"], [])
+        self.assertEqual(result["error_body_excerpt"], "{}")
+
+    def test_marker_is_stable_and_different_credentials_change_it(self):
+        self.response(200, {"items": []})
+        first = diagnostic.diagnose()[0]
+        self.assertEqual(first["diagnostic_version"], 2)
+        self.assertEqual(len(first["credentials_marker"]), 16)
+        self.assertEqual(first["credentials_marker"], diagnostic.diagnose()[0]["credentials_marker"])
+        with patch.dict(os.environ, {"RAKUTEN_WEB_SERVICE_ACCESS_KEY": KEY + "changed"}):
+            self.assertNotEqual(first["credentials_marker"], diagnostic.diagnose()[0]["credentials_marker"])
+
+    def test_non_json_403_excerpt_is_redacted(self):
+        self.response(403, {})
+        self.get.return_value.json.side_effect = ValueError("not JSON")
+        self.get.return_value.text = f"Forbidden accessKey={KEY} applicationId={APP}"
+        result = diagnostic.diagnose()[-1]
+        self.assertIn("Forbidden", result["error_body_excerpt"])
+        self.assertNotIn(KEY, result["error_body_excerpt"])
+        self.assertNotIn(APP, result["error_body_excerpt"])
 
 
 if __name__ == "__main__":
