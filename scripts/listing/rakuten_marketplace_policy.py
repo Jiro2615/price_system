@@ -4,6 +4,7 @@ import os
 import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
+from collections import Counter
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,9 @@ from scripts.listing.rakuten_search_client import search_items
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
 MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION = 5
+MAX_TEXT_SEARCHES = 4
+# A documented company/brand spelling pair, not a fuzzy prefix rule.
+KNOWN_MAKER_ALIASES = {"象印マホービン": ("象印", "ZOJIRUSHI")}
 SENSITIVE_MARKERS = (
     "医療", "医薬", "薬", "コンドーム", "性", "育毛", "殺菌", "除菌", "治療", "効能", "効果",
     "治癒", "予防", "疲労回復", "老化防止", "血液サラサラ", "バストアップ", "デトックス",
@@ -75,7 +79,7 @@ def _model_tokens(*values: object) -> set[str]:
         normalized = unicodedata.normalize("NFKC", str(value or "")).casefold()
         for token in re.findall(r"(?=[a-z0-9_-]{4,})(?=[a-z0-9_-]*[a-z])(?=[a-z0-9_-]*\d)[a-z0-9_-]+", normalized):
             compact = re.sub(r"[^a-z0-9]", "", token)
-            if len(compact) >= 4:
+            if len(compact) >= 4 and not re.fullmatch(r"\d+(?:mg|kg|g|ml|l|gb|tb|mb|w|v|mm|cm|mah|hz|ghz|dpi)|(?:jan|ean|upc|isbn)\d{8,14}", compact):
                 tokens.add(compact)
     return tokens
 
@@ -93,32 +97,73 @@ def _variant_groups(value: object) -> dict[str, set[Decimal]]:
     groups: dict[str, set[Decimal]] = {}
     factors = {"ml": ("volume", 1), "l": ("volume", 1000), "mg": ("weight", Decimal("0.001")),
                "g": ("weight", 1), "kg": ("weight", 1000)}
-    for number, unit in re.findall(r"(\d+(?:\.\d+)?)\s*(ml|mg|kg|gb|tb|mb|l|g|個|本|枚|包|袋|組|セット|pack|pcs)(?![a-z])", text):
+    for match in re.finditer(r"(\d+(?:\.\d+)?)\s*(ml|mg|kg|gb|tb|mb|l|g|個|本|枚|包|袋|組|セット|pack|pcs)(?![a-z])", text):
+        number, unit = match.groups()
         group, factor = factors.get(unit, (unit if unit in {"gb", "tb", "mb"} else "count", 1))
+        if unit == "枚" and (re.match(r"焼", text[match.end():]) or
+                             ("食パン" in text[max(0, match.start() - 5):match.start()]
+                              and not re.match(r"セット|入|組", text[match.end():]))):
+            group = "bread_capacity"
         groups.setdefault(group, set()).add(Decimal(number) * factor)
+    for age, qualifier in re.findall(r"(\d+)\s*[歳才]\s*(以上|から|まで|未満)?", text):
+        group = "age_min" if qualifier in {"以上", "から"} else "age_max" if qualifier in {"まで", "未満"} else "age"
+        groups.setdefault(group, set()).add(Decimal(age))
+    for volume in re.findall(r"(?:第)?(\d+)\s*巻(?!き)", text):
+        groups.setdefault("volume_number", set()).add(Decimal(volume))
     return groups
 
 
-def _candidate_matches_variant(item: dict[str, Any], title: str) -> bool:
+def _colours(value: object) -> set[str]:
+    text = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    words = {"black": ("ブラック", r"\bblack\b"), "white": ("ホワイト", r"\bwhite\b"),
+             "red": ("レッド", r"\bred\b"), "blue": ("ブルー", r"\bblue\b"),
+             "silver": ("シルバー", r"\bsilver\b"), "grey": ("グレー", r"\bgr[ae]y\b")}
+    return {name for name, patterns in words.items() if any(re.search(pattern, text) for pattern in patterns)}
+
+
+def _distinctive_terms(value: object) -> set[str]:
+    text = _normalise_product_text(value)
+    return {word for word in ("チキン", "ターキー", "サーモン", "ツナ", "白身魚", "グレインフリー",
+                              "避妊", "去勢", "毛玉", "腎臓", "尿路", "詰め替え", "本体別売", "ケーブル付き")
+            if word in text}
+
+
+def _variant_rejection_reason(item: dict[str, Any], title: str) -> str | None:
     try:
         if "availability" in item and int(item["availability"]) != 1:
-            return False
+            return "unavailable"
         if "postageFlag" in item and int(item["postageFlag"]) != 0:
-            return False
+            return "shipping_not_included"
     except (ValueError, TypeError):
-        return False
+        return "invalid_offer_flags"
     if any(word in str(item.get("itemName") or "") for word in ("中古", "整備済", "電子書籍")):
-        return False
+        return "used_or_digital"
+    reference_colours, candidate_colours = _colours(title), _colours(item.get("itemName"))
+    if reference_colours and candidate_colours and reference_colours.isdisjoint(candidate_colours):
+        return "colour_mismatch"
+    reference_terms, candidate_terms = _distinctive_terms(title), _distinctive_terms(item.get("itemName"))
+    for family in ({"チキン", "ターキー", "サーモン", "ツナ", "白身魚"}, {"グレインフリー", "避妊", "去勢", "毛玉", "腎臓", "尿路"}):
+        ref, cand = reference_terms & family, candidate_terms & family
+        if ref and cand and ref != cand:
+            return "product_line_mismatch"
     reference, candidate = _variant_groups(title), _variant_groups(item.get("itemName"))
+    ref_age = {key: values for key, values in reference.items() if key.startswith("age")}
+    cand_age = {key: values for key, values in candidate.items() if key.startswith("age")}
+    if ref_age and cand_age and ref_age != cand_age:
+        return "age_mismatch"
     # Known conflicting capacities/counts cannot be rescued by a JAN in the
     # caption: the page may be a multipack or list several different SKUs.
     for group, values in candidate.items():
-        if group != "count" and group not in reference and any(key != "count" for key in reference):
-            return False
+        if group not in {"count", "bread_capacity", "age", "age_min", "age_max"} and group not in reference and any(key not in {"count", "bread_capacity", "age", "age_min", "age_max"} for key in reference):
+            return "capacity_mismatch"
         if group in reference and values != reference[group]:
-            return False
+            return "pack_mismatch" if group == "count" else "capacity_or_spec_mismatch"
     expected_count, actual_count = reference.get("count", {Decimal(1)}), candidate.get("count", {Decimal(1)})
-    return expected_count == actual_count
+    return None if expected_count == actual_count else "pack_mismatch"
+
+
+def _candidate_matches_variant(item: dict[str, Any], title: str) -> bool:
+    return _variant_rejection_reason(item, title) is None
 
 
 def _reference_price_summary(items: list[dict[str, Any]], title: str) -> dict[str, Any]:
@@ -187,6 +232,62 @@ def _keyword_query(*, title: str, brand: str, manufacturer: str, model: str, par
     return " ".join(dict.fromkeys([maker, str(title or "").strip()]))[:120].strip()
 
 
+def _maker_aliases(brand: str, manufacturer: str) -> list[str]:
+    aliases = []
+    for raw in (brand, manufacturer):
+        normalized = unicodedata.normalize("NFKC", str(raw or "")).strip()
+        plain = re.sub(r"\([^)]*\)", " ", normalized).strip()
+        plain = re.sub(r"株式会社|有限会社|\(株\)", "", plain).strip()
+        aliases.extend(KNOWN_MAKER_ALIASES.get(plain, ()))
+        aliases.extend([plain, *re.findall(r"\(([^)]+)\)", normalized)])
+    seen, result = set(), []
+    for alias in aliases:
+        key = _normalise_product_text(alias)
+        if len(key) >= 2 and key not in seen:
+            seen.add(key)
+            result.append(alias)
+    # Prefer a Japanese shop-facing spelling, not a literal bilingual label.
+    return sorted(result, key=lambda value: not bool(re.search(r"[ぁ-んァ-ヶ一-龥]", value)))
+
+
+def _title_without_identity(title: str, aliases: list[str], identifiers: tuple[str, ...]) -> str:
+    text = unicodedata.normalize("NFKC", str(title or ""))
+    for alias in sorted(aliases, key=len, reverse=True):
+        pattern = r"\s*".join(re.escape(char) for char in alias if not char.isspace())
+        if pattern:
+            text = re.sub(pattern, " ", text, flags=re.IGNORECASE)
+    for code in identifiers:
+        if len(code) >= 4:
+            text = re.sub(r"(?<![A-Za-z0-9])" + re.escape(code) + r"(?![A-Za-z0-9])", " ", text, flags=re.IGNORECASE)
+    return re.sub(r"[()\[\]【】・,／/&]+", " ", text).strip()
+
+
+def _keyword_queries(*, title: str, brand: str, manufacturer: str, model: str, part_number: str) -> list[str]:
+    aliases = _maker_aliases(brand, manufacturer)
+    maker = aliases[0] if aliases else ""
+    identifiers = tuple(dict.fromkeys(str(value).strip() for value in (model, part_number) if str(value).strip()))
+    visible_models = [value for value in identifiers if _model_tokens(value)]
+    core = _title_without_identity(title, aliases, identifiers)
+    core = re.sub(r"Amazon(?:\.co\.jp)?限定|アマゾン限定|送料無料|国内正規品|正規品", " ", core, flags=re.IGNORECASE)
+    words = [word for word in re.split(r"\s+", core) if word]
+    name_query = " ".join([maker, *words[:6]]).strip()
+    compact_name = " ".join([maker, *words[:3], *words[-2:]]).strip()
+    proposals = []
+    if visible_models:
+        proposals.append(" ".join([maker, *visible_models]).strip())
+        proposals.append(" ".join(visible_models))
+    proposals.extend([name_query, compact_name])
+    if len(aliases) > 1 and words:
+        proposals.append(" ".join([aliases[1], *words[:4], *words[-1:]]))
+    result, seen = [], set()
+    for query in proposals:
+        query = " ".join(dict.fromkeys(query.split())).encode("utf-8")[:128].decode("utf-8", errors="ignore").strip()
+        if query and query not in seen:
+            seen.add(query)
+            result.append(query)
+    return result[:MAX_TEXT_SEARCHES]
+
+
 def _is_high_confidence_text_match(
     item: dict[str, Any],
     *,
@@ -205,12 +306,13 @@ def _is_high_confidence_text_match(
 
     candidate_models = _model_tokens(item.get("itemName"))
     declared_models = _model_tokens(model, part_number)
-    if declared_models and not declared_models.intersection(candidate_models):
+    exact_model = bool(declared_models.intersection(candidate_models))
+    if declared_models and candidate_models and not exact_model:
         return False
     model_matches = _model_tokens(model, part_number, title).intersection(candidate_models)
     brand_values = {
         _normalise_product_text(value)
-        for value in (brand, manufacturer)
+        for value in _maker_aliases(brand, manufacturer)
         if len(_normalise_product_text(value)) >= 2
     }
     brand_match = any(value in candidate for value in brand_values)
@@ -219,14 +321,23 @@ def _is_high_confidence_text_match(
     # Captions often enumerate every SKU capacity; only the product title can
     # support the fallback's exact capacity/count check.
     variants_match = all(candidate_variants.get(group, {Decimal(1)} if group == "count" else set()) == values
+                         or (exact_model and group == "bread_capacity" and group not in candidate_variants)
                          for group, values in variants.items())
+    required_terms = _distinctive_terms(title)
+    if required_terms and not required_terms.issubset(_distinctive_terms(item.get("itemName"))):
+        return False
     similarity = SequenceMatcher(None, reference_title, candidate_title).ratio()
+    aliases = _maker_aliases(brand, manufacturer)
+    ref_core = _normalise_product_text(_title_without_identity(title, aliases, (model, part_number)))
+    cand_core = _normalise_product_text(_title_without_identity(str(item.get("itemName") or ""), aliases, (model, part_number)))
+    core_similarity = SequenceMatcher(None, ref_core, cand_core).ratio() if len(ref_core) >= 4 else 0.0
 
     # A model/part number is an exact product key.  Otherwise require the
     # maker, all stated capacity/count variants, and a close title match.
     if model_matches and (brand_match or similarity >= 0.78):
         return variants_match
-    return brand_match and variants_match and similarity >= 0.78
+    threshold = 0.88 if (str(model or "").strip() or str(part_number or "").strip()) and not exact_model else 0.78
+    return brand_match and variants_match and len(ref_core) >= 4 and max(similarity, core_similarity) >= threshold
 
 
 def rakuten_marketplace_evidence(
@@ -247,13 +358,26 @@ def rakuten_marketplace_evidence(
     deliberately does not accept a broad name-only hit.
     """
     minimum_shops = max(1, int(minimum_shops))
+    attempts: list[dict[str, Any]] = []
     jan = re.sub(r"\D", "", str(jan_code or ""))
     jan_items = _search_items(jan, timeout) if jan else []
     if jan_items is None:
         return None
-    exact_items = [item for item in jan_items if _item_mentions_exact_jan(item, jan)
-                   and _candidate_matches_variant(item, title)] if jan else []
+    exact_items, jan_rejected = [], Counter()
+    for item in jan_items:
+        if not _item_mentions_exact_jan(item, jan):
+            jan_rejected["jan_not_attested"] += 1
+        else:
+            reason = _variant_rejection_reason(item, title)
+            if reason:
+                jan_rejected[reason] += 1
+            else:
+                exact_items.append(item)
     exact_shops = _shop_names(exact_items)
+    if jan:
+        attempts.append({"kind": "jan", "query": jan, "raw_result_count": len(jan_items),
+                         "matched_item_count": len(exact_items), "matched_shop_count": len(exact_shops),
+                         "rejected_counts": dict(jan_rejected)})
     if len(exact_shops) >= minimum_shops:
         return {
             "accepted": True,
@@ -264,10 +388,11 @@ def rakuten_marketplace_evidence(
             "confirmed_shop_count": len(exact_shops),
             "query": jan,
             "shop_names": exact_shops[:minimum_shops],
+            "search_attempts": attempts,
             **_reference_price_summary(exact_items, title),
         }
 
-    query = _keyword_query(
+    queries = _keyword_queries(
         title=title,
         brand=brand,
         manufacturer=manufacturer,
@@ -276,7 +401,7 @@ def rakuten_marketplace_evidence(
     )
     # A fallback search without either a product title or an identifying maker
     # cannot prove that several shops sell the same product.
-    if not query or not _normalise_product_text(title):
+    if not queries or not _normalise_product_text(title):
         return {
             "accepted": False,
             "source": "insufficient_product_identity",
@@ -284,27 +409,34 @@ def rakuten_marketplace_evidence(
             "jan_exact_shop_count": len(exact_shops),
             "text_match_shop_count": 0,
             "confirmed_shop_count": len(exact_shops),
-            "query": query,
+            "query": "",
             "shop_names": exact_shops[:minimum_shops],
+            "search_attempts": attempts,
             **_reference_price_summary(exact_items, title),
         }
 
-    text_items = _search_items(query, timeout)
-    if text_items is None:
-        return None
-    matching_text_items = [
-        item
-        for item in text_items
-        if _is_high_confidence_text_match(
-            item,
-            title=title,
-            brand=brand,
-            manufacturer=manufacturer,
-            model=model,
-            part_number=part_number,
-        )
-        and _candidate_matches_variant(item, title)
-    ]
+    matching_text_items = []
+    query = ""
+    for query in queries:
+        text_items = _search_items(query, timeout)
+        if text_items is None:
+            return None
+        matched, rejected = [], Counter()
+        for item in text_items:
+            reason = _variant_rejection_reason(item, title)
+            if reason:
+                rejected[reason] += 1
+            elif not _is_high_confidence_text_match(item, title=title, brand=brand,
+                    manufacturer=manufacturer, model=model, part_number=part_number):
+                rejected["identity_not_proven"] += 1
+            else:
+                matched.append(item)
+        matching_text_items.extend(matched)
+        attempts.append({"kind": "text", "query": query, "raw_result_count": len(text_items),
+                         "matched_item_count": len(matched), "matched_shop_count": len(_shop_names(matched)),
+                         "rejected_counts": dict(rejected)})
+        if len(_shop_names([*exact_items, *matching_text_items])) >= minimum_shops:
+            break
     text_shops = _shop_names(matching_text_items)
     confirmed_shops = _shop_names([*exact_items, *matching_text_items])
     return {
@@ -316,6 +448,7 @@ def rakuten_marketplace_evidence(
         "confirmed_shop_count": len(confirmed_shops),
         "query": query,
         "shop_names": confirmed_shops[:minimum_shops],
+        "search_attempts": attempts,
         **_reference_price_summary([*exact_items, *matching_text_items], title),
     }
 

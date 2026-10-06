@@ -526,6 +526,17 @@ def evaluate_listing(
         if marketplace_evidence.get("unidentified_variant_price_items_excluded"):
             evidence_summary += f" / 容量・仕様未確認の{marketplace_evidence['unidentified_variant_price_items_excluded']}件は価格比較から除外"
         warnings.append(evidence_summary)
+        rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
+                            "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
+                            "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
+                            "age_mismatch": "対象年齢違い", "product_line_mismatch": "商品ライン違い",
+                            "unavailable": "在庫なし", "shipping_not_included": "送料別",
+                            "used_or_digital": "中古・整備済み・電子書籍", "invalid_offer_flags": "在庫・送料情報不正"}
+        for attempt in marketplace_evidence.get("search_attempts") or []:
+            rejected = attempt.get("rejected_counts") or {}
+            detail = " / 除外: " + ", ".join(f"{rejection_labels.get(key, key)} {count}件" for key, count in rejected.items()) if rejected else ""
+            warnings.append(f"楽天検索「{attempt.get('query', '')}」: 取得 {attempt.get('raw_result_count', 0)}件 / "
+                            f"一致 {attempt.get('matched_item_count', 0)}件・{attempt.get('matched_shop_count', 0)}店舗{detail}")
         if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
             return EvaluationResult(
                 "business_ng",
@@ -541,7 +552,7 @@ def evaluate_listing(
                 "minimum_shops": minimum_shops,
                 "confirmed_shop_count": confirmed_shop_count,
                 **{key: value for key, value in marketplace_evidence.items()
-                   if key.startswith("reference_") or key.endswith("price_items_excluded")},
+                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key == "search_attempts"},
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules:

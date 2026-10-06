@@ -377,6 +377,19 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         self.assertEqual(result.listing_status, "system_error")
         self.assertIn("商品NGではありません", result.listing_reason)
 
+    def test_forced_listing_search_trace_distinguishes_no_matches_from_no_results(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        evidence = {"accepted": False, "confirmed_shop_count": 0, "search_attempts": [
+            {"query": "テスト検索", "raw_result_count": 30, "matched_item_count": 0, "matched_shop_count": 0,
+             "rejected_counts": {"pack_mismatch": 10, "identity_not_proven": 20}}]}
+        with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=evidence):
+            result = evaluate_listing(asin="B000TEST01", amazon_result=self.amazon, keepa_result=keepa,
+                master_data=self.master, store_settings=self.store, management_number="20250101010101_187_ab12",
+                require_minimum_same_jan_listings=True)
+        self.assertEqual(result.listing_status, "business_ng")
+        self.assertTrue(any("取得 30件" in line and "一致 0件" in line for line in result.warnings))
+        self.assertTrue(any("個数・セット数違い 10件" in line for line in result.warnings))
+
     def test_marketplace_reference_price_is_recorded_but_does_not_set_listing_price(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
         kwargs = dict(asin="B000TEST01", amazon_result=self.amazon, keepa_result=keepa,
