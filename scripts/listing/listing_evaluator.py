@@ -503,7 +503,7 @@ def evaluate_listing(
         )
         if marketplace_evidence is None:
             return EvaluationResult(
-                "business_ng", "楽天の複数店舗確認を取得できないため出品不可", matched_rules, warnings,
+                "system_error", "楽天の複数店舗確認の取得エラー（商品NGではありません）", matched_rules, warnings,
                 forced_bypass_checks=forced_bypass_checks,
             )
         jan_shop_count = int(marketplace_evidence.get("jan_exact_shop_count") or 0)
@@ -518,6 +518,13 @@ def evaluate_listing(
         )
         if query:
             evidence_summary += f" / 検索: {query}"
+        reference_min_price = marketplace_evidence.get("reference_min_price")
+        if reference_min_price is not None:
+            evidence_summary += f" / 条件一致した取得結果内の参考最安値: {reference_min_price}円"
+        if marketplace_evidence.get("ambiguous_price_items_excluded"):
+            evidence_summary += f" / バリエーション価格不明の{marketplace_evidence['ambiguous_price_items_excluded']}件は価格比較から除外"
+        if marketplace_evidence.get("unidentified_variant_price_items_excluded"):
+            evidence_summary += f" / 容量・仕様未確認の{marketplace_evidence['unidentified_variant_price_items_excluded']}件は価格比較から除外"
         warnings.append(evidence_summary)
         if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
             return EvaluationResult(
@@ -533,6 +540,8 @@ def evaluate_listing(
                 "reason": f"{evidence_summary} / 根拠: {source}",
                 "minimum_shops": minimum_shops,
                 "confirmed_shop_count": confirmed_shop_count,
+                **{key: value for key, value in marketplace_evidence.items()
+                   if key.startswith("reference_") or key.endswith("price_items_excluded")},
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules:

@@ -10,6 +10,7 @@ from typing import Any
 
 import requests
 from dotenv import load_dotenv
+from scripts.listing.rakuten_search_client import search_items
 
 
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
@@ -136,49 +137,16 @@ def _product_spec_attributes(item_url: str, timeout: float) -> dict[str, str]:
 
 
 def _search_same_jan_items(jan: str, timeout: float) -> list[object] | None:
-    """Return Rakuten search items for an exact-JAN lookup, or ``None`` on API failure."""
-    application_id = os.getenv("RAKUTEN_WEB_SERVICE_APPLICATION_ID", "").strip()
-    access_key = os.getenv("RAKUTEN_WEB_SERVICE_ACCESS_KEY", "").strip()
-    if not application_id or not access_key:
-        return None
-    for attempt in range(3):
-        try:
-            response = requests.get(
-                ENDPOINT,
-                params={
-                    "applicationId": application_id,
-                    "keyword": jan,
-                    "availability": 1,
-                    "hits": 30,
-                    "format": "json",
-                    "formatVersion": 2,
-                },
-                headers={"accessKey": access_key},
-                timeout=timeout,
-            )
-        except requests.RequestException:
-            return None
-        if response.status_code != 429:
-            try:
-                response.raise_for_status()
-            except requests.RequestException:
-                return None
-            data = response.json()
-            return list(data.get("items") or data.get("Items") or [])
-        retry_after = response.headers.get("Retry-After", "")
-        try:
-            delay = max(float(retry_after), 1.0)
-        except ValueError:
-            delay = float(2 ** (attempt + 1))
-        time.sleep(delay)
-    return None
+    """Preserve regulated evidence guards while distinguishing API failures."""
+    return search_items(jan, timeout, postage_included=False)
 
 
 def _item_mentions_exact_jan(item: object, jan: str) -> bool:
     if not isinstance(item, dict):
         return False
     text = " ".join(str(item.get(key) or "") for key in ("itemName", "itemCaption", "itemCode"))
-    return str(jan or "") in re.sub(r"\D", "", text)
+    text = unicodedata.normalize("NFKC", text)
+    return bool(jan and re.search(r"(?<!\d)" + re.escape(jan) + r"(?!\d)", text))
 
 
 def has_same_jan_rakuten_candidate(*, jan_code: str, timeout: float = 15.0) -> bool:
@@ -187,8 +155,8 @@ def has_same_jan_rakuten_candidate(*, jan_code: str, timeout: float = 15.0) -> b
     This is intentionally weaker than regulated-product evidence: it permits
     ordinary Beauty tools to proceed without a disclosure when a same-JAN
     product exists but its public caption lacks category/manufacturer/origin.
-    API failure, missing JAN, and non-exact search hits remain false so they
-    cannot silently bypass the regulated listing guard.
+    Missing JAN and non-exact hits remain false. API acquisition failures
+    raise a system error; neither path bypasses the regulated listing guard.
     """
     jan = re.sub(r"\D", "", str(jan_code or ""))
     if not jan:

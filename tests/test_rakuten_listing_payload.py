@@ -368,6 +368,30 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
         self.assertIn("3店舗以上の確認を省略", detail["reason"])
 
+    def test_marketplace_acquisition_failure_is_not_a_product_ng(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=None):
+            result = evaluate_listing(asin="B000TEST01", amazon_result=self.amazon,
+                keepa_result=keepa, master_data=self.master, store_settings=self.store,
+                management_number="20250101010101_187_ab12", require_minimum_same_jan_listings=True)
+        self.assertEqual(result.listing_status, "system_error")
+        self.assertIn("商品NGではありません", result.listing_reason)
+
+    def test_marketplace_reference_price_is_recorded_but_does_not_set_listing_price(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        kwargs = dict(asin="B000TEST01", amazon_result=self.amazon, keepa_result=keepa,
+                      master_data=self.master, store_settings=self.store, management_number="20250101010101_187_ab12")
+        baseline = evaluate_listing(**kwargs)
+        evidence = {"accepted": True, "confirmed_shop_count": 5, "reference_min_price": 999,
+                    "reference_price_scope": "取得結果内の参考値"}
+        with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=evidence):
+            result = evaluate_listing(**kwargs, require_minimum_same_jan_listings=True)
+        self.assertEqual(result.listing_status, "eligible")
+        detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
+        self.assertEqual(detail["reference_min_price"], 999)
+        self.assertEqual(result.seller_count_evaluation, baseline.seller_count_evaluation)
+        self.assertEqual(result.attributes, baseline.attributes)
+
     def test_unknown_category(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "category_id": 99999})
         result = evaluate_listing(
