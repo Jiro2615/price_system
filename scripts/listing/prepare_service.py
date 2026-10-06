@@ -43,6 +43,7 @@ class PrepareListingRequest:
     keepa_result_json: Path | None = None
     bypass_rules: tuple[str, ...] = ()
     require_minimum_same_jan_listings: bool = False
+    minimum_rakuten_shops: int = 5
 
 
 def fetch_keepa_result_sync(asin: str) -> KeepaProductData:
@@ -715,6 +716,7 @@ def prepare_listing(
         quasi_drug_evidence=quasi_drug_evidence,
         bypass_rules=bypass_rules,
         require_minimum_same_jan_listings=request.require_minimum_same_jan_listings,
+        minimum_rakuten_shops=request.minimum_rakuten_shops,
     )
 
     if evaluation.prohibited_word_exceptions:

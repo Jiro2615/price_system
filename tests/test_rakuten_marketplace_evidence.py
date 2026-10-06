@@ -15,6 +15,18 @@ def item(shop: str, name: str, caption: str = "") -> dict[str, str]:
 
 
 class RakutenMarketplaceEvidenceTests(unittest.TestCase):
+    def test_configured_shop_threshold_changes_acceptance(self) -> None:
+        jan = "4900000000001"
+        matches = [item("shop-a", "テスト商品", jan), item("shop-b", "テスト商品", jan)]
+        for minimum, accepted in ((1, True), (2, True), (3, False), (5, False), (30, False)):
+            with self.subTest(minimum=minimum), patch(
+                "scripts.listing.rakuten_marketplace_policy._search_items", side_effect=[matches, []],
+            ):
+                evidence = rakuten_marketplace_evidence(jan_code=jan, title="テスト商品", minimum_shops=minimum)
+                self.assertEqual(evidence["accepted"], accepted)
+                self.assertEqual(evidence["minimum_shops"], minimum)
+                self.assertEqual(evidence["confirmed_shop_count"], 2)
+
     def test_exact_jan_counts_independent_shops_not_item_rows(self) -> None:
         jan = "4900000000001"
         matches = [

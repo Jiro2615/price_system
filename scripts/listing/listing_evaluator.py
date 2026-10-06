@@ -331,7 +331,10 @@ def evaluate_listing(
     quasi_drug_evidence: dict[str, object] | None = None,
     bypass_rules: set[str] | frozenset[str] | None = None,
     require_minimum_same_jan_listings: bool = False,
+    minimum_rakuten_shops: int = MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
 ) -> EvaluationResult:
+    if isinstance(minimum_rakuten_shops, bool) or not isinstance(minimum_rakuten_shops, int) or not 1 <= minimum_rakuten_shops <= 30:
+        raise ValueError("minimum_rakuten_shops must be an integer between 1 and 30")
     asin = asin.strip().upper()
     bypass_rules = set(bypass_rules or ())
     matched_rules: list[MatchedRule] = []
@@ -485,7 +488,7 @@ def evaluate_listing(
         )
 
     # The dedicated forced-listing page intentionally relaxes only selected
-    # master/data rules.  It always retains external resale evidence: five
+    # master/data rules. When enabled it retains external resale evidence:
     # distinct Rakuten shops must sell the exact JAN, or the same product must
     # be confirmed through a high-confidence maker/model/title match.
     if require_minimum_same_jan_listings:
@@ -496,7 +499,7 @@ def evaluate_listing(
             manufacturer=keepa_result.manufacturer,
             model=keepa_result.model,
             part_number=keepa_result.part_number,
-            minimum_shops=MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+            minimum_shops=minimum_rakuten_shops,
         )
         if marketplace_evidence is None:
             return EvaluationResult(
@@ -506,17 +509,17 @@ def evaluate_listing(
         jan_shop_count = int(marketplace_evidence.get("jan_exact_shop_count") or 0)
         text_shop_count = int(marketplace_evidence.get("text_match_shop_count") or 0)
         confirmed_shop_count = int(marketplace_evidence.get("confirmed_shop_count") or 0)
-        minimum_shops = int(marketplace_evidence.get("minimum_shops") or MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION)
+        minimum_shops = minimum_rakuten_shops
         query = str(marketplace_evidence.get("query") or "")
         source = str(marketplace_evidence.get("source") or "")
         evidence_summary = (
             f"楽天複数店舗確認: JAN一致 {jan_shop_count}店舗 / "
-            f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗"
+            f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗 / 基準: {minimum_shops}店舗以上"
         )
         if query:
             evidence_summary += f" / 検索: {query}"
         warnings.append(evidence_summary)
-        if not marketplace_evidence.get("accepted"):
+        if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
             return EvaluationResult(
                 "business_ng",
                 f"楽天複数店舗確認が不足: {confirmed_shop_count} < {minimum_shops}店舗（JAN一致 {jan_shop_count} / 高精度文言一致 {text_shop_count}）",
@@ -528,10 +531,12 @@ def evaluate_listing(
             {
                 "rule": "rakuten_marketplace_evidence",
                 "reason": f"{evidence_summary} / 根拠: {source}",
+                "minimum_shops": minimum_shops,
+                "confirmed_shop_count": confirmed_shop_count,
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules:
-        record_bypass("rakuten_marketplace_evidence", "楽天複数店舗確認を未判定（5店舗以上の確認を省略）")
+        record_bypass("rakuten_marketplace_evidence", f"楽天複数店舗確認を未判定（{minimum_rakuten_shops}店舗以上の確認を省略）")
 
     quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)

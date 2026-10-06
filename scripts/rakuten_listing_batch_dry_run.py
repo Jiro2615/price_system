@@ -50,7 +50,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-missing-master", action="store_true")
     parser.add_argument("--ignore-rules", default="", help="条件無視ASIN出品で許可するルール（カンマ区切り）")
     parser.add_argument("--require-minimum-same-jan-listings", action="store_true")
+    parser.add_argument("--minimum-rakuten-shops", type=parse_minimum_rakuten_shops, default=5)
     return parser.parse_args()
+
+
+def parse_minimum_rakuten_shops(value: object) -> int:
+    try:
+        minimum = int(str(value))
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError("minimum-rakuten-shops must be an integer between 1 and 30") from None
+    if not 1 <= minimum <= 30:
+        raise argparse.ArgumentTypeError("minimum-rakuten-shops must be between 1 and 30")
+    return minimum
 
 
 def parse_bypass_rules(value: str) -> tuple[str, ...]:
@@ -78,6 +89,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     if not 1 <= args.prepare_workers <= 4:
         raise ValueError("prepare-workers must be between 1 and 4")
     args.bypass_rules = parse_bypass_rules(args.ignore_rules)
+    args.minimum_rakuten_shops = parse_minimum_rakuten_shops(getattr(args, "minimum_rakuten_shops", 5))
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
     summary_path = args.output_dir / "summary.json"
@@ -141,6 +153,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 page_timeout_ms=args.page_timeout,
                 bypass_rules=args.bypass_rules,
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
+                minimum_rakuten_shops=args.minimum_rakuten_shops,
             )
             try:
                 result = await asyncio.to_thread(precheck_local_listing_exclusion, request, batch_local_data=local_data)
@@ -229,6 +242,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     summary = {
         "mode": "dry_run",
         "store": args.store,
+        "require_minimum_same_jan_listings": args.require_minimum_same_jan_listings,
+        "minimum_rakuten_shops": args.minimum_rakuten_shops,
         "input_count": len(asins),
         "status_counts": counts,
         "eligible_count": counts.get("eligible", 0),

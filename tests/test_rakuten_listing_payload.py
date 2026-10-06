@@ -334,6 +334,40 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
         self.assertIn("未判定", detail["reason"])
 
+    def test_forced_listing_uses_configured_shop_count_and_records_it(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        for minimum, status in ((2, "eligible"), (3, "business_ng")):
+            evidence = {"accepted": minimum <= 2, "minimum_shops": minimum,
+                        "confirmed_shop_count": 2, "jan_exact_shop_count": 2,
+                        "source": "jan_exact"}
+            with self.subTest(minimum=minimum), mock.patch(
+                "scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=evidence,
+            ) as lookup:
+                result = evaluate_listing(asin="B000TEST01", amazon_result=self.amazon,
+                    keepa_result=keepa, master_data=self.master, store_settings=self.store,
+                    management_number="20250101010101_187_ab12",
+                    require_minimum_same_jan_listings=True, minimum_rakuten_shops=minimum)
+            self.assertEqual(lookup.call_args.kwargs["minimum_shops"], minimum)
+            self.assertEqual(result.listing_status, status)
+            if status == "eligible":
+                detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
+                self.assertEqual(detail["minimum_shops"], minimum)
+                self.assertEqual(detail["confirmed_shop_count"], 2)
+                self.assertIn("基準: 2店舗以上", detail["reason"])
+            else:
+                self.assertIn("2 < 3店舗", result.listing_reason)
+
+    def test_forced_listing_skip_logs_configured_threshold(self) -> None:
+        keepa = KeepaProductData(**{**self.keepa.__dict__, "avg90_new_offer_count": 4.2})
+        with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence") as lookup:
+            result = evaluate_listing(asin="B000TEST01", amazon_result=self.amazon,
+                keepa_result=keepa, master_data=self.master, store_settings=self.store,
+                management_number="20250101010101_187_ab12",
+                bypass_rules={"rakuten_marketplace_evidence"}, minimum_rakuten_shops=3)
+        lookup.assert_not_called()
+        detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
+        self.assertIn("3店舗以上の確認を省略", detail["reason"])
+
     def test_unknown_category(self) -> None:
         keepa = KeepaProductData(**{**self.keepa.__dict__, "category_id": 99999})
         result = evaluate_listing(

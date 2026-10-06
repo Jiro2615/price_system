@@ -76,6 +76,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 cache = stack.enter_context(patch.object(module, "BatchLocalData"))
                 def reject(request, **kwargs):
                     self.assertIs(kwargs["batch_local_data"], cache.return_value)
+                    self.assertEqual(request.minimum_rakuten_shops, 3)
                     return {"asin": request.asin, "listing_status": "business_ng", "execution_allowed": False}
                 stack.enter_context(patch.object(module, "precheck_local_listing_exclusion", side_effect=reject))
                 browser = stack.enter_context(patch.object(module, "create_amazon_page", new_callable=AsyncMock))
@@ -83,7 +84,9 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 if module is execute_batch:
                     rms = stack.enter_context(patch.object(module, "build_real_execute_result", side_effect=AssertionError("RMS forbidden")))
                 asins = [f"B{i:09}" for i in range(151)]
-                result = await asyncio.wait_for(module.run_batch(arguments(folder), asins), timeout=5)
+                args = arguments(folder)
+                args.minimum_rakuten_shops = 3
+                result = await asyncio.wait_for(module.run_batch(args, asins), timeout=5)
                 self.assertEqual(result, 0)
                 browser.assert_not_awaited(); keepa.assert_not_called()
                 if module is execute_batch:
@@ -91,6 +94,8 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 rows = [json.loads(line) for line in (Path(folder) / "results.jsonl").read_text().splitlines()]
                 self.assertEqual(len(rows), len(asins))
                 self.assertEqual({row["asin"] for row in rows}, set(asins))
+                summary = json.loads((Path(folder) / "summary.json").read_text())
+                self.assertEqual(summary["minimum_rakuten_shops"], 3)
 
     async def test_new_rule_or_db_failure_at_final_gate_prevents_live_execution(self):
         for error in (False, True):
@@ -148,6 +153,7 @@ class RevalidationTests(unittest.TestCase):
         args = arguments("unused")
         args.update_existing = True
         args.bypass_rules = ("blacklist",)
+        args.minimum_rakuten_shops = 3
         with patch.object(execute_batch, "prepare_listing", return_value={"listing_status": "eligible"}) as prepare:
             execute_batch.revalidate_prepared_listing(args, "B000TEST01", {
                 "management_number": "same-item", "amazon_result": amazon, "keepa_result": keepa,
@@ -155,6 +161,7 @@ class RevalidationTests(unittest.TestCase):
         request = prepare.call_args.args[0]
         self.assertTrue(request.update_existing)
         self.assertEqual(request.bypass_rules, ("blacklist",))
+        self.assertEqual(request.minimum_rakuten_shops, 3)
         self.assertEqual(request.management_number, "same-item")
         self.assertNotIn("batch_local_data", prepare.call_args.kwargs)
         self.assertIs(prepare.call_args.kwargs["amazon_fetcher"]("B000TEST01", 100), amazon)

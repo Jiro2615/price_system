@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins, parse_bypass_rules
+from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins, parse_bypass_rules, parse_minimum_rakuten_shops
 from scripts.listing.amazon_bridge import fetch_amazon_result
 from scripts.listing.batch_local_data import BatchLocalData, LazyAmazonPages
 from scripts.listing.mock_execute_service import build_mock_execute_result
@@ -49,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-missing-master", action="store_true")
     parser.add_argument("--ignore-rules", default="", help="条件無視ASIN出品で許可するルール（カンマ区切り）")
     parser.add_argument("--require-minimum-same-jan-listings", action="store_true")
+    parser.add_argument("--minimum-rakuten-shops", type=parse_minimum_rakuten_shops, default=5)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--approved", action="store_true")
     parser.add_argument("--confirm-real-api", action="store_true")
@@ -71,6 +72,7 @@ def revalidate_prepared_listing(args, asin, dry):
         allow_missing_master=args.allow_missing_master, page_timeout_ms=args.page_timeout,
         update_existing=args.update_existing, bypass_rules=args.bypass_rules,
         require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
+        minimum_rakuten_shops=getattr(args, "minimum_rakuten_shops", 5),
         management_number=str(dry.get("management_number") or ""),
     )
     return prepare_listing(
@@ -87,6 +89,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     if not 1 <= args.prepare_workers <= 4:
         raise ValueError("prepare-workers must be between 1 and 4")
     args.bypass_rules = parse_bypass_rules(args.ignore_rules)
+    args.minimum_rakuten_shops = parse_minimum_rakuten_shops(getattr(args, "minimum_rakuten_shops", 5))
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
     local_data = BatchLocalData(args.store, args.master_dir, asins, args.allow_missing_master)
@@ -176,6 +179,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 update_existing=args.update_existing,
                 bypass_rules=args.bypass_rules,
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
+                minimum_rakuten_shops=args.minimum_rakuten_shops,
             )
             try:
                 dry = await asyncio.to_thread(precheck_local_listing_exclusion, request, batch_local_data=local_data)
@@ -351,7 +355,9 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
             print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)
     await asyncio.gather(local_stage, keepa_stage, amazon_stage)
-    summary = {"mode": "real_execute", "store": args.store, "input_count": len(asins), "completed_count": completed, "results_jsonl": str(results_path), "completed_at": datetime.now(timezone.utc).isoformat()}
+    summary = {"mode": "real_execute", "store": args.store, "input_count": len(asins), "completed_count": completed, "results_jsonl": str(results_path), "completed_at": datetime.now(timezone.utc).isoformat(),
+               "require_minimum_same_jan_listings": args.require_minimum_same_jan_listings,
+               "minimum_rakuten_shops": args.minimum_rakuten_shops}
     save_json(args.output_dir / "summary.json", summary)
     print("LISTING_BATCH_EXECUTE_SUMMARY " + json.dumps(summary, ensure_ascii=False), flush=True)
     return 0
