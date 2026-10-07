@@ -38,6 +38,16 @@ class SearchClientTests(unittest.TestCase):
         self.assertNotIn("Origin", request["headers"])
         self.assertFalse(request["allow_redirects"])
 
+    def test_postage_filter_can_be_removed_without_removing_availability(self):
+        self.get.return_value = self.response(200, {"items": []})
+        client.search_items("商品", postage_included=False)
+        params = self.get.call_args.kwargs["params"]
+        self.assertNotIn("postageFlag", params)
+        self.assertEqual(params["availability"], 1)
+        self.assertEqual(params["hits"], 30)
+        client.search_items("商品")
+        self.assertEqual(self.get.call_args.kwargs["params"]["postageFlag"], 1)
+
     def test_ip_denial_is_logged_as_system_error_without_secrets(self):
         self.get.return_value = self.response(403, {"errors": {"errorCode": "403", "errorMessage": "CLIENT_IP_NOT_ALLOWED"}})
         output = io.StringIO()

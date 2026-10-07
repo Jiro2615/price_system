@@ -397,15 +397,20 @@ class RakutenListingPhase1Tests(unittest.TestCase):
         baseline = evaluate_listing(**kwargs)
         evidence = {"accepted": True, "confirmed_shop_count": 5, "reference_min_price": 999,
                     "reference_price_scope": "取得結果内の参考値", "pack_count_required": False,
-                    "different_pack_price_items_excluded": 2}
+                    "different_pack_price_items_excluded": 2, "postage_included_required": False,
+                    "search_attempts": [{"query": "テスト検索", "raw_result_count": 30, "matched_item_count": 5,
+                                         "matched_shop_count": 5, "jan_url_match_count": 3}]}
         with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=evidence):
             result = evaluate_listing(**kwargs, require_minimum_same_jan_listings=True)
         self.assertEqual(result.listing_status, "eligible")
         detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
         self.assertEqual(detail["reference_min_price"], 999)
         self.assertFalse(detail["pack_count_required"])
+        self.assertFalse(detail["postage_included_required"])
         self.assertEqual(detail["different_pack_price_items_excluded"], 2)
         self.assertTrue(any("店舗数確認では個数・セット数不問" in line for line in result.warnings))
+        self.assertTrue(any("店舗数確認では送料条件不問" in line for line in result.warnings))
+        self.assertTrue(any("URL内JAN一致 3件" in line for line in result.warnings))
         self.assertTrue(any("個数・セット数が異なる2件は価格比較から除外" in line for line in result.warnings))
         self.assertEqual(result.seller_count_evaluation, baseline.seller_count_evaluation)
         self.assertEqual(result.attributes, baseline.attributes)

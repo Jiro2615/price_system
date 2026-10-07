@@ -8,7 +8,7 @@ from collections import Counter
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 import requests
 from dotenv import load_dotenv
@@ -30,17 +30,35 @@ ALCOHOL_WORD = "アルコール"
 COSMETICS_CATEGORY_MARKERS = ("ビューティー", "beauty", "化粧品", "cosmetics")
 
 
+def _jan_evidence_sources(item: object, jan: str) -> list[str]:
+    """Explicit JAN fields or the product slug of a trusted Rakuten item URL."""
+    if not isinstance(item, dict) or not jan:
+        return []
+    pattern = re.compile(r"(?<!\d)" + re.escape(jan) + r"(?!\d)")
+    sources = [key for key in ("itemName", "itemCaption", "itemCode")
+               if pattern.search(unicodedata.normalize("NFKC", str(item.get(key) or "")))]
+    try:
+        parsed = urlsplit(str(item.get("itemUrl") or ""))
+        parts = [part for part in unquote(parsed.path, errors="strict").split("/") if part]
+        shop_code = str(item.get("shopCode") or "").casefold()
+        if (parsed.scheme in {"http", "https"} and parsed.hostname == "item.rakuten.co.jp"
+                and not parsed.username and not parsed.password
+                and parsed.port in {None, 80 if parsed.scheme == "http" else 443}
+                and len(parts) == 2 and (not shop_code or parts[0].casefold() == shop_code)
+                and pattern.search(unicodedata.normalize("NFKC", parts[1]))):
+            sources.append("itemUrl_path")
+    except (ValueError, UnicodeDecodeError):
+        pass
+    return sources
+
+
 def _item_mentions_exact_jan(item: object, jan: str) -> bool:
-    """Whether a Rakuten search result explicitly carries the requested JAN."""
-    if not isinstance(item, dict):
-        return False
-    text = unicodedata.normalize("NFKC", " ".join(str(item.get(key) or "") for key in ("itemName", "itemCaption", "itemCode")))
-    return bool(jan and re.search(r"(?<!\d)" + re.escape(jan) + r"(?!\d)", text))
+    return bool(_jan_evidence_sources(item, jan))
 
 
-def _search_items(keyword: str, timeout: float) -> list[dict[str, Any]] | None:
+def _search_items(keyword: str, timeout: float, *, postage_included: bool = True) -> list[dict[str, Any]] | None:
     """API failures are acquisition errors, never an empty-product result."""
-    return search_items(keyword, timeout)
+    return search_items(keyword, timeout, postage_included=postage_included)
 
 
 def _shop_identity(item: dict[str, Any]) -> str:
@@ -159,11 +177,12 @@ def _distinctive_terms(value: object) -> set[str]:
             if word in text}
 
 
-def _variant_rejection_reason(item: dict[str, Any], title: str, *, ignore_pack_count: bool = False) -> str | None:
+def _variant_rejection_reason(item: dict[str, Any], title: str, *, ignore_pack_count: bool = False,
+                              ignore_postage: bool = False) -> str | None:
     try:
         if "availability" in item and int(item["availability"]) != 1:
             return "unavailable"
-        if "postageFlag" in item and int(item["postageFlag"]) != 0:
+        if not ignore_postage and "postageFlag" in item and int(item["postageFlag"]) != 0:
             return "shipping_not_included"
     except (ValueError, TypeError):
         return "invalid_offer_flags"
@@ -407,7 +426,7 @@ def rakuten_marketplace_evidence(
     minimum_shops = max(1, int(minimum_shops))
     attempts: list[dict[str, Any]] = []
     jan = re.sub(r"\D", "", str(jan_code or ""))
-    jan_items = _search_items(jan, timeout) if jan else []
+    jan_items = _search_items(jan, timeout, postage_included=False) if jan else []
     if jan_items is None:
         return None
     exact_items, jan_rejected = [], Counter()
@@ -415,7 +434,7 @@ def rakuten_marketplace_evidence(
         if not _item_mentions_exact_jan(item, jan):
             jan_rejected["jan_not_attested"] += 1
         else:
-            reason = _variant_rejection_reason(item, title, ignore_pack_count=True)
+            reason = _variant_rejection_reason(item, title, ignore_pack_count=True, ignore_postage=True)
             if reason:
                 jan_rejected[reason] += 1
             else:
@@ -424,6 +443,8 @@ def rakuten_marketplace_evidence(
     if jan:
         attempts.append({"kind": "jan", "query": jan, "raw_result_count": len(jan_items),
                          "matched_item_count": len(exact_items), "matched_shop_count": len(exact_shops),
+                         "postage_included_only": False,
+                         "jan_url_match_count": sum("itemUrl_path" in _jan_evidence_sources(item, jan) for item in exact_items),
                          "rejected_counts": dict(jan_rejected)})
     if len(exact_shops) >= minimum_shops:
         return {
@@ -431,6 +452,7 @@ def rakuten_marketplace_evidence(
             "source": "jan_exact",
             "minimum_shops": minimum_shops,
             "pack_count_required": False,
+            "postage_included_required": False,
             "jan_exact_shop_count": len(exact_shops),
             "text_match_shop_count": 0,
             "confirmed_shop_count": len(exact_shops),
@@ -455,6 +477,7 @@ def rakuten_marketplace_evidence(
             "source": "insufficient_product_identity",
             "minimum_shops": minimum_shops,
             "pack_count_required": False,
+            "postage_included_required": False,
             "jan_exact_shop_count": len(exact_shops),
             "text_match_shop_count": 0,
             "confirmed_shop_count": len(exact_shops),
@@ -467,32 +490,41 @@ def rakuten_marketplace_evidence(
     matching_text_items = []
     query = ""
     for query in queries:
-        text_items = _search_items(query, timeout)
+        text_items = _search_items(query, timeout, postage_included=False)
         if text_items is None:
             return None
-        matched, rejected = [], Counter()
+        matched, matched_jan, matched_text, rejected = [], [], [], Counter()
         for item in text_items:
-            reason = _variant_rejection_reason(item, title, ignore_pack_count=True)
+            reason = _variant_rejection_reason(item, title, ignore_pack_count=True, ignore_postage=True)
             if reason:
                 rejected[reason] += 1
+            elif jan and _item_mentions_exact_jan(item, jan):
+                matched.append(item)
+                matched_jan.append(item)
             elif not _is_high_confidence_text_match(item, title=title, brand=brand,
                     manufacturer=manufacturer, model=model, part_number=part_number, ignore_pack_count=True):
                 rejected["identity_not_proven"] += 1
             else:
                 matched.append(item)
-        matching_text_items.extend(matched)
+                matched_text.append(item)
+        exact_items.extend(matched_jan)
+        matching_text_items.extend(matched_text)
         attempts.append({"kind": "text", "query": query, "raw_result_count": len(text_items),
                          "matched_item_count": len(matched), "matched_shop_count": len(_shop_names(matched)),
+                         "postage_included_only": False,
+                         "jan_url_match_count": sum("itemUrl_path" in _jan_evidence_sources(item, jan) for item in matched_jan),
                          "rejected_counts": dict(rejected)})
         if len(_shop_names([*exact_items, *matching_text_items])) >= minimum_shops:
             break
+    exact_shops = _shop_names(exact_items)
     text_shops = _shop_names(matching_text_items)
     confirmed_shops = _shop_names([*exact_items, *matching_text_items])
     return {
         "accepted": len(confirmed_shops) >= minimum_shops,
-        "source": "text_high_confidence" if not exact_shops else "jan_and_text_high_confidence",
+        "source": "jan_and_text_high_confidence" if exact_shops and text_shops else ("jan_exact" if exact_shops else "text_high_confidence"),
         "minimum_shops": minimum_shops,
         "pack_count_required": False,
+        "postage_included_required": False,
         "jan_exact_shop_count": len(exact_shops),
         "text_match_shop_count": len(text_shops),
         "confirmed_shop_count": len(confirmed_shops),

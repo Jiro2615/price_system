@@ -518,6 +518,8 @@ def evaluate_listing(
         )
         if marketplace_evidence.get("pack_count_required") is False:
             evidence_summary += " / 店舗数確認では個数・セット数不問"
+        if marketplace_evidence.get("postage_included_required") is False:
+            evidence_summary += " / 店舗数確認では送料条件不問"
         if query:
             evidence_summary += f" / 検索: {query}"
         reference_min_price = marketplace_evidence.get("reference_min_price")
@@ -539,6 +541,8 @@ def evaluate_listing(
         for attempt in marketplace_evidence.get("search_attempts") or []:
             rejected = attempt.get("rejected_counts") or {}
             detail = " / 除外: " + ", ".join(f"{rejection_labels.get(key, key)} {count}件" for key, count in rejected.items()) if rejected else ""
+            if attempt.get("jan_url_match_count"):
+                detail += f" / URL内JAN一致 {attempt['jan_url_match_count']}件"
             warnings.append(f"楽天検索「{attempt.get('query', '')}」: 取得 {attempt.get('raw_result_count', 0)}件 / "
                             f"一致 {attempt.get('matched_item_count', 0)}件・{attempt.get('matched_shop_count', 0)}店舗{detail}")
         if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
@@ -556,7 +560,7 @@ def evaluate_listing(
                 "minimum_shops": minimum_shops,
                 "confirmed_shop_count": confirmed_shop_count,
                 **{key: value for key, value in marketplace_evidence.items()
-                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required"}},
+                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required"}},
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules:
