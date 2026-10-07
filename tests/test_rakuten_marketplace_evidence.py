@@ -36,7 +36,7 @@ class RakutenMarketplaceEvidenceTests(unittest.TestCase):
         ]
         with patch(
             "scripts.listing.rakuten_marketplace_policy._search_items",
-            side_effect=[matches, []],
+            side_effect=lambda query, timeout, **kwargs: matches if query == jan else [],
         ):
             evidence = rakuten_marketplace_evidence(
                 jan_code=jan,
@@ -73,7 +73,7 @@ class RakutenMarketplaceEvidenceTests(unittest.TestCase):
         wrong_variants = [item(f"shop-{index}", "テストブランド モイストクリーム 100g 2個") for index in range(1, 6)]
         with patch(
             "scripts.listing.rakuten_marketplace_policy._search_items",
-            side_effect=[[], wrong_variants],
+            side_effect=lambda query, timeout, **kwargs: [] if query == "4900000000001" else wrong_variants,
         ):
             evidence = rakuten_marketplace_evidence(
                 jan_code="4900000000001",
@@ -135,7 +135,7 @@ class RakutenMarketplaceEvidenceTests(unittest.TestCase):
     def test_storage_capacity_mismatch_is_not_a_comparable_product(self):
         jan = "4900000000001"
         wrong = item("a", "テストブランド SSD 256GB", jan)
-        with patch("scripts.listing.rakuten_marketplace_policy._search_items", side_effect=[[wrong], []]):
+        with patch("scripts.listing.rakuten_marketplace_policy._search_items", side_effect=lambda query, timeout, **kwargs: [wrong] if query == jan else []):
             evidence = rakuten_marketplace_evidence(jan_code=jan, title="テストブランド SSD 1TB", brand="テストブランド", minimum_shops=1)
         self.assertFalse(evidence["accepted"])
 

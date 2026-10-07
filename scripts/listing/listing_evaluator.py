@@ -536,6 +536,7 @@ def evaluate_listing(
                             "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
                             "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
                             "shade_mismatch": "肌色違い", "sun_protection_mismatch": "SPF・PA違い",
+                            "product_role_mismatch": "付属品・別商品のセット", "edition_mismatch": "製品版・モデル違い",
                             "age_mismatch": "対象年齢違い", "product_line_mismatch": "商品ライン違い",
                             "unavailable": "在庫なし", "shipping_not_included": "送料別",
                             "used_or_digital": "中古・整備済み・電子書籍", "invalid_offer_flags": "在庫・送料情報不正"}
@@ -544,6 +545,8 @@ def evaluate_listing(
             detail = " / 除外: " + ", ".join(f"{rejection_labels.get(key, key)} {count}件" for key, count in rejected.items()) if rejected else ""
             if attempt.get("jan_url_match_count"):
                 detail += f" / URL内JAN一致 {attempt['jan_url_match_count']}件"
+            if attempt.get("core_name_match_count"):
+                detail += f" / 商品名中核一致 {attempt['core_name_match_count']}件"
             warnings.append(f"楽天検索「{attempt.get('query', '')}」: 取得 {attempt.get('raw_result_count', 0)}件 / "
                             f"一致 {attempt.get('matched_item_count', 0)}件・{attempt.get('matched_shop_count', 0)}店舗{detail}")
         if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
