@@ -516,6 +516,8 @@ def evaluate_listing(
             f"楽天複数店舗確認: JAN一致 {jan_shop_count}店舗 / "
             f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗 / 基準: {minimum_shops}店舗以上"
         )
+        if marketplace_evidence.get("pack_count_required") is False:
+            evidence_summary += " / 店舗数確認では個数・セット数不問"
         if query:
             evidence_summary += f" / 検索: {query}"
         reference_min_price = marketplace_evidence.get("reference_min_price")
@@ -525,6 +527,8 @@ def evaluate_listing(
             evidence_summary += f" / バリエーション価格不明の{marketplace_evidence['ambiguous_price_items_excluded']}件は価格比較から除外"
         if marketplace_evidence.get("unidentified_variant_price_items_excluded"):
             evidence_summary += f" / 容量・仕様未確認の{marketplace_evidence['unidentified_variant_price_items_excluded']}件は価格比較から除外"
+        if marketplace_evidence.get("different_pack_price_items_excluded"):
+            evidence_summary += f" / 個数・セット数が異なる{marketplace_evidence['different_pack_price_items_excluded']}件は価格比較から除外"
         warnings.append(evidence_summary)
         rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
                             "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
@@ -552,7 +556,7 @@ def evaluate_listing(
                 "minimum_shops": minimum_shops,
                 "confirmed_shop_count": confirmed_shop_count,
                 **{key: value for key, value in marketplace_evidence.items()
-                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key == "search_attempts"},
+                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required"}},
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules:

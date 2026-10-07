@@ -90,15 +90,16 @@ class RakutenMarketplaceEvidenceTests(unittest.TestCase):
         self.assertFalse(_item_mentions_exact_jan(item("shop", "149000000000019"), "4900000000001"))
         self.assertTrue(_item_mentions_exact_jan(item("shop", "JAN：４９００００００００００１"), "4900000000001"))
 
-    def test_exact_jan_does_not_rescue_wrong_pack_or_capacity(self):
+    def test_exact_jan_counts_other_packs_but_not_wrong_capacity(self):
         jan, title = "4900000000001", "テストブランド プロテイン 3kg"
         candidates = [item("a", "テストブランド プロテイン 500g", jan),
                       item("b", "テストブランド プロテイン 3kg 2個セット", jan),
                       item("c", title, jan)]
         with patch("scripts.listing.rakuten_marketplace_policy._search_items", side_effect=[candidates, []]):
             evidence = rakuten_marketplace_evidence(jan_code=jan, title=title, minimum_shops=2)
-        self.assertEqual(evidence["confirmed_shop_count"], 1)
-        self.assertFalse(evidence["accepted"])
+        self.assertEqual(evidence["confirmed_shop_count"], 2)
+        self.assertTrue(evidence["accepted"])
+        self.assertFalse(evidence["pack_count_required"])
 
     def test_caption_with_all_capacities_cannot_prove_the_title_match(self):
         title = "テストブランド プロテイン 3kg"

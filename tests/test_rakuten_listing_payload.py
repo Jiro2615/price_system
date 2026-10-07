@@ -396,12 +396,17 @@ class RakutenListingPhase1Tests(unittest.TestCase):
                       master_data=self.master, store_settings=self.store, management_number="20250101010101_187_ab12")
         baseline = evaluate_listing(**kwargs)
         evidence = {"accepted": True, "confirmed_shop_count": 5, "reference_min_price": 999,
-                    "reference_price_scope": "取得結果内の参考値"}
+                    "reference_price_scope": "取得結果内の参考値", "pack_count_required": False,
+                    "different_pack_price_items_excluded": 2}
         with mock.patch("scripts.listing.listing_evaluator.rakuten_marketplace_evidence", return_value=evidence):
             result = evaluate_listing(**kwargs, require_minimum_same_jan_listings=True)
         self.assertEqual(result.listing_status, "eligible")
         detail = next(item for item in result.forced_bypass_checks if item["rule"] == "rakuten_marketplace_evidence")
         self.assertEqual(detail["reference_min_price"], 999)
+        self.assertFalse(detail["pack_count_required"])
+        self.assertEqual(detail["different_pack_price_items_excluded"], 2)
+        self.assertTrue(any("店舗数確認では個数・セット数不問" in line for line in result.warnings))
+        self.assertTrue(any("個数・セット数が異なる2件は価格比較から除外" in line for line in result.warnings))
         self.assertEqual(result.seller_count_evaluation, baseline.seller_count_evaluation)
         self.assertEqual(result.attributes, baseline.attributes)
 

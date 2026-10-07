@@ -14,7 +14,7 @@ def main() -> int:
     with patch("psycopg.connect", side_effect=AssertionError("Live DB access forbidden in regression tests")), \
          patch("requests.sessions.Session.request", side_effect=AssertionError("Live HTTP forbidden in regression tests")):
         suite = unittest.TestSuite()
-        for module in ("test_rakuten_search_client", "test_rakuten_marketplace_evidence", "test_marketplace_staged_search",
+        for module in ("test_rakuten_search_client", "test_rakuten_marketplace_evidence", "test_marketplace_staged_search", "test_marketplace_pack_counts",
                        "test_quasi_drug_compliance", "test_diagnose_rakuten_marketplace",
                        "test_listing_batch_fast_pipeline"):
             suite.addTests(loader.loadTestsFromName(module))
