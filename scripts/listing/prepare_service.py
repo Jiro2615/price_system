@@ -20,6 +20,8 @@ from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaPro
 from scripts.listing.listing_text_policy import normalize_listing_text_policy_mode
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload
+from scripts.listing.forced_word_policy import load_groups, screen_forced_words
+from scripts.listing.listing_text_policy import plain_text
 
 
 T = TypeVar("T")
@@ -42,6 +44,9 @@ class PrepareListingRequest:
     amazon_result_json: Path | None = None
     keepa_result_json: Path | None = None
     bypass_rules: tuple[str, ...] = ()
+    forced_company_brand_block: bool = False
+    forced_word_review_mode: bool = False
+    approved_forced_word_review_token: str = ""
     require_minimum_same_jan_listings: bool = False
     minimum_rakuten_shops: int = 5
 
@@ -704,11 +709,24 @@ def prepare_listing(
                 resolution_action="use_actual",
             )
 
+    evaluation_master = master_data
+    if request.forced_company_brand_block or request.forced_word_review_mode:
+        _, groups = load_groups()
+        # Named/review words are controlled exclusively by the new switches,
+        # not by the legacy substring check (even when general words aren't
+        # bypassed). Never mutate the shared batch master cache.
+        evaluation_master = replace(master_data, prohibited_words_rakuten=[
+            word for word in master_data.prohibited_words_rakuten
+            if groups.get(plain_text(word).strip(), "review") == "ignore"
+        ], legacy_spacing_replacements=[
+            rule for rule in master_data.legacy_spacing_replacements
+            if groups.get(plain_text(str(rule.get("source") or "")).strip(), "review") == "ignore"
+        ])
     evaluation = evaluator(
         asin=asin,
         amazon_result=amazon_result,
         keepa_result=keepa_result,
-        master_data=master_data,
+        master_data=evaluation_master,
         store_settings=store_settings,
         management_number=request.management_number.strip() or "",
         resolved_fields=resolved_fields,
@@ -869,7 +887,7 @@ def prepare_listing(
         )
     representative_color_mapping = _build_representative_color_mapping(evaluation.resolved_attributes, item_payload)
 
-    return _base_result(
+    prepared = _base_result(
         mode=mode,
         asin=asin,
         amazon_result=amazon_result,
@@ -904,6 +922,12 @@ def prepare_listing(
         provisional_genre_candidate=evaluation.provisional_genre_candidate,
         compliance_evidence=evaluation.compliance_evidence,
         forced_bypass_checks=evaluation.forced_bypass_checks,
+    )
+    return screen_forced_words(
+        prepared, master_data.prohibited_words_rakuten,
+        block_company=request.forced_company_brand_block,
+        review_uncertain=request.forced_word_review_mode,
+        approved_token=request.approved_forced_word_review_token,
     )
 
 
@@ -947,7 +971,7 @@ def precheck_keepa_before_amazon(
     keepa_value = precheck.get("keepa_result")
     keepa_result = keepa_value if isinstance(keepa_value, KeepaProductData) else None
     status = str(precheck.get("listing_status") or "")
-    should_skip_amazon = status == "business_ng" or keepa_result is None
+    should_skip_amazon = status in {"business_ng", "company_brand_blocked"} or keepa_result is None
     if not should_skip_amazon:
         return None, keepa_result
 

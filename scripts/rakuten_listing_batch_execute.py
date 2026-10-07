@@ -24,6 +24,8 @@ from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
+from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations
+from scripts.db_config import connect_db
 from scripts.price_check_one_asin_db import create_amazon_page
 
 
@@ -55,6 +57,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--confirm-real-api", action="store_true")
     parser.add_argument("--allow-live-transport", action="store_true")
     parser.add_argument("--update-existing", action="store_true", help="既出品のタイトル・説明・画像だけを最新化する")
+    parser.add_argument("--block-forbidden-company-brands", action="store_true")
+    parser.add_argument("--review-uncertain-words", action="store_true")
+    parser.add_argument("--approved-word-review-source", default="")
+    parser.add_argument("--approved-word-review-token", default="")
     return parser.parse_args()
 
 
@@ -74,11 +80,39 @@ def revalidate_prepared_listing(args, asin, dry):
         require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
         minimum_rakuten_shops=getattr(args, "minimum_rakuten_shops", 5),
         management_number=str(dry.get("management_number") or ""),
+        forced_company_brand_block=getattr(args, "block_forbidden_company_brands", False),
+        forced_word_review_mode=getattr(args, "review_uncertain_words", False),
+        approved_forced_word_review_token=getattr(args, "approved_word_tokens", {}).get(asin, ""),
     )
     return prepare_listing(
         request, amazon_fetcher=lambda _asin, _timeout: amazon_result,
         keepa_fetcher=lambda _asin: keepa_result,
     )
+
+
+def load_review_caches(source_id: str, store: str, asins: list[str], expected_token: str) -> dict[str, dict]:
+    if not source_id:
+        return {}
+    if len(asins) != 1 or not expected_token:
+        raise ValueError("要確認語の承認は1商品ずつ行ってください")
+    with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
+        cur.execute("""SELECT r.asin,r.result_json,j.store_code,j.payload_json->'parameters'
+            FROM listing_run_item_results r JOIN job_runs j ON j.run_id=r.run_id
+            WHERE r.run_id=%s AND r.asin=ANY(%s) AND j.job_type IN ('listing_bulk_execute','listing_forced_word_execute')""", (source_id, asins))
+        rows = cur.fetchall()
+    result = {}
+    for asin, item, source_store, params in rows:
+        cache = item.get("forced_word_review_cache") or {}
+        review = item.get("forced_word_review") or {}
+        if (str(source_store).casefold() != store.casefold() or cache.get("asin") != asin
+                or str(cache.get("store_code", "")).casefold() != store.casefold()
+                or review.get("state") != "word_review_pending" or not params.get("forced_word_review_mode")
+                or review.get("review_token") != expected_token or cache.get("review_token") != expected_token):
+            raise ValueError("要確認語の保存結果・店舗・ASINが一致しません")
+        result[asin] = cache
+    if set(result) != set(asins):
+        raise ValueError("要確認語の保存済み商品情報がありません。元のASINを再判定してください")
+    return result
 
 
 async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
@@ -90,6 +124,9 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         raise ValueError("prepare-workers must be between 1 and 4")
     args.bypass_rules = parse_bypass_rules(args.ignore_rules)
     args.minimum_rakuten_shops = parse_minimum_rakuten_shops(getattr(args, "minimum_rakuten_shops", 5))
+    review_caches = load_review_caches(getattr(args, "approved_word_review_source", ""), args.store, asins,
+                                     getattr(args, "approved_word_review_token", ""))
+    args.approved_word_tokens = {asin: cache["review_token"] for asin, cache in review_caches.items()}
     args.output_dir.mkdir(parents=True, exist_ok=True)
     results_path = args.output_dir / "results.jsonl"
     local_data = BatchLocalData(args.store, args.master_dir, asins, args.allow_missing_master)
@@ -180,10 +217,30 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 bypass_rules=args.bypass_rules,
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
                 minimum_rakuten_shops=args.minimum_rakuten_shops,
+                forced_company_brand_block=getattr(args, "block_forbidden_company_brands", False),
+                forced_word_review_mode=getattr(args, "review_uncertain_words", False),
+                approved_forced_word_review_token=args.approved_word_tokens.get(asin, ""),
             )
             try:
                 dry = await asyncio.to_thread(precheck_local_listing_exclusion, request, batch_local_data=local_data)
                 if dry is not None:
+                    await prepared_queue.put((index, asin, dry))
+                    continue
+                if asin in review_caches:
+                    cache = review_caches[asin]
+                    _old_amazon, old_keepa = restored_observations(cache)
+                    request.management_number = str(cache.get("management_number") or "")
+                    # Recheck live price/stock/shipping/gift after the human
+                    # decision. Keepa product facts are reused for 24h only.
+                    page = await prepare_pages.get(1)
+                    fresh_amazon = await fetch_amazon_result(asin, page_timeout_ms=args.page_timeout, page=page)
+                    age = (datetime.now(timezone.utc) - datetime.fromisoformat(cache["prepared_at"])).total_seconds()
+                    if age < -60:
+                        raise ValueError("要確認語の商品情報の保存日時が不正です")
+                    options = {"amazon_fetcher": lambda _asin, _timeout: fresh_amazon}
+                    if age <= 86400:
+                        options["keepa_fetcher"] = lambda _asin: old_keepa
+                    dry = await asyncio.to_thread(prepare_listing, request, **options)
                     await prepared_queue.put((index, asin, dry))
                     continue
                 await keepa_candidate_queue.put((index, asin, request))
@@ -249,7 +306,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
         nonlocal completed
         if dry.get("final_status") == "system_error" and not dry.get("management_number"):
             return dry
-        if dry.get("listing_status") in {"already_listed", "business_ng"}:
+        if dry.get("listing_status") in {"already_listed", "business_ng", *HOLD_STATUSES}:
             return {**dry, "final_status": dry["listing_status"], "external_actions_performed": False}
         item_dir = args.output_dir / asin
         item_dir.mkdir(exist_ok=True)
@@ -262,7 +319,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 dry = await asyncio.to_thread(
                     revalidate_prepared_listing, args, asin, dry,
                 )
-                if dry.get("listing_status") in {"already_listed", "business_ng"}:
+                if dry.get("listing_status") in {"already_listed", "business_ng", *HOLD_STATUSES}:
                     return {**dry, "final_status": dry["listing_status"], "external_actions_performed": False}
             management = str(dry.get("management_number") or "")
             dry_path = item_dir / "dry_run.json"; save_json(dry_path, dry)

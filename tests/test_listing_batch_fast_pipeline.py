@@ -24,6 +24,37 @@ def arguments(folder):
 
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_company_and_word_review_holds_never_preflight_upload_or_sync(self):
+        for status in ("word_review_pending", "company_brand_blocked"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+                module = execute_batch
+                stack.enter_context(patch("psycopg.connect", side_effect=AssertionError("Live DB forbidden")))
+                stack.enter_context(patch("requests.sessions.Session.request", side_effect=AssertionError("Live HTTP forbidden")))
+                stack.enter_context(patch.object(module, "BatchLocalData"))
+                stack.enter_context(patch.object(module, "precheck_local_listing_exclusion", return_value=None))
+                stack.enter_context(patch.object(module, "precheck_keepa_before_amazon", return_value=(None, "keepa")))
+                stack.enter_context(patch.object(module, "create_amazon_page", new_callable=AsyncMock,
+                    return_value=(None, None, SimpleNamespace(new_page=AsyncMock(return_value="p2")), "p1")))
+                stack.enter_context(patch.object(module, "fetch_amazon_result", new_callable=AsyncMock, return_value="amazon"))
+                dry = {"asin": "B000TEST01", "listing_status": status, "execution_allowed": False,
+                       "forced_word_review": {"state": status, "title": "商品 OU", "matches": [{"word":"OU"}]}}
+                if status == "word_review_pending":
+                    dry["forced_word_review_cache"] = {"item_payload": {"title": "商品 OU"}}
+                prepare = stack.enter_context(patch.object(module, "prepare_listing", return_value=dry))
+                forbidden = [stack.enter_context(patch.object(module, name, side_effect=AssertionError(name+" forbidden")))
+                    for name in ("revalidate_prepared_listing", "build_preflight_result", "build_real_execute_result", "sync_listing_result_to_db", "run_with_listing_write_slot")]
+                args = arguments(folder)
+                args.block_forbidden_company_brands = True
+                args.review_uncertain_words = True
+                await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
+                request = prepare.call_args.args[0]
+                self.assertTrue(request.forced_company_brand_block)
+                self.assertTrue(request.forced_word_review_mode)
+                for call in forbidden: call.assert_not_called()
+                result = json.loads((Path(folder)/"results.jsonl").read_text())
+                self.assertEqual(result["final_status"], status)
+                self.assertFalse(result["external_actions_performed"])
+
     async def test_refresh_and_bulk_write_and_db_sync_are_inside_slot(self):
         for refresh in (False, True):
             with self.subTest(refresh=refresh), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:

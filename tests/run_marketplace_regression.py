@@ -16,7 +16,7 @@ def main() -> int:
          patch("urllib.request.OpenerDirector.open", side_effect=AssertionError("Live urllib HTTP forbidden in regression tests")):
         suite = unittest.TestSuite()
         for module in ("test_rakuten_search_client", "test_rakuten_marketplace_evidence", "test_marketplace_staged_search", "test_marketplace_pack_counts", "test_marketplace_url_and_postage", "test_marketplace_cosmetic_specs", "test_marketplace_core_name",
-                       "test_quasi_drug_compliance", "test_advertiser_encoding", "test_rakuten_api_transport_payloads", "test_diagnose_rakuten_marketplace",
+                       "test_quasi_drug_compliance", "test_advertiser_encoding", "test_forced_word_policy", "test_rakuten_api_transport_payloads", "test_diagnose_rakuten_marketplace",
                        "test_listing_batch_fast_pipeline"):
             suite.addTests(loader.loadTestsFromName(module))
         import test_rakuten_listing_payload as fixtures
