@@ -155,7 +155,8 @@ class WholeWordPolicyTests(unittest.TestCase):
                                    common_settings_loader=lambda *_:(ListingCommonSettings(3.5),[]),
                                    existing_listing_lookup=lambda *_:None)
         with patch("scripts.listing.prepare_service.apply_asin_master_overrides", side_effect=lambda master,*_:master), \
-             patch("scripts.listing.prepare_service.apply_store_master_overrides", side_effect=lambda master,*_:master):
+             patch("scripts.listing.prepare_service.apply_store_master_overrides", side_effect=lambda master,*_:master), \
+             patch("scripts.listing.forced_word_classification_db.read_overrides", return_value={}):
             # No prohibited_words bypass: new mode still owns these words.
             partial = run("Count ハイライト 商品")
             self.assertEqual(partial["listing_status"], "eligible", partial.get("listing_reason"))

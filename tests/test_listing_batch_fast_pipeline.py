@@ -24,6 +24,38 @@ def arguments(folder):
 
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_class_edit_while_waiting_for_write_slot_stops_before_any_send(self):
+        from tests.test_forced_word_policy import prepared
+        with tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+            module=execute_batch
+            stack.enter_context(patch("psycopg.connect",side_effect=AssertionError("Live DB forbidden")))
+            stack.enter_context(patch("requests.sessions.Session.request",side_effect=AssertionError("Live HTTP forbidden")))
+            stack.enter_context(patch.object(module,"BatchLocalData"))
+            stack.enter_context(patch.object(module,"precheck_local_listing_exclusion",return_value=None))
+            stack.enter_context(patch.object(module,"precheck_keepa_before_amazon",return_value=(None,"keepa")))
+            stack.enter_context(patch.object(module,"create_amazon_page",new_callable=AsyncMock,
+                return_value=(None,None,SimpleNamespace(new_page=AsyncMock(return_value="p2")),"p1")))
+            stack.enter_context(patch.object(module,"fetch_amazon_result",new_callable=AsyncMock,return_value="amazon"))
+            dry=prepared("商品 OU")
+            stack.enter_context(patch.object(module,"prepare_listing",return_value=dry))
+            stack.enter_context(patch.object(module,"revalidate_prepared_listing",return_value=dry))
+            for name in ("build_preflight_result","build_mock_execute_result","build_real_readiness_result"):
+                stack.enter_context(patch.object(module,name,return_value={}))
+            stack.enter_context(patch.object(module,"read_active_words",return_value=["OU"]))
+            stack.enter_context(patch("scripts.listing.forced_word_classification_db.read_overrides",return_value={"ou":"block"}))
+            stack.enter_context(patch.object(module,"run_with_listing_write_slot",side_effect=lambda store,action,**kwargs:action()))
+            send=stack.enter_context(patch.object(module,"build_real_execute_result",side_effect=AssertionError("RMS send forbidden")))
+            sync=stack.enter_context(patch.object(module,"sync_listing_result_to_db",side_effect=AssertionError("Product DB write forbidden")))
+            args=arguments(folder)
+            args.store="rakuten_2"
+            args.block_forbidden_company_brands=True
+            args.review_uncertain_words=True
+            await asyncio.wait_for(module.run_batch(args,["B000TEST01"]),timeout=5)
+            result=json.loads((Path(folder)/"results.jsonl").read_text())
+            self.assertEqual(result["final_status"],"company_brand_blocked")
+            self.assertFalse(result["external_actions_performed"])
+            send.assert_not_called();sync.assert_not_called()
+
     async def test_company_and_word_review_holds_never_preflight_upload_or_sync(self):
         for status in ("word_review_pending", "company_brand_blocked"):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
@@ -159,6 +191,13 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
 
 
 class RevalidationTests(unittest.TestCase):
+    def test_db_worker_capability_argument_is_accepted_without_starting_any_work(self):
+        with patch("sys.argv", ["batch", "--asin-file", "unused.txt", "--store", "rakuten_2",
+                                "--output-dir", "unused", "--require-shared-word-classifications"]):
+            args = execute_batch.parse_args()
+        self.assertTrue(args.require_shared_word_classifications)
+        self.assertFalse(args.execute)
+
     def test_real_preparation_reads_new_db_blacklist_without_old_files(self):
         latest = MasterData({"B000TEST01"}, {}, [], [], [], {}, {}, {})
         store = SimpleNamespace(store_code="shop")

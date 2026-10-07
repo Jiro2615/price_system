@@ -711,7 +711,8 @@ def prepare_listing(
 
     evaluation_master = master_data
     if request.forced_company_brand_block or request.forced_word_review_mode:
-        _, groups = load_groups()
+        classification_snapshot = load_groups(use_database=True)
+        _, groups = classification_snapshot
         # Named/review words are controlled exclusively by the new switches,
         # not by the legacy substring check (even when general words aren't
         # bypassed). Never mutate the shared batch master cache.
@@ -928,6 +929,7 @@ def prepare_listing(
         block_company=request.forced_company_brand_block,
         review_uncertain=request.forced_word_review_mode,
         approved_token=request.approved_forced_word_review_token,
+        groups=classification_snapshot if request.forced_company_brand_block or request.forced_word_review_mode else None,
     )
 
 

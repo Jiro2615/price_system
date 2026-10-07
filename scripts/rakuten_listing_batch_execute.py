@@ -24,7 +24,8 @@ from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
-from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations
+from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations, screen_forced_words
+from scripts.listing.forced_word_classification_db import read_active_words
 from scripts.db_config import connect_db
 from scripts.price_check_one_asin_db import create_amazon_page
 
@@ -59,6 +60,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--update-existing", action="store_true", help="既出品のタイトル・説明・画像だけを最新化する")
     parser.add_argument("--block-forbidden-company-brands", action="store_true")
     parser.add_argument("--review-uncertain-words", action="store_true")
+    parser.add_argument("--require-shared-word-classifications", action="store_true",
+                        help="DB分類編集対応版の必須引数。旧出品ワーカーでは実行前に拒否します。")
     parser.add_argument("--approved-word-review-source", default="")
     parser.add_argument("--approved-word-review-token", default="")
     return parser.parse_args()
@@ -98,7 +101,7 @@ def load_review_caches(source_id: str, store: str, asins: list[str], expected_to
     with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
         cur.execute("""SELECT r.asin,r.result_json,j.store_code,j.payload_json->'parameters'
             FROM listing_run_item_results r JOIN job_runs j ON j.run_id=r.run_id
-            WHERE r.run_id=%s AND r.asin=ANY(%s) AND j.job_type IN ('listing_bulk_execute','listing_forced_word_execute')""", (source_id, asins))
+            WHERE r.run_id=%s AND r.asin=ANY(%s) AND j.job_type IN ('listing_bulk_execute','listing_forced_word_execute','listing_forced_word_db_execute')""", (source_id, asins))
         rows = cur.fetchall()
     result = {}
     for asin, item, source_store, params in rows:
@@ -347,6 +350,18 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             )
             readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
             def execute_and_sync():
+                if getattr(args, "block_forbidden_company_brands", False) or getattr(args, "review_uncertain_words", False):
+                    # A human may edit a class while this item waits for the
+                    # shared write slot. Read it again inside that slot,
+                    # before any image upload or Item/Inventory API call.
+                    latest = screen_forced_words(
+                        dry, read_active_words(args.store),
+                        block_company=getattr(args, "block_forbidden_company_brands", False),
+                        review_uncertain=getattr(args, "review_uncertain_words", False),
+                        approved_token=args.approved_word_tokens.get(asin, ""),
+                    )
+                    if latest.get("listing_status") in HOLD_STATUSES:
+                        return {**latest, "final_status": latest["listing_status"], "external_actions_performed": False}
                 result = build_real_execute_result(RealExecuteRequest(
                     readiness_json=readiness_path,
                     dry_run_json=dry_path,

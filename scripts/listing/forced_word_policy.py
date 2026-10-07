@@ -18,7 +18,7 @@ HOLD_STATUSES = {"word_review_pending", "company_brand_blocked"}
 
 
 @lru_cache(maxsize=1)
-def load_groups() -> tuple[str, dict[str, str]]:
+def load_file_groups() -> tuple[str, dict[str, str]]:
     data = json.loads(GROUPS_PATH.read_text(encoding="utf-8"))
     groups: dict[str, str] = {}
     for group in ("ignore", "review", "block"):
@@ -28,6 +28,17 @@ def load_groups() -> tuple[str, dict[str, str]]:
         for word in words:
             groups[plain_text(word).strip()] = group
     return str(data["version"]), groups
+
+
+def load_groups(*, use_database: bool = False) -> tuple[str, dict[str, str]]:
+    version, base = load_file_groups()
+    if not use_database:
+        return version, base
+    from scripts.listing.forced_word_classification_db import read_overrides
+    overrides = read_overrides()
+    # No cache for the shared overrides. An unreadable DB must not result in
+    # use of older rules, and the final pre-write gate reads the latest values.
+    return version + ":shared-db-v2", {**base, **overrides}
 
 
 def token_word(word: str) -> str:
@@ -51,7 +62,7 @@ def value(obj: object, key: str) -> str:
 
 
 def noun_matches(dry: dict, active_words: list[str], *, groups=None) -> tuple[str, list[dict]]:
-    version, classification = groups or load_groups()
+    version, classification = groups or load_groups(use_database=True)
     active = tuple(sorted(set(word for word in active_words if classification.get(plain_text(word).strip(), "review") != "ignore")))
     pattern = compiled_words(active)
     if pattern is None:
