@@ -11,6 +11,16 @@ from scripts.listing.rakuten_transport import build_rakuten_auth_headers, rakute
 
 
 class RakutenApiTransportPayloadTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # These tests exercise fake local credentials, not the developer's
+        # .env or the central credential service configured on the machine.
+        for patcher in (
+            mock.patch("scripts.listing.rakuten_transport._load_env_once"),
+            mock.patch("scripts.listing.rakuten_transport.central_credentials", return_value=None),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
     def test_store_scoped_auth_prefers_rakuten_2_keys(self) -> None:
         env = {
             "RAKUTEN_1_SERVICE_SECRET": "store1-secret",

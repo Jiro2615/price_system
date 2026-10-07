@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from scripts.listing.models import sanitize_for_output
+from scripts.listing.compliance_text import validate_advertiser_payload
 from scripts.listing.rakuten_transport import build_rakuten_auth_headers, create_requests_session, summarize_response
 from scripts.listing.text_sanitizer import sanitize_payload_text_for_rakuten_api
 
@@ -32,6 +33,7 @@ class RakutenItemResult:
 
 
 def sanitize_item_payload_for_api(payload: dict[str, Any], *, management_number: str = "") -> dict[str, Any]:
+    validate_advertiser_payload(payload or {})
     sanitized = sanitize_payload_text_for_rakuten_api(copy.deepcopy(payload or {}))
     if not isinstance(sanitized, dict):
         return {}

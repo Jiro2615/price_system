@@ -11,6 +11,7 @@ from typing import Any, Callable
 from scripts.listing.image_downloader import download_image_plan
 from scripts.listing.image_validator import validate_downloaded_images
 from scripts.listing.models import sanitize_for_output, to_jsonable
+from scripts.listing.compliance_text import ComplianceTextError, validate_advertiser_payload
 from scripts.listing.rakuten_image_client import RakutenImageClient, build_upload_request_from_validation
 from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, build_inventory_request
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
@@ -344,6 +345,12 @@ def execute_listing(
         return _fail(result, status="validation_failed", message="management_number is required")
     if not isinstance(item_payload, dict) or not isinstance(inventory_payload, dict):
         return _fail(result, status="validation_failed", message="item_payload and inventory_payload are required")
+    try:
+        # Also reject files prepared by old workers, before image upload or
+        # any item/inventory write. Forced business-rule bypasses do not apply.
+        validate_advertiser_payload(item_payload)
+    except ComplianceTextError as exc:
+        return _fail(result, status="validation_failed", message=str(exc))
 
     if request.resume_after_image_upload or request.resume_after_item_upsert:
         rakuten_image_urls = _build_existing_rakuten_image_locations(dry_run_result)

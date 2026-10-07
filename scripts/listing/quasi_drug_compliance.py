@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from dotenv import load_dotenv
+from dotenv import dotenv_values
+from scripts.listing.compliance_text import ComplianceTextError, validate_advertiser_name
 from scripts.listing.rakuten_search_client import search_items
 
 
@@ -25,14 +26,32 @@ def _normalized(value: object) -> str:
 
 
 def _configured(store_code: str) -> dict[str, str] | None:
-    load_dotenv(ENV_PATH)
     prefix = str(store_code or "").strip().upper()
     if not prefix:
         return None
+    # Read just these settings from the current UTF-8 file. load_dotenv's
+    # default override=False retained a stale/corrupted parent-process value,
+    # even after an operator corrected the shared .env during a long batch.
+    # Do not change unrelated credentials or mutate global environment state
+    # while parallel listing preparation is running.
+    try:
+        settings = dotenv_values(ENV_PATH, encoding="utf-8-sig")
+    except UnicodeError as exc:
+        raise ComplianceTextError("広告文責の設定ファイルをUTF-8で読めません。実行PCの .env の保存形式を確認してください。") from exc
+    name_key = f"{prefix}_COMPLIANCE_ADVERTISER_NAME"
+    phone_key = f"{prefix}_COMPLIANCE_ADVERTISER_PHONE"
+
+    def configured_value(key: str) -> str:
+        # An explicit blank disables the setting; only an absent key falls
+        # back to an environment-only deployment such as a container.
+        value = settings[key] if key in settings else os.getenv(key, "")
+        return str(value or "").strip()
+
     values = {
-        "advertiser_name": os.getenv(f"{prefix}_COMPLIANCE_ADVERTISER_NAME", "").strip(),
-        "advertiser_phone": os.getenv(f"{prefix}_COMPLIANCE_ADVERTISER_PHONE", "").strip(),
+        "advertiser_name": configured_value(name_key),
+        "advertiser_phone": configured_value(phone_key),
     }
+    validate_advertiser_name(values["advertiser_name"], field=name_key)
     return values if all(values.values()) else None
 
 

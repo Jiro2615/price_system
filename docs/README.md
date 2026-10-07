@@ -20,6 +20,9 @@ This directory contains design notes and operating guides for
 
 ## Reference Notes
 
+- `advertiser_encoding.md`
+  - Advertiser-name configuration encoding, pre-send guards, and the local diagnostic command.
+
 - `legacy_rakuten_listing_spec.md`
   - Early legacy workbook and master-file reverse-engineering notes.
   - Historical context only; current behavior is in the developer guide.
@@ -49,4 +52,3 @@ For RMS WEB SERVICE API behavior, use:
 For legacy listing masters, use:
 
 - `reference/legacy_listing/`
-

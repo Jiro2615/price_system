@@ -6,6 +6,7 @@ from scripts.listing.attribute_policy import resolve_required_attributes
 from scripts.listing.book_format import digital_book_reason, prepend_book_format
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
+from scripts.listing.compliance_text import validate_advertiser_name
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, ResolvedField, StoreSettings
 from scripts.listing.prohibited_word_masking import detect_legacy_spacing_reviews
 from scripts.listing.listing_text_policy import analyze_listing_text_policy
@@ -275,6 +276,7 @@ def _build_descriptions(title: str, keepa_result: KeepaProductData | None) -> tu
 
 def build_regulated_product_disclosure(evidence: dict[str, object]) -> str:
     """Build the mandatory factual disclosure without any other shop's copy."""
+    validate_advertiser_name(evidence.get("advertiser_name"))
     lines = [
         f"広告文責: {evidence['advertiser_name']}",
         f"電話番号: {evidence['advertiser_phone']}",
