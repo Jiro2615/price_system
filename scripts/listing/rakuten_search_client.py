@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import ipaddress
 import json
+import math
 import os
 from pathlib import Path
+import random
 import re
 import threading
 import time
+from datetime import timezone
+from email.utils import parsedate_to_datetime
 from urllib.parse import quote, quote_plus
 
 import requests
@@ -15,6 +19,9 @@ from dotenv import load_dotenv
 
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
+MAX_SEARCH_ATTEMPTS = 6  # Initial request plus at most five retries.
+MAX_RETRY_WAIT_SECONDS = 90.0
+MAX_SINGLE_RETRY_WAIT_SECONDS = 60.0
 _slot_lock = threading.Lock()
 _error_lock = threading.Lock()
 _next_request_at = 0.0
@@ -45,13 +52,63 @@ class RakutenSearchError(RuntimeError):
         super().__init__(f"楽天検索APIの取得エラー: {('HTTP ' + str(status) + ' / ') if status else ''}{code}: {message}{hint}")
 
 
-def _wait_for_slot() -> None:
+def _wait_for_slot(*, max_wait_seconds: float = MAX_RETRY_WAIT_SECONDS) -> float:
+    """Reserve one local request slot, observing cooldowns from other threads."""
+    global _next_request_at
+    started = time.monotonic()
+    while True:
+        with _slot_lock:
+            now = time.monotonic()
+            delay = _next_request_at - now
+            waited = max(0.0, now - started)
+            if delay <= 0:
+                _next_request_at = now + 1.0
+                return waited
+            budget_exceeded = waited + delay > max_wait_seconds
+        # Do not sleep while holding the lock: another thread receiving 429
+        # must be able to extend the shared deadline before this thread sends.
+        if budget_exceeded:
+            _raise_error(RakutenSearchError("rate_limit_cooldown", "楽天検索の待機上限に達しました。時間を置いて再判定してください", 429))
+        time.sleep(min(delay, 30.0))
+
+
+def _defer_requests(delay: float) -> None:
     global _next_request_at
     with _slot_lock:
-        delay = _next_request_at - time.monotonic()
-        if delay > 0:
-            time.sleep(delay)
-        _next_request_at = time.monotonic() + 1.0
+        _next_request_at = max(_next_request_at, time.monotonic() + max(1.0, delay))
+
+
+def _error_details(payload: object) -> dict:
+    details = payload.get("errors", payload) if isinstance(payload, dict) else {}
+    if isinstance(details, list):
+        details = details[0] if details else {}
+    return details if isinstance(details, dict) else {}
+
+
+def _retry_after_seconds(header: object, details: dict) -> float:
+    """Respect server delays in Retry-After (seconds/date) or its error text."""
+    delays = [0.0]
+    value = str(header or "").strip()
+    if value:
+        try:
+            seconds = float(value)
+        except ValueError:
+            try:
+                date = parsedate_to_datetime(value)
+                if date.tzinfo is None:
+                    date = date.replace(tzinfo=timezone.utc)
+                seconds = date.timestamp() - time.time()
+            except (ValueError, TypeError, OverflowError):
+                seconds = 0.0
+        if math.isfinite(seconds):
+            delays.append(max(0.0, seconds))
+    message = str(details.get("errorMessage") or details.get("error_description") or details.get("message") or "")
+    match = re.search(r"try\s+again\s+in\s+(\d+(?:\.\d+)?)\s*(?:seconds?|secs?)\b", message, flags=re.IGNORECASE)
+    if match:
+        seconds = float(match.group(1))
+        if math.isfinite(seconds):
+            delays.append(seconds)
+    return max(delays)
 
 
 def public_ipv4() -> str | None:
@@ -116,30 +173,34 @@ def search_items(keyword: str, timeout: float = 15.0, *, postage_included: bool 
               "availability": 1, "hits": 30, "format": "json", "formatVersion": 2}
     if postage_included:
         params["postageFlag"] = 1
-    for attempt in range(3):
-        _wait_for_slot()
+    waited_seconds = 0.0
+    for attempt in range(MAX_SEARCH_ATTEMPTS):
+        waited_seconds += _wait_for_slot(max_wait_seconds=max(0.0, MAX_RETRY_WAIT_SECONDS - waited_seconds))
         try:
             response = requests.get(ENDPOINT, params=params, headers={"accessKey": key},
                                     timeout=timeout, allow_redirects=False)
         except requests.RequestException as exc:
             _raise_error(RakutenSearchError(type(exc).__name__, "楽天検索への通信に失敗しました"))
-        if response.status_code == 429 and attempt < 2:
-            try:
-                delay = max(1.0, float(response.headers.get("Retry-After", "1")))
-            except (ValueError, TypeError):
-                delay = 1.0
-            if delay <= 5:
-                time.sleep(delay)
-                continue
         try:
             payload = response.json()
         except ValueError:
-            _raise_error(RakutenSearchError("invalid_response", "JSON応答を取得できません", response.status_code))
+            if response.status_code != 429:
+                _raise_error(RakutenSearchError("invalid_response", "JSON応答を取得できません", response.status_code))
+            payload = {}
+        details = _error_details(payload)
+        if response.status_code == 429:
+            server_delay = _retry_after_seconds(response.headers.get("Retry-After"), details)
+            delay = max(float(2 ** (attempt + 1)), server_delay) + random.uniform(0.0, 1.0)
+            retry_allowed = (attempt + 1 < MAX_SEARCH_ATTEMPTS and delay <= MAX_SINGLE_RETRY_WAIT_SECONDS
+                             and waited_seconds + delay <= MAX_RETRY_WAIT_SECONDS)
+            _defer_requests(delay if retry_allowed else max(1.0, server_delay))
+            if retry_allowed:
+                print("RAKUTEN_SEARCH_RETRY " + json.dumps({"status": 429, "retry": attempt + 1,
+                    "max_retries": MAX_SEARCH_ATTEMPTS - 1, "wait_seconds": round(delay, 2)}, ensure_ascii=False), flush=True)
+                time.sleep(delay)
+                waited_seconds += delay
+                continue
         if not 200 <= response.status_code < 300:
-            details = payload.get("errors", payload) if isinstance(payload, dict) else {}
-            if isinstance(details, list):
-                details = details[0] if details else {}
-            details = details if isinstance(details, dict) else {}
             # The official API defines this exact 404 payload as no data,
             # unlike an unknown-route/authentication 404 or a broken response.
             if response.status_code == 404 and details.get("error") == "not_found":
