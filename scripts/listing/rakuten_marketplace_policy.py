@@ -97,7 +97,9 @@ def _model_tokens(*values: object) -> set[str]:
         normalized = unicodedata.normalize("NFKC", str(value or "")).casefold()
         for token in re.findall(r"(?=[a-z0-9_-]{4,})(?=[a-z0-9_-]*[a-z])(?=[a-z0-9_-]*\d)[a-z0-9_-]+", normalized):
             compact = re.sub(r"[^a-z0-9]", "", token)
-            if len(compact) >= 4 and not re.fullmatch(r"\d+(?:mg|kg|g|ml|l|gb|tb|mb|w|v|mm|cm|mah|hz|ghz|dpi)|(?:jan|ean|upc|isbn)\d{8,14}", compact):
+            # SPF is a sun-protection specification, not a supplier model.
+            # SPF26/PA++ and SPF50PA++++ must not contradict TYU-987.
+            if len(compact) >= 4 and not re.fullmatch(r"spf\d+(?:pa)?|\d+(?:mg|kg|g|ml|l|gb|tb|mb|w|v|mm|cm|mah|hz|ghz|dpi)|(?:jan|ean|upc|isbn)\d{8,14}", compact):
                 tokens.add(compact)
     return tokens
 
@@ -170,6 +172,26 @@ def _colours(value: object) -> set[str]:
     return {name for name, patterns in words.items() if any(re.search(pattern, text) for pattern in patterns)}
 
 
+def _skin_shades(value: object) -> set[str]:
+    text = _normalise_product_text(value)
+    return {name for name, word in (("natural_skin", "自然な肌色"), ("light_skin", "明るい肌色"))
+            if word in text}
+
+
+def _sun_protection(value: object) -> dict[str, set[str]]:
+    """Keep SPF/PA as product specifications, never as model identifiers."""
+    text = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    result = {}
+    spf = {str(int(number)) + suffix for number, suffix in
+           re.findall(r"(?<![a-z0-9])spf\s*[-_]?\s*(\d+)\s*(\+?)(?!\d)", text)}
+    pa = set(re.findall(r"(?<![a-z])pa\s*(\+{1,4})(?!\+)", text))
+    if spf:
+        result["spf"] = spf
+    if pa:
+        result["pa"] = pa
+    return result
+
+
 def _distinctive_terms(value: object) -> set[str]:
     text = _normalise_product_text(value)
     return {word for word in ("チキン", "ターキー", "サーモン", "ツナ", "白身魚", "グレインフリー",
@@ -191,6 +213,13 @@ def _variant_rejection_reason(item: dict[str, Any], title: str, *, ignore_pack_c
     reference_colours, candidate_colours = _colours(title), _colours(item.get("itemName"))
     if reference_colours and candidate_colours and reference_colours.isdisjoint(candidate_colours):
         return "colour_mismatch"
+    reference_shades, candidate_shades = _skin_shades(title), _skin_shades(item.get("itemName"))
+    if reference_shades and candidate_shades and reference_shades != candidate_shades:
+        return "shade_mismatch"
+    reference_protection, candidate_protection = _sun_protection(title), _sun_protection(item.get("itemName"))
+    if any(reference_protection[key] != candidate_protection[key]
+           for key in reference_protection.keys() & candidate_protection.keys()):
+        return "sun_protection_mismatch"
     reference_terms, candidate_terms = _distinctive_terms(title), _distinctive_terms(item.get("itemName"))
     for family in ({"チキン", "ターキー", "サーモン", "ツナ", "白身魚"}, {"グレインフリー", "避妊", "去勢", "毛玉", "腎臓", "尿路"}):
         ref, cand = reference_terms & family, candidate_terms & family
@@ -383,6 +412,15 @@ def _is_high_confidence_text_match(
     if ignore_pack_count:
         variants.pop("count", None)
     candidate_variants = _variant_groups(item.get("itemName"))
+    # Without exact JAN evidence, an explicit complexion shade must be proven
+    # in the candidate title, not merely inferred from a similar product name.
+    reference_shades = _skin_shades(title)
+    if reference_shades and _skin_shades(item.get("itemName")) != reference_shades:
+        return False
+    reference_protection, candidate_protection = _sun_protection(title), _sun_protection(item.get("itemName"))
+    if any(reference_protection[key] != candidate_protection[key]
+           for key in reference_protection.keys() & candidate_protection.keys()):
+        return False
     # Captions often enumerate every SKU capacity; only the product title can
     # support the fallback's exact capacity/count check.
     variants_match = all(candidate_variants.get(group, {Decimal(1)} if group == "count" else set()) == values

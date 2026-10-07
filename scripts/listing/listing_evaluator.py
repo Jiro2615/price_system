@@ -535,6 +535,7 @@ def evaluate_listing(
         rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
                             "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
                             "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
+                            "shade_mismatch": "肌色違い", "sun_protection_mismatch": "SPF・PA違い",
                             "age_mismatch": "対象年齢違い", "product_line_mismatch": "商品ライン違い",
                             "unavailable": "在庫なし", "shipping_not_included": "送料別",
                             "used_or_digital": "中古・整備済み・電子書籍", "invalid_offer_flags": "在庫・送料情報不正"}
