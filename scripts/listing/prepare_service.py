@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any, Callable, TypeVar
 
 from scripts.listing.attribute_resolver import build_resolved_fields
-from scripts.listing.common_settings import load_listing_common_settings
+from scripts.listing.common_settings import load_listing_common_settings, build_seller_count_evaluation
+from scripts.listing.book_format import digital_book_reason
 from scripts.listing.dry_run_summary import (
     build_blocking_reasons,
     build_execution_summary,
@@ -138,7 +139,6 @@ def precheck_local_listing_exclusion(
         store_settings = _resolve_store_settings(request, store_settings_loader)
         common_settings, common_setting_warnings = common_settings_loader(store_settings)
     warnings.extend(common_setting_warnings)
-    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
     # ASIN phrase exceptions cannot override duplicates, blacklist or past-NG.
     # Load them only for candidates that reach the content evaluator.
 
@@ -150,10 +150,11 @@ def precheck_local_listing_exclusion(
             mode=mode, asin=asin, amazon_result=None, keepa_result=None,
             listing_status="already_listed", listing_reason=f"既に出品済み: {management_number}",
             warnings=warnings + [f"existing listing matched before external checks: {asin} ({source})"],
-            missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+            missing_master_files=[], master_dir=Path(request.master_dir),
             store_settings=store_settings, common_settings=common_settings,
             existing_management_number=management_number,
         )
+    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
     bypass_rules = set(request.bypass_rules or ())
     if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
         return _base_result(
@@ -524,8 +525,6 @@ def prepare_listing(
     store_settings = _resolve_store_settings(request, store_settings_loader)
     common_settings, common_setting_warnings = common_settings_loader(store_settings)
     warnings.extend(common_setting_warnings)
-    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
-    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
 
     if batch_local_data is not None:
         existing_listing_lookup = batch_local_data.existing
@@ -542,7 +541,7 @@ def prepare_listing(
             listing_status="already_listed",
             listing_reason=f"既に出品済み: {existing_management_number}",
             warnings=warnings + [f"existing listing matched before external checks: {asin} ({existing_source})"],
-            missing_master_files=master_data.missing_files,
+            missing_master_files=[],
             master_dir=Path(request.master_dir),
             store_settings=store_settings,
             common_settings=common_settings,
@@ -556,9 +555,18 @@ def prepare_listing(
         request.management_number = existing_management_number
         warnings.append(f"既出品を最新化します: {existing_management_number}")
 
-    # A blacklist decision is entirely local.  Do not open Amazon or call
-    # Keepa for an ASIN that is already disallowed by the active master.
+    master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
+    # Past-NG/blacklist decisions are entirely local. Do not open Amazon or
+    # call Keepa for an ASIN already disallowed by the active master.
     bypass_rules = set(request.bypass_rules or ())
+    if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=None, keepa_result=None,
+            listing_status="business_ng", listing_reason=f"過去NG: {master_data.kako_ng[asin]}",
+            warnings=warnings + [f"past NG matched before external checks: {asin}"],
+            missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+            store_settings=store_settings, common_settings=common_settings,
+        )
     if asin in master_data.blacklist and "blacklist" not in bypass_rules:
         return _base_result(
             mode=mode,
@@ -574,6 +582,8 @@ def prepare_listing(
             common_settings=common_settings,
         )
 
+    # Phrase exceptions matter only after the local-only ASIN exclusions.
+    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
     amazon_result = _resolve_amazon_result(request, asin, amazon_fetcher, warnings)
     amazon_classification = _classify_amazon_result(asin, amazon_result)
     if amazon_classification is not None:
@@ -635,6 +645,52 @@ def prepare_listing(
             store_settings=store_settings,
             common_settings=common_settings,
         )
+
+    # These facts already come from Keepa. Check them before attributes,
+    # Japanese-regulated evidence or marketplace HTTP requests. A caller's
+    # explicit seller-count bypass remains in force; adult/digital rules do not.
+    cheap_reason = digital_book_reason(keepa_result)
+    if not cheap_reason and keepa_result.is_adult:
+        cheap_reason = "Keepa isAdult=true"
+    if not cheap_reason and "seller_count" not in bypass_rules:
+        if keepa_result.avg90_new_offer_count is None:
+            cheap_reason = "過去90日の新品出品者数平均が未取得のため出品不可"
+        else:
+            seller_check = build_seller_count_evaluation(
+                actual_value=keepa_result.avg90_new_offer_count,
+                minimum_value=common_settings.min_avg90_new_offer_count,
+            )
+            if not seller_check["passed"]:
+                cheap_reason = f"過去90日の新品出品者数平均が基準未満: {seller_check['actual_value']} < {seller_check['minimum_value']}"
+    if cheap_reason:
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=amazon_result, keepa_result=keepa_result,
+            listing_status="business_ng", listing_reason=cheap_reason,
+            warnings=warnings, missing_master_files=master_data.missing_files,
+            master_dir=Path(request.master_dir), store_settings=store_settings, common_settings=common_settings,
+        )
+
+    classification_snapshot = None
+    if request.forced_company_brand_block or request.forced_word_review_mode:
+        classification_snapshot = load_groups(use_database=True)
+    if request.forced_company_brand_block:
+        # These original title/brand/maker fields are also checked verbatim at
+        # the final gate. Do not early-block raw descriptions/features here:
+        # cleanup may legitimately remove those before payload screening.
+        # Uncertain words wait for the complete payload and real Amazon checks.
+        company_probe = screen_forced_words({
+            "asin":asin,"store_code":request.store_code,"listing_status":"eligible","execution_allowed":True,
+            "amazon_result":amazon_result,"keepa_result":keepa_result,
+        },master_data.prohibited_words_rakuten,block_company=True,groups=classification_snapshot)
+        if company_probe.get("listing_status") == "company_brand_blocked":
+            early = _base_result(
+                mode=mode,asin=asin,amazon_result=amazon_result,keepa_result=keepa_result,
+                listing_status="company_brand_blocked",listing_reason=company_probe["listing_reason"],
+                warnings=warnings,missing_master_files=master_data.missing_files,
+                master_dir=Path(request.master_dir),store_settings=store_settings,common_settings=common_settings,
+            )
+            early["forced_word_review"] = company_probe["forced_word_review"]
+            return early
 
     resolved_fields = resolved_fields_builder(
         amazon_result=amazon_result,
@@ -711,7 +767,6 @@ def prepare_listing(
 
     evaluation_master = master_data
     if request.forced_company_brand_block or request.forced_word_review_mode:
-        classification_snapshot = load_groups(use_database=True)
         _, groups = classification_snapshot
         # Named/review words are controlled exclusively by the new switches,
         # not by the legacy substring check (even when general words aren't

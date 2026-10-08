@@ -489,89 +489,6 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    # The dedicated forced-listing page intentionally relaxes only selected
-    # master/data rules. When enabled it retains external resale evidence:
-    # distinct Rakuten shops must sell the exact JAN, or the same product must
-    # be confirmed through a high-confidence maker/model/title match.
-    if require_minimum_same_jan_listings:
-        marketplace_evidence = rakuten_marketplace_evidence(
-            jan_code=keepa_result.ean,
-            title=amazon_result.title or keepa_result.title,
-            brand=keepa_result.brand,
-            manufacturer=keepa_result.manufacturer,
-            model=keepa_result.model,
-            part_number=keepa_result.part_number,
-            minimum_shops=minimum_rakuten_shops,
-        )
-        if marketplace_evidence is None:
-            return EvaluationResult(
-                "system_error", "楽天の複数店舗確認の取得エラー（商品NGではありません）", matched_rules, warnings,
-                forced_bypass_checks=forced_bypass_checks,
-            )
-        jan_shop_count = int(marketplace_evidence.get("jan_exact_shop_count") or 0)
-        text_shop_count = int(marketplace_evidence.get("text_match_shop_count") or 0)
-        confirmed_shop_count = int(marketplace_evidence.get("confirmed_shop_count") or 0)
-        minimum_shops = minimum_rakuten_shops
-        query = str(marketplace_evidence.get("query") or "")
-        source = str(marketplace_evidence.get("source") or "")
-        evidence_summary = (
-            f"楽天複数店舗確認: JAN一致 {jan_shop_count}店舗 / "
-            f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗 / 基準: {minimum_shops}店舗以上"
-        )
-        if marketplace_evidence.get("pack_count_required") is False:
-            evidence_summary += " / 店舗数確認では個数・セット数不問"
-        if marketplace_evidence.get("postage_included_required") is False:
-            evidence_summary += " / 店舗数確認では送料条件不問"
-        if query:
-            evidence_summary += f" / 検索: {query}"
-        reference_min_price = marketplace_evidence.get("reference_min_price")
-        if reference_min_price is not None:
-            evidence_summary += f" / 条件一致した取得結果内の参考最安値: {reference_min_price}円"
-        if marketplace_evidence.get("ambiguous_price_items_excluded"):
-            evidence_summary += f" / バリエーション価格不明の{marketplace_evidence['ambiguous_price_items_excluded']}件は価格比較から除外"
-        if marketplace_evidence.get("unidentified_variant_price_items_excluded"):
-            evidence_summary += f" / 容量・仕様未確認の{marketplace_evidence['unidentified_variant_price_items_excluded']}件は価格比較から除外"
-        if marketplace_evidence.get("different_pack_price_items_excluded"):
-            evidence_summary += f" / 個数・セット数が異なる{marketplace_evidence['different_pack_price_items_excluded']}件は価格比較から除外"
-        warnings.append(evidence_summary)
-        rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
-                            "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
-                            "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
-                            "shade_mismatch": "肌色違い", "sun_protection_mismatch": "SPF・PA違い",
-                            "product_role_mismatch": "付属品・別商品のセット", "edition_mismatch": "製品版・モデル違い",
-                            "age_mismatch": "対象年齢違い", "product_line_mismatch": "商品ライン違い",
-                            "unavailable": "在庫なし", "shipping_not_included": "送料別",
-                            "used_or_digital": "中古・整備済み・電子書籍", "invalid_offer_flags": "在庫・送料情報不正"}
-        for attempt in marketplace_evidence.get("search_attempts") or []:
-            rejected = attempt.get("rejected_counts") or {}
-            detail = " / 除外: " + ", ".join(f"{rejection_labels.get(key, key)} {count}件" for key, count in rejected.items()) if rejected else ""
-            if attempt.get("jan_url_match_count"):
-                detail += f" / URL内JAN一致 {attempt['jan_url_match_count']}件"
-            if attempt.get("core_name_match_count"):
-                detail += f" / 商品名中核一致 {attempt['core_name_match_count']}件"
-            warnings.append(f"楽天検索「{attempt.get('query', '')}」: 取得 {attempt.get('raw_result_count', 0)}件 / "
-                            f"一致 {attempt.get('matched_item_count', 0)}件・{attempt.get('matched_shop_count', 0)}店舗{detail}")
-        if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
-            return EvaluationResult(
-                "business_ng",
-                f"楽天複数店舗確認が不足: {confirmed_shop_count} < {minimum_shops}店舗（JAN一致 {jan_shop_count} / 高精度文言一致 {text_shop_count}）",
-                matched_rules,
-                warnings,
-                forced_bypass_checks=forced_bypass_checks,
-            )
-        forced_bypass_checks.append(
-            {
-                "rule": "rakuten_marketplace_evidence",
-                "reason": f"{evidence_summary} / 根拠: {source}",
-                "minimum_shops": minimum_shops,
-                "confirmed_shop_count": confirmed_shop_count,
-                **{key: value for key, value in marketplace_evidence.items()
-                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required"}},
-            }
-        )
-    elif "rakuten_marketplace_evidence" in bypass_rules:
-        record_bypass("rakuten_marketplace_evidence", f"楽天複数店舗確認を未判定（{minimum_rakuten_shops}店舗以上の確認を省略）")
-
     quasi_drug_evidence = dict(quasi_drug_evidence or {})
     title_original = _coalesce_title(amazon_result, keepa_result)
     description_pc_original, description_sp_original = _build_descriptions(title_original, keepa_result)
@@ -613,7 +530,7 @@ def evaluate_listing(
             required_separate_checks.append(check)
     matched_separate_check_phrases.extend(prohibited_analysis["matched_separate_check_phrases"])
     if matched_forbidden_words:
-        exception = same_jan_prohibited_word_exception(
+        exception = None if "prohibited_words" in bypass_rules else same_jan_prohibited_word_exception(
             matched_words=matched_forbidden_words,
             keepa_result=keepa_result,
             warnings=warnings,
@@ -801,7 +718,7 @@ def evaluate_listing(
                 required_separate_checks.append(check)
         matched_separate_check_phrases.extend(attribute_analysis["matched_separate_check_phrases"])
         if matched_forbidden_words:
-            exception = same_jan_prohibited_word_exception(
+            exception = None if "prohibited_words" in bypass_rules else same_jan_prohibited_word_exception(
                 matched_words=matched_forbidden_words,
                 keepa_result=keepa_result,
                 warnings=warnings,
@@ -995,6 +912,91 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
             provisional_genre_candidate=provisional_genre_candidate,
         )
+
+    # Marketplace HTTP is the last screening step: local Keepa/category,
+    # attributes, text, seller and image availability have already passed.
+    # The dedicated forced-listing page intentionally relaxes only selected
+    # master/data rules. When enabled it retains external resale evidence:
+    # distinct Rakuten shops must sell the exact JAN, or the same product must
+    # be confirmed through a high-confidence maker/model/title match.
+    if require_minimum_same_jan_listings:
+        marketplace_evidence = rakuten_marketplace_evidence(
+            jan_code=keepa_result.ean,
+            title=amazon_result.title or keepa_result.title,
+            brand=keepa_result.brand,
+            manufacturer=keepa_result.manufacturer,
+            model=keepa_result.model,
+            part_number=keepa_result.part_number,
+            minimum_shops=minimum_rakuten_shops,
+        )
+        if marketplace_evidence is None:
+            return EvaluationResult(
+                "system_error", "楽天の複数店舗確認の取得エラー（商品NGではありません）", matched_rules, warnings,
+                forced_bypass_checks=forced_bypass_checks,
+            )
+        jan_shop_count = int(marketplace_evidence.get("jan_exact_shop_count") or 0)
+        text_shop_count = int(marketplace_evidence.get("text_match_shop_count") or 0)
+        confirmed_shop_count = int(marketplace_evidence.get("confirmed_shop_count") or 0)
+        minimum_shops = minimum_rakuten_shops
+        query = str(marketplace_evidence.get("query") or "")
+        source = str(marketplace_evidence.get("source") or "")
+        evidence_summary = (
+            f"楽天複数店舗確認: JAN一致 {jan_shop_count}店舗 / "
+            f"高精度文言一致 {text_shop_count}店舗 / 合計 {confirmed_shop_count}店舗 / 基準: {minimum_shops}店舗以上"
+        )
+        if marketplace_evidence.get("pack_count_required") is False:
+            evidence_summary += " / 店舗数確認では個数・セット数不問"
+        if marketplace_evidence.get("postage_included_required") is False:
+            evidence_summary += " / 店舗数確認では送料条件不問"
+        if query:
+            evidence_summary += f" / 検索: {query}"
+        reference_min_price = marketplace_evidence.get("reference_min_price")
+        if reference_min_price is not None:
+            evidence_summary += f" / 条件一致した取得結果内の参考最安値: {reference_min_price}円"
+        if marketplace_evidence.get("ambiguous_price_items_excluded"):
+            evidence_summary += f" / バリエーション価格不明の{marketplace_evidence['ambiguous_price_items_excluded']}件は価格比較から除外"
+        if marketplace_evidence.get("unidentified_variant_price_items_excluded"):
+            evidence_summary += f" / 容量・仕様未確認の{marketplace_evidence['unidentified_variant_price_items_excluded']}件は価格比較から除外"
+        if marketplace_evidence.get("different_pack_price_items_excluded"):
+            evidence_summary += f" / 個数・セット数が異なる{marketplace_evidence['different_pack_price_items_excluded']}件は価格比較から除外"
+        warnings.append(evidence_summary)
+        rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
+                            "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
+                            "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
+                            "shade_mismatch": "肌色違い", "sun_protection_mismatch": "SPF・PA違い",
+                            "product_role_mismatch": "付属品・別商品のセット", "edition_mismatch": "製品版・モデル違い",
+                            "age_mismatch": "対象年齢違い", "product_line_mismatch": "商品ライン違い",
+                            "unavailable": "在庫なし", "shipping_not_included": "送料別",
+                            "used_or_digital": "中古・整備済み・電子書籍", "invalid_offer_flags": "在庫・送料情報不正"}
+        for attempt in marketplace_evidence.get("search_attempts") or []:
+            rejected = attempt.get("rejected_counts") or {}
+            detail = " / 除外: " + ", ".join(f"{rejection_labels.get(key, key)} {count}件" for key, count in rejected.items()) if rejected else ""
+            if attempt.get("jan_url_match_count"):
+                detail += f" / URL内JAN一致 {attempt['jan_url_match_count']}件"
+            if attempt.get("core_name_match_count"):
+                detail += f" / 商品名中核一致 {attempt['core_name_match_count']}件"
+            warnings.append(f"楽天検索「{attempt.get('query', '')}」: 取得 {attempt.get('raw_result_count', 0)}件 / "
+                            f"一致 {attempt.get('matched_item_count', 0)}件・{attempt.get('matched_shop_count', 0)}店舗{detail}")
+        if not marketplace_evidence.get("accepted") or confirmed_shop_count < minimum_shops:
+            return EvaluationResult(
+                "business_ng",
+                f"楽天複数店舗確認が不足: {confirmed_shop_count} < {minimum_shops}店舗（JAN一致 {jan_shop_count} / 高精度文言一致 {text_shop_count}）",
+                matched_rules,
+                warnings,
+                forced_bypass_checks=forced_bypass_checks,
+            )
+        forced_bypass_checks.append(
+            {
+                "rule": "rakuten_marketplace_evidence",
+                "reason": f"{evidence_summary} / 根拠: {source}",
+                "minimum_shops": minimum_shops,
+                "confirmed_shop_count": confirmed_shop_count,
+                **{key: value for key, value in marketplace_evidence.items()
+                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required"}},
+            }
+        )
+    elif "rakuten_marketplace_evidence" in bypass_rules:
+        record_bypass("rakuten_marketplace_evidence", f"楽天複数店舗確認を未判定（{minimum_rakuten_shops}店舗以上の確認を省略）")
 
     return EvaluationResult(
         "eligible",
