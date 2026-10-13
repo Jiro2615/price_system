@@ -20,6 +20,7 @@ import sys
 import time
 from dataclasses import asdict
 from datetime import datetime, timezone
+from decimal import Decimal, ROUND_CEILING
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -43,6 +44,7 @@ ASIN_PATTERN = re.compile(r"^[A-Z0-9]{10}$")
 # UI warns about the matching product-metadata token cost before such a large
 # request is started.
 MAX_CANDIDATE_LIMIT = 10000
+MAX_FILTERED_CANDIDATE_LIMIT = 500000
 MAX_FULL_SCAN_CANDIDATE_LIMIT = 1_000_000
 FULL_SCAN_PAGE_SIZE = 10000
 MAX_CATEGORY_FILTER_SIZE = 50
@@ -87,7 +89,7 @@ def optional_rating(value: object) -> float | None:
         rating = float(raw)
     except ValueError as exc:
         raise ValueError("最低評価は0.0〜5.0で入力してください") from exc
-    if rating < 0 or rating > 5:
+    if not math.isfinite(rating) or rating < 0 or rating > 5:
         raise ValueError("最低評価は0.0〜5.0で入力してください")
     return rating
 
@@ -100,7 +102,7 @@ def optional_nonnegative_float(value: object, label: str) -> float | None:
         parsed = float(raw)
     except ValueError as exc:
         raise ValueError(f"{label} は0以上の数値で入力してください") from exc
-    if parsed < 0:
+    if not math.isfinite(parsed) or parsed < 0:
         raise ValueError(f"{label} は0以上の数値で入力してください")
     return parsed
 
@@ -142,7 +144,7 @@ def ensure_candidate_table(cur: Any) -> None:
 def make_selection(args: argparse.Namespace) -> dict[str, Any]:
     selection: dict[str, Any] = {
         "page": args.page,
-        "perPage": args.candidate_limit,
+        "perPage": min(args.candidate_limit, FULL_SCAN_PAGE_SIZE) if getattr(args, "filtered_search", False) else args.candidate_limit,
         # Product Finder treats 0 as a standard product.  This excludes
         # downloadable products, ebooks and variation parents up front.
         "productType": 0,
@@ -152,6 +154,8 @@ def make_selection(args: argparse.Namespace) -> dict[str, Any]:
         "imageCount_gte": 1,
         "current_COUNT_NEW_gte": args.min_current_new_sellers,
     }
+    if args.min_current_new_sellers is None:
+        selection.pop("current_COUNT_NEW_gte")
     root_categories = integer_values(args.root_categories, "ルートカテゴリ")
     include_categories = integer_values(args.include_categories, "対象カテゴリ")
     exclude_categories = integer_values(args.exclude_categories, "除外カテゴリ")
@@ -187,7 +191,7 @@ def make_selection(args: argparse.Namespace) -> dict[str, Any]:
         if value is not None:
             selection[name] = value
     if args.min_rating is not None:
-        selection["current_RATING_gte"] = int(round(args.min_rating * 10))
+        selection["current_RATING_gte"] = int((Decimal(str(args.min_rating)) * 10).to_integral_value(rounding=ROUND_CEILING))
     if args.amazon_in_stock:
         selection["availabilityAmazon"] = [0]
     # Sales rank is a practical default ordering for sourcing candidates.
@@ -223,16 +227,23 @@ def category_path(product: Any) -> str:
     return " > ".join(str(node.get("name") or "").strip() for node in product.category_tree if str(node.get("name") or "").strip())
 
 
+def needs_exact_average_metadata(args) -> bool:
+    return any(value is not None and not float(value).is_integer()
+               for value in (getattr(args, "min_avg90_new_sellers", None), getattr(args, "max_avg90_new_sellers", None)))
+
+
 def metadata_candidates(
     session: requests.Session,
     api_key: str,
     asins: list[str],
     args: argparse.Namespace,
     selection: dict[str, Any],
+    *, initial_tokens: dict[str, int] | None = None, max_rows: int | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    token_state: dict[str, Any] = {}
+    token_state: dict[str, Any] = dict(initial_tokens or {})
     for batch in batched(asins, 100):
+        wait_for_full_scan_budget(token_state, getattr(args, "token_reserve", 100))
         payload = request_json(
             session,
             "GET",
@@ -247,17 +258,27 @@ def metadata_candidates(
         )
         token_state = {key: payload.get(key) for key in ("tokensLeft", "tokensConsumed", "refillRate", "refillIn") if key in payload}
         raw_products = payload.get("products") or []
+        if not isinstance(raw_products, list):
+            raise ValueError("Keepa商品情報応答の形式が不正です")
         for raw in raw_products:
             if not isinstance(raw, dict):
                 continue
             asin = str(raw.get("asin") or "").strip().upper()
-            if not ASIN_PATTERN.fullmatch(asin):
+            if not ASIN_PATTERN.fullmatch(asin) or asin not in batch:
                 continue
             product = parse_keepa_product(asin, raw)
             # Keepa query has already enforced these predicates.  Rechecking
             # uses the exact metadata that is displayed and protects against
             # a query/product update race.
             if product.is_adult is True or product.current_new_offer_count in (None, 0):
+                continue
+            if args.min_current_new_sellers is not None and product.current_new_offer_count < args.min_current_new_sellers:
+                continue
+            if args.max_current_new_sellers is not None and product.current_new_offer_count > args.max_current_new_sellers:
+                continue
+            if (args.min_avg90_new_sellers is not None or args.max_avg90_new_sellers is not None) and (
+                product.avg90_new_offer_count is None or not math.isfinite(float(product.avg90_new_offer_count))
+            ):
                 continue
             if args.min_avg90_new_sellers is not None and (
                 product.avg90_new_offer_count is None or product.avg90_new_offer_count < args.min_avg90_new_sellers
@@ -283,6 +304,8 @@ def metadata_candidates(
                     "finder_selection": selection,
                 }
             )
+            if max_rows is not None and len(rows) >= max_rows:
+                return rows, token_state
     return rows, token_state
 
 
@@ -315,8 +338,8 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]], *,
                 ensure_candidate_table(cur)
                 if replace:
                     cur.execute("DELETE FROM keepa_product_finder_candidates WHERE run_id = %s", (run_id,))
-                for row in rows:
-                    cur.execute(
+                if rows:
+                    cur.executemany(
                         """
                         INSERT INTO keepa_product_finder_candidates (
                             run_id, store_code, asin, title, ean_code, category_id, category_path,
@@ -329,7 +352,7 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]], *,
                             finder_selection_json = EXCLUDED.finder_selection_json,
                             updated_at = CURRENT_TIMESTAMP
                         """,
-                        (
+                        ((
                             run_id,
                             store_code,
                             row["asin"],
@@ -344,7 +367,7 @@ def save_candidates(run_id: str, store_code: str, rows: list[dict[str, Any]], *,
                             row["buy_box_shipping"],
                             Jsonb(row["finder_selection"]),
                             Jsonb(row["keepa_summary"]),
-                        ),
+                        ) for row in rows),
                     )
     finally:
         conn.close()
@@ -529,6 +552,100 @@ def existing_candidate_asins(run_id: str) -> set[str]:
         conn.close()
 
 
+def filtered_candidate_search(session, api_key, args, base_selection) -> dict[str, Any]:
+    """Apply every Finder predicate; split large rank ranges without widening filters."""
+    tokens = {}
+    seen = set()
+    saved_count = 0
+    completed_queries = 0
+    split_queries = 0
+    matched_total = 0
+    initialized = False
+    metadata = bool(args.fetch_product_metadata or needs_exact_average_metadata(args))
+
+    def request(selection):
+        nonlocal completed_queries
+        wait_for_full_scan_budget(tokens, args.token_reserve)
+        payload = request_json(session, "POST", KEEPA_QUERY_ENDPOINT,
+                               params={"key": api_key, "domain": 5}, json=selection)
+        completed_queries += 1
+        tokens.update(token_snapshot(payload))
+        raw = payload.get("asinList") or []
+        total = payload.get("totalResults")
+        if not isinstance(raw, list) or isinstance(total, bool) or not isinstance(total, int) or total < 0:
+            raise ValueError("Keepa条件検索応答の形式が不正です。候補は保存していません")
+        if total > 0 and not raw:
+            raise RuntimeError("Keepa条件検索が空の一覧を返しました。再確認してください")
+        return total, list(dict.fromkeys(str(asin).strip().upper() for asin in raw
+                                       if ASIN_PATTERN.fullmatch(str(asin).strip().upper())))
+
+    def persist(asins, selection):
+        nonlocal saved_count, initialized
+        fresh = [asin for asin in asins if asin not in seen]
+        seen.update(fresh)
+        remaining = args.candidate_limit - saved_count
+        if metadata:
+            rows, state = metadata_candidates(session, api_key, fresh, args, selection,
+                                               initial_tokens=tokens, max_rows=remaining)
+            tokens.update(state)
+        else:
+            rows = asin_only_candidates(fresh[:remaining], selection)
+        if not initialized:
+            # Preserve prior partial output if the first API/metadata request
+            # fails. A successfully validated response starts this replacement.
+            save_candidates(args.run_id, args.store, [], replace=True)
+            initialized = True
+        for batch in batched(rows[:remaining], 1000):
+            save_candidates(args.run_id, args.store, batch, replace=False)
+            saved_count += len(batch)
+        print("KEEPA_FULL_SCAN_PROGRESS " + json.dumps({
+            "filtered_search": True, "candidate_count": saved_count, "candidate_limit": args.candidate_limit,
+            "completed_queries": completed_queries, "split_queries": split_queries, "tokens": tokens,
+        }), flush=True)
+
+    def scan(selection, rank_min, rank_max):
+        nonlocal split_queries, matched_total
+        if saved_count >= args.candidate_limit:
+            return
+        query = dict(selection)
+        query.update(page=0, perPage=min(FULL_SCAN_PAGE_SIZE, max(50, args.candidate_limit - saved_count)))
+        total, asins = request(query)
+        if total > FULL_SCAN_PAGE_SIZE and (metadata or args.candidate_limit - saved_count > query["perPage"]):
+            if rank_min is None or rank_max is None or rank_min >= rank_max:
+                raise RuntimeError("10,000件を超える条件検索の分割には販売ランクの下限・上限が必要です。"
+                                   "同じランクだけで上限を超える場合は価格等の条件を狭めてください")
+            midpoint = rank_min + (rank_max - rank_min) // 2
+            split_queries += 1
+            scan({**selection, "current_SALES_lte": midpoint}, rank_min, midpoint)
+            scan({**selection, "current_SALES_gte": midpoint + 1}, midpoint + 1, rank_max)
+            return
+        matched_total += total
+        persist(asins, query)
+        # Only a bounded leaf needs paging, primarily after exact decimal
+        # verification drops products. Keep its page size and all filters fixed.
+        pages = math.ceil(min(total, FULL_SCAN_PAGE_SIZE) / query["perPage"])
+        for page in range(1, pages):
+            if saved_count >= args.candidate_limit:
+                break
+            _, next_asins = request({**query, "page": page})
+            persist(next_asins, {**query, "page": page})
+        if total > FULL_SCAN_PAGE_SIZE and saved_count < args.candidate_limit:
+            raise RuntimeError("条件検索の10,000件を超える候補を未取得です。販売ランク条件を狭めてください")
+
+    # New run snapshots carry explicit filters. Re-execution replaces only
+    # that run's candidates; partial batches remain visible after a failure.
+    if args.page:
+        total, asins = request(dict(base_selection))
+        matched_total = total
+        persist(asins, base_selection)
+    else:
+        scan(dict(base_selection), args.min_sales_rank, args.max_sales_rank)
+    return {"candidate_count": saved_count, "candidate_limit": args.candidate_limit,
+            "limit_reached": saved_count >= args.candidate_limit, "matched_total": matched_total,
+            "filtered_search": True, "product_metadata_fetched": metadata,
+            "completed_queries": completed_queries, "split_queries": split_queries, "tokens": tokens}
+
+
 def full_category_scan(
     session: requests.Session,
     api_key: str,
@@ -564,10 +681,17 @@ def full_category_scan(
         if remaining <= 0:
             reached_limit = True
             return
-        fresh = fresh[:remaining]
-        candidate_asins.update(fresh)
-        if fresh:
-            save_candidates(args.run_id, args.store, asin_only_candidates(fresh, selection), replace=False)
+        if needs_exact_average_metadata(args):
+            rows, state = metadata_candidates(session, api_key, fresh, args, selection,
+                                               initial_tokens=tokens, max_rows=remaining)
+            tokens.update(state)
+            candidate_asins.update(row["asin"] for row in rows)
+        else:
+            fresh = fresh[:remaining]
+            rows = asin_only_candidates(fresh, selection)
+            candidate_asins.update(fresh)
+        if rows:
+            save_candidates(args.run_id, args.store, rows, replace=False)
         if len(candidate_asins) >= args.candidate_limit:
             reached_limit = True
 
@@ -750,18 +874,34 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fetch-product-metadata", action="store_true")
     parser.add_argument("--full-category-coverage", action="store_true")
     parser.add_argument("--ranking", action="store_true")
+    parser.add_argument("--filtered-search", action="store_true")
     parser.add_argument("--token-reserve", type=int, default=100)
     args = parser.parse_args()
+    if args.filtered_search and (args.ranking or args.full_category_coverage):
+        raise ValueError("条件検索はランキング・全件カテゴリ走査と併用できません")
     if args.ranking and (args.full_category_coverage or args.fetch_product_metadata or args.page):
         raise ValueError("ランキング取得は全件走査・商品情報追加取得・ページ指定と併用できません")
     args.store = str(args.store).strip().lower()
     args.run_id = str(args.run_id).strip()
     if not args.run_id or not args.store:
         raise ValueError("run_id and store are required")
-    max_candidate_limit = MAX_FULL_SCAN_CANDIDATE_LIMIT if args.full_category_coverage else (20000 if args.ranking else MAX_CANDIDATE_LIMIT)
+    for name in ("root_categories", "include_categories", "exclude_categories"):
+        ids = integer_values(getattr(args, name), name)
+        if len(ids) > 50 and not (args.full_category_coverage and name == "include_categories"):
+            raise ValueError(f"{name} は一度に50カテゴリまで指定できます")
+    for name in ("brands", "manufacturers"):
+        if len(comma_values(getattr(args, name))) > 50:
+            raise ValueError(f"{name} は一度に50件まで指定できます")
+    max_candidate_limit = (MAX_FULL_SCAN_CANDIDATE_LIMIT if args.full_category_coverage else
+                           MAX_FILTERED_CANDIDATE_LIMIT if args.filtered_search else
+                           20000 if args.ranking else MAX_CANDIDATE_LIMIT)
     if args.candidate_limit < 50 or args.candidate_limit > max_candidate_limit:
         raise ValueError(f"candidate-limit must be 50 to {max_candidate_limit}")
-    if not args.full_category_coverage and not args.ranking and (args.page < 0 or args.page * args.candidate_limit >= 10000):
+    if args.page < 0:
+        raise ValueError("page must be nonnegative")
+    if args.filtered_search and args.page and (args.candidate_limit > 10000 or (args.page + 1) * args.candidate_limit > 10000):
+        raise ValueError("ページ指定は取得上限10,000件以内かつページ末尾10,000件以内で使えます。大きい取得はページ0で実行してください")
+    if not args.full_category_coverage and not args.ranking and not args.filtered_search and (args.page < 0 or args.page * args.candidate_limit >= 10000):
         raise ValueError("page and candidate-limit must stay within Keepa's 10,000-result paging limit")
     if args.token_reserve < 0 or args.token_reserve > 1000:
         raise ValueError("token-reserve must be between 0 and 1000")
@@ -814,6 +954,9 @@ def main() -> int:
     if args.ranking:
         summary = ranking_candidates(session, api_key, args)
         summary.update({"run_id": args.run_id, "store": args.store, "started_at": started, "selection": selection})
+    elif getattr(args, "filtered_search", False):
+        summary = filtered_candidate_search(session, api_key, args, selection)
+        summary.update({"run_id": args.run_id, "store": args.store, "started_at": started, "selection": selection})
     elif args.full_category_coverage:
         summary = full_category_scan(session, api_key, args, selection)
         summary.update(
@@ -822,7 +965,7 @@ def main() -> int:
                 "store": args.store,
                 "started_at": started,
                 "selection": selection,
-                "product_metadata_fetched": False,
+                "product_metadata_fetched": needs_exact_average_metadata(args),
                 "full_category_coverage": True,
             }
         )
