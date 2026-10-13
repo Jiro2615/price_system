@@ -8,6 +8,7 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Optional
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.async_api import async_playwright
 
@@ -692,6 +693,92 @@ async def get_selected_new_buybox_row(page):
     return first_visible
 
 
+async def buybox_seller_id(root) -> str:
+    """Read a stable seller ID, never infer identity from a display name."""
+    seller = root.locator("#sellerProfileTriggerId").first
+    if await seller.count() == 0:
+        return ""
+    href = str((await seller.get_attribute("href")) or "")
+    ids = parse_qs(urlsplit(href).query).get("seller", [])
+    return ids[0] if len(ids) == 1 and re.fullmatch(r"[A-Z0-9]{5,32}", ids[0]) else ""
+
+
+async def buybox_has_amazon_fulfiller(root) -> bool:
+    """Inspect only this offer's dedicated fulfillment field, including collapsed text."""
+    field = root.locator("#fulfillerInfoFeature_feature_div").first
+    if await field.count() == 0:
+        return False
+    text = await safe_inner_text(field)
+    if not text:
+        # Prime's inner controls are collapsed while the normal row is
+        # selected. Read this exact field without selecting/registering Prime.
+        text = str((await field.text_content(timeout=2000)) or "").strip()
+    normalized = re.sub(r"\s+", "", text)
+    # Collapsed markup repeats the same label/value for accessibility. Reject
+    # Amazon-prefixed merchant names rather than treating them as Amazon.
+    return bool(re.fullmatch(r"(?:(?:出荷元)?Amazon(?:\.co\.jp)?)+", normalized, re.I))
+
+
+async def read_matching_prime_buybox_price(page, regular_buybox) -> Optional[dict[str, int]]:
+    """Read an explicit Prime deal only for the same new, Amazon-shipped seller.
+
+    Logged-out Prime upsell rows omit stock, delivery and purchase controls.
+    Keep the ordinary row for those checks and use the displayed member price
+    only after matching seller IDs and both dedicated fulfillment fields.
+    No registration, sign-in, coupon or purchase button is pressed.
+    """
+    try:
+        rows = page.locator(
+            "#buybox [data-a-accordion-row-name='primeSavingsUpsellAccordionRow'], "
+            "#desktop_buybox [data-a-accordion-row-name='primeSavingsUpsellAccordionRow'], "
+            "[data-a-accordion-row-name='primeSavingsUpsellAccordionRow']"
+        )
+        row_count = await rows.count()
+        if row_count == 0 or regular_buybox is None:
+            return None
+        if await regular_buybox.get_attribute("data-a-accordion-row-name") != "newAccordionRow":
+            # A generic parent could match the Prime row's own seller/shipper
+            # instead of a separate normal offer. Never use that self-match.
+            return None
+        if not is_eligible_buybox_condition_text(await safe_inner_text(regular_buybox)):
+            return None
+        regular_seller = await buybox_seller_id(regular_buybox)
+        if not regular_seller or not await buybox_has_amazon_fulfiller(regular_buybox):
+            return None
+        for index in range(row_count):
+            row = rows.nth(index)
+            header = row.locator(".a-accordion-row-a11y").first
+            if await header.count() == 0 or not await header.is_visible(timeout=500):
+                continue
+            if not is_eligible_buybox_condition_text(await safe_inner_text(header)):
+                continue
+            if await buybox_seller_id(row) != regular_seller:
+                continue
+            if not await buybox_has_amazon_fulfiller(row):
+                continue
+            # Never use unit prices, crossed-out prices, savings percentages
+            # or amounts from the ordinary/Subscribe & Save sibling rows.
+            price = 0
+            for selector in (".apex-pricetopay-value .a-price-whole",
+                             ".apex-pricetopay-value .a-offscreen",
+                             ".apex-pricetopay-accessibility-label"):
+                value = row.locator(selector).first
+                if await value.count() == 0:
+                    continue
+                text = await safe_inner_text(value)
+                price = parse_price(text) if selector.endswith(".a-price-whole") else parse_yen_price(text)
+                if price > 0:
+                    break
+            if price > 0:
+                # An absent member-points field is unknown: use zero rather
+                # than incorrectly crediting the non-sale price's points.
+                return {"price": price, "point": await parse_point(row)}
+    except Exception:
+        # Missing/changed Prime markup must not break the normal checker.
+        return None
+    return None
+
+
 async def read_buybox_info(page) -> dict[str, Any]:
     result = {
         "in_text": "",
@@ -716,6 +803,9 @@ async def read_buybox_info(page) -> dict[str, Any]:
 
     result["in_text"] = await safe_inner_text(root)
     result["price"] = await get_price_from_locator(root)
+    prime = await read_matching_prime_buybox_price(page, root)
+    if prime is not None:
+        result.update(price=prime["price"], price_source="prime_member", prime_point=prime["point"])
 
     return result
 
@@ -1281,11 +1371,15 @@ async def check_amazon_one(
                 result["business_ng"] = True
                 result["ng_reason"] = result["ng_reason"] or shipping_message
 
-            point = await parse_point(page)
-
-            alt_price = await get_alt_price_from_buybox(page)
-            if alt_price > 0:
-                price = alt_price
+            if buy_info.get("price_source") == "prime_member":
+                point = int(buy_info.get("prime_point") or 0)
+                result["price_source"] = "prime_member"
+                print(f"amazon_price_source asin={asin} source=prime_member price={price}")
+            else:
+                point = await parse_point(page)
+                alt_price = await get_alt_price_from_buybox(page)
+                if alt_price > 0:
+                    price = alt_price
 
             if price <= 0:
                 result["system_error"] = True
