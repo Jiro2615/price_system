@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from psycopg.types.json import Jsonb
@@ -11,6 +11,7 @@ from scripts.listing.prohibited_word_masking import normalize_allowed_phrase_pay
 
 
 ACTIVE_SOURCE_KEY = "legacy_listing"
+COMPANY_BRAND_NG_SOURCE = "company_brand_auto"
 
 
 class ListingMasterDatabaseReadError(RuntimeError):
@@ -33,6 +34,7 @@ class ListingMasterDbSnapshot:
     category_map: dict[int, int]
     attribute_definitions: dict[int, list[str]]
     genre_paths: dict[int, str]
+    company_brand_ng: dict[str, str] = field(default_factory=dict)
 
 
 def ensure_listing_master_tables(cur) -> None:
@@ -167,7 +169,8 @@ def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | 
             store_id = row[0] if row else None
             scope_where = "(scope = 'global' OR store_id = %s)"
             cur.execute("SELECT to_regclass('public.listing_past_ng'), to_regclass('public.listing_category_maps'), to_regclass('public.listing_genre_attributes')")
-            extended_tables_ready = all(cur.fetchone())
+            extended_table_names = cur.fetchone()
+            extended_tables_ready = all(extended_table_names)
             cur.execute(f"SELECT entry_value FROM blacklist_entries WHERE enabled = TRUE AND entry_type = 'asin' AND {scope_where}", (store_id,))
             blacklist = {str(row[0]).strip().upper() for row in cur.fetchall() if str(row[0]).strip()}
             cur.execute(f"SELECT keyword, listing_rule_set FROM prohibited_keywords WHERE enabled = TRUE AND match_mode = 'contains' AND severity = 'block' AND {scope_where} ORDER BY id", (store_id,))
@@ -193,6 +196,7 @@ def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | 
                     separate_checks.setdefault(phrase, []).extend(check for check in checks if isinstance(check, dict))
             attribute_definitions: dict[int, list[str]] = {}; genre_paths: dict[int, str] = {}
             kako_ng: dict[str, str] = {}; category_map: dict[int, int] = {}
+            company_brand_ng: dict[str, str] = {}
             if extended_tables_ready:
                 # Past-NG records are retained even when a store temporarily
                 # opts out of using them as a listing exclusion.  The switch is
@@ -212,18 +216,30 @@ def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | 
                 )
                 setting_row = cur.fetchone()
                 past_ng_exclude_enabled = bool(setting_row[0]) if setting_row else True
-                if past_ng_exclude_enabled:
-                    cur.execute(
-                        "SELECT asin, reason FROM listing_past_ng "
-                        "WHERE enabled = TRUE AND scope = 'store' AND store_id = %s",
-                        (store_id,),
-                    )
-                    kako_ng = {str(asin).upper(): str(reason or '過去NG') for asin, reason in cur.fetchall()}
+                cur.execute(
+                    "SELECT asin, reason, source FROM listing_past_ng "
+                    "WHERE enabled = TRUE AND scope = 'store' "
+                    "AND COALESCE(store_id, 0) = %s AND store_id IS NOT NULL "
+                    "AND (source = %s OR %s)",
+                    (store_id, COMPANY_BRAND_NG_SOURCE, past_ng_exclude_enabled),
+                )
+                for asin, reason, source in cur.fetchall():
+                    target = company_brand_ng if source == COMPANY_BRAND_NG_SOURCE else kako_ng
+                    target[str(asin).strip().upper()] = str(reason or '過去NG')
                 cur.execute("SELECT keepa_category_id, rakuten_genre_id FROM listing_category_maps WHERE enabled = TRUE")
                 category_map = {int(source): int(target) for source, target in cur.fetchall()}
                 cur.execute("SELECT genre_id, attribute_order, attribute_name, genre_path FROM listing_genre_attributes WHERE enabled = TRUE ORDER BY genre_id, attribute_order")
                 for genre_id, _order, name, genre_path in cur.fetchall():
                     attribute_definitions.setdefault(int(genre_id), []).append(str(name)); genre_paths.setdefault(int(genre_id), str(genre_path or ''))
+            elif extended_table_names[0]:
+                cur.execute(
+                    "SELECT asin, reason FROM listing_past_ng "
+                    "WHERE enabled = TRUE AND scope = 'store' AND source = %s "
+                    "AND COALESCE(store_id, 0) = %s AND store_id IS NOT NULL",
+                    (COMPANY_BRAND_NG_SOURCE, store_id),
+                )
+                company_brand_ng = {str(asin).strip().upper(): str(reason or '禁止会社・ブランドNG')
+                                    for asin, reason in cur.fetchall()}
     except ListingMasterDatabaseReadError:
         raise
     except Exception as exc:
@@ -231,12 +247,39 @@ def load_database_master_snapshot(store_code: str) -> ListingMasterDbSnapshot | 
             "禁止語DBを読み込めませんでした。出品を停止しました: "
             f"{type(exc).__name__}: {exc}"
         ) from exc
-    return ListingMasterDbSnapshot(blacklist, prohibited_rakuten, prohibited_other, replacements, normalize_allowed_phrase_payload(rules)["rules"], separate_checks, kako_ng, category_map, attribute_definitions, genre_paths)
+    return ListingMasterDbSnapshot(blacklist, prohibited_rakuten, prohibited_other, replacements, normalize_allowed_phrase_payload(rules)["rules"], separate_checks, kako_ng, category_map, attribute_definitions, genre_paths, company_brand_ng)
+
+
+def load_company_brand_ng(store_code: str, *, asin: str = "") -> dict[str, str]:
+    """Retain durable exclusions even when other masters still use local files."""
+    try:
+        with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.listing_past_ng'), to_regclass('public.stores')")
+            if not all(cur.fetchone()):
+                return {}
+            asin_where = "AND png.asin = %s" if asin else ""
+            params = [COMPANY_BRAND_NG_SOURCE, store_code]
+            if asin:
+                params.append(asin.strip().upper())
+            cur.execute(f"""
+                SELECT png.asin, png.reason
+                FROM listing_past_ng png
+                WHERE png.scope = 'store' AND png.enabled = TRUE AND png.source = %s
+                  AND png.store_id IS NOT NULL
+                  AND COALESCE(png.store_id, 0) = (
+                      SELECT id FROM stores WHERE LOWER(store_code) = LOWER(%s)
+                  )
+                  {asin_where}
+            """, tuple(params))
+            return {str(asin).strip().upper(): str(reason or '禁止会社・ブランドNG') for asin, reason in cur.fetchall()}
+    except Exception as exc:
+        raise ListingMasterDatabaseReadError("会社・ブランドNGを読み込めませんでした。出品を停止しました") from exc
 
 
 def apply_database_master_snapshot(master_data: MasterData, store_code: str) -> MasterData:
     snapshot = load_database_master_snapshot(store_code)
     if snapshot is None:
+        master_data.company_brand_ng = load_company_brand_ng(store_code)
         return master_data
     return apply_master_snapshot(master_data, snapshot)
 
@@ -253,28 +296,67 @@ def apply_master_snapshot(master_data: MasterData, snapshot: ListingMasterDbSnap
     master_data.allowed_phrase_separate_checks = snapshot.separate_checks
     master_data.allowed_phrase_meta = {**master_data.allowed_phrase_meta, "source": "postgresql"}
     master_data.kako_ng = snapshot.kako_ng
+    master_data.company_brand_ng = snapshot.company_brand_ng
     master_data.category_map = snapshot.category_map
     master_data.attribute_definitions = snapshot.attribute_definitions
     master_data.genre_paths = snapshot.genre_paths
     return master_data
 
 
-def record_rule_based_past_ng(asin: str, store_code: str, reason: str, matched_rules: list[dict[str, Any]]) -> None:
+def record_rule_based_past_ng(asin: str, store_code: str, reason: str, matched_rules: list[dict[str, Any]],
+                            *, source: str = "listing_rule_auto") -> None:
     if not asin or not reason:
         return
+    if source not in {"listing_rule_auto", COMPANY_BRAND_NG_SOURCE}:
+        raise ValueError("Unsupported past-NG source")
     with connect_db() as conn, conn.cursor() as cur:
-        ensure_listing_master_tables(cur)
+        # The durable-company path uses the existing table only. Do not repeat
+        # schema DDL/locks for every rejected item in a large forced batch.
+        if source != COMPANY_BRAND_NG_SOURCE:
+            ensure_listing_master_tables(cur)
         cur.execute("SELECT id FROM stores WHERE LOWER(store_code)=LOWER(%s)", (store_code,))
         row = cur.fetchone()
         if row is None:
             raise RuntimeError(f"store not found: {store_code}")
         store_id = row[0]
-        cur.execute("SELECT id FROM listing_past_ng WHERE scope='store' AND COALESCE(store_id,0)=COALESCE(%s,0) AND UPPER(asin)=UPPER(%s)", (store_id, asin))
-        existing = cur.fetchone()
-        if existing:
-            cur.execute("UPDATE listing_past_ng SET reason=%s, matched_rules=%s, enabled=TRUE, updated_at=CURRENT_TIMESTAMP WHERE id=%s", (reason, Jsonb(matched_rules), existing[0]))
+        if source == COMPANY_BRAND_NG_SOURCE:
+            # Use all keys of the existing expression index. Imported entries
+            # can also be lowercase; promote those to the canonical ASIN.
+            normalized_asin = asin.strip().upper()
+            cur.execute("SELECT id FROM listing_past_ng WHERE scope='store' AND COALESCE(store_id,0)=%s "
+                        "AND asin IN (%s, %s) ORDER BY id LIMIT 1",
+                        (store_id, normalized_asin, normalized_asin.lower()))
         else:
-            cur.execute("INSERT INTO listing_past_ng (scope, store_id, asin, reason, matched_rules, source) VALUES ('store', %s, %s, %s, %s, 'listing_rule_auto')", (store_id, asin.upper(), reason, Jsonb(matched_rules)))
+            cur.execute("SELECT id FROM listing_past_ng WHERE scope='store' AND COALESCE(store_id,0)=COALESCE(%s,0) AND UPPER(asin)=UPPER(%s)", (store_id, asin))
+        existing = cur.fetchone()
+        assignments = """
+            reason=%s, matched_rules=%s,
+            asin=CASE WHEN %s = 'company_brand_auto' THEN %s ELSE asin END,
+            source=CASE WHEN %s = 'company_brand_auto' OR source = 'company_brand_auto'
+                        THEN %s ELSE source END,
+            enabled=TRUE, updated_at=CURRENT_TIMESTAMP
+        """
+        if existing:
+            cur.execute(f"""
+                UPDATE listing_past_ng SET {assignments}
+                WHERE id=%s
+                  AND (source <> 'company_brand_auto' OR NOT enabled OR %s = 'company_brand_auto')
+            """, (reason, Jsonb(matched_rules), source, asin.strip().upper(), source, source, existing[0], source))
+        else:
+            # Concurrent jobs can discover the same ASIN. Upsert atomically,
+            # and never let an ordinary NG erase an enabled durable exclusion.
+            cur.execute("""
+                INSERT INTO listing_past_ng (scope, store_id, asin, reason, matched_rules, source)
+                VALUES ('store', %s, %s, %s, %s, %s)
+                ON CONFLICT (scope, (COALESCE(store_id, 0)), asin) DO UPDATE SET
+                    reason=EXCLUDED.reason, matched_rules=EXCLUDED.matched_rules,
+                    source=CASE WHEN EXCLUDED.source = 'company_brand_auto'
+                                    OR listing_past_ng.source = 'company_brand_auto'
+                                THEN EXCLUDED.source ELSE listing_past_ng.source END,
+                    enabled=TRUE, updated_at=CURRENT_TIMESTAMP
+                WHERE listing_past_ng.source <> 'company_brand_auto'
+                   OR NOT listing_past_ng.enabled OR EXCLUDED.source = 'company_brand_auto'
+            """, (store_id, asin.strip().upper(), reason, Jsonb(matched_rules), source))
         conn.commit()
 
 

@@ -24,6 +24,14 @@ def arguments(folder):
 
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.ledger = patch.object(execute_batch, "load_company_brand_ng", return_value={})
+        self.read_ledger = self.ledger.start()
+        self.addCleanup(self.ledger.stop)
+        self.persistence = patch("scripts.listing.listing_master_db.record_rule_based_past_ng")
+        self.save_ng = self.persistence.start()
+        self.addCleanup(self.persistence.stop)
+
     async def test_class_edit_while_waiting_for_write_slot_stops_before_any_send(self):
         from tests.test_forced_word_policy import prepared
         with tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
@@ -53,6 +61,8 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.wait_for(module.run_batch(args,["B000TEST01"]),timeout=5)
             result=json.loads((Path(folder)/"results.jsonl").read_text())
             self.assertEqual(result["final_status"],"company_brand_blocked")
+            self.save_ng.assert_called_once()
+            self.assertEqual(self.save_ng.call_args.kwargs["source"], "company_brand_auto")
             self.assertFalse(result["external_actions_performed"])
             send.assert_not_called();sync.assert_not_called()
 
@@ -130,6 +140,46 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls, ["rms"] if refresh else ["rms", "db"])
                 row = json.loads((Path(folder) / "results.jsonl").read_text())
                 self.assertEqual(row["final_status"], "completed")
+
+    async def test_company_ng_added_while_waiting_stops_all_modes_inside_slot(self):
+        with tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+            module = execute_batch
+            inside = []
+            stack.enter_context(patch("psycopg.connect", side_effect=AssertionError("Live DB forbidden")))
+            stack.enter_context(patch("requests.sessions.Session.request", side_effect=AssertionError("HTTP forbidden")))
+            stack.enter_context(patch.object(module, "BatchLocalData"))
+            stack.enter_context(patch.object(module, "precheck_local_listing_exclusion", return_value=None))
+            stack.enter_context(patch.object(module, "precheck_keepa_before_amazon", return_value=(None, "keepa")))
+            stack.enter_context(patch.object(module, "create_amazon_page", new_callable=AsyncMock,
+                return_value=(None, None, SimpleNamespace(new_page=AsyncMock(return_value="p2")), "p1")))
+            stack.enter_context(patch.object(module, "fetch_amazon_result", new_callable=AsyncMock, return_value="amazon"))
+            dry = {"asin":"B000TEST01", "listing_status":"eligible", "execution_allowed":True,
+                   "management_number":"item", "amazon_result":"amazon", "keepa_result":"keepa"}
+            stack.enter_context(patch.object(module, "prepare_listing", return_value=dry))
+            stack.enter_context(patch.object(module, "revalidate_prepared_listing", return_value=dry))
+            for name in ("build_preflight_result", "build_mock_execute_result", "build_real_readiness_result"):
+                stack.enter_context(patch.object(module, name, return_value={}))
+            def read(store, *, asin):
+                self.assertTrue(inside)
+                self.assertEqual((store,asin), ("shop","B000TEST01"))
+                return {asin:"company Foo"}
+            self.read_ledger.side_effect = read
+            def slot(store, action, *, priority, on_acquired):
+                inside.append(True)
+                try:
+                    on_acquired(); return action()
+                finally: inside.clear()
+            stack.enter_context(patch.object(module, "run_with_listing_write_slot", side_effect=slot))
+            execute = stack.enter_context(patch.object(module, "build_real_execute_result", side_effect=AssertionError("Send forbidden")))
+            sync = stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=AssertionError("Sync forbidden")))
+            # Company and past-NG switches are both disabled/bypassed.
+            args = arguments(folder); args.ignore_rules="past_ng"; args.block_forbidden_company_brands=False
+            await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
+            execute.assert_not_called(); sync.assert_not_called()
+            result = json.loads((Path(folder)/"results.jsonl").read_text())
+            self.assertEqual(result["final_status"], "company_brand_blocked")
+            self.assertFalse(result["external_actions_performed"])
+            self.assertFalse(result["execution_allowed"])
 
     async def test_both_batches_reject_all_without_browser_keepa_or_rms(self):
         for module in (dry_batch, execute_batch):

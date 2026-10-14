@@ -21,6 +21,7 @@ class OrderingTests(unittest.TestCase):
         self.stack.enter_context(patch("psycopg.connect",side_effect=AssertionError("Live DB forbidden")))
         self.stack.enter_context(patch("requests.sessions.Session.request",side_effect=AssertionError("Live HTTP forbidden")))
         self.stack.enter_context(patch("urllib.request.OpenerDirector.open",side_effect=AssertionError("Live urllib forbidden")))
+        self.persist = self.stack.enter_context(patch("scripts.listing.listing_master_db.record_rule_based_past_ng"))
         self.master=self.stack.enter_context(patch.object(service,"load_preparation_masters",return_value=fixture.master))
         self.overrides=self.stack.enter_context(patch.object(service,"apply_asin_master_overrides",side_effect=lambda master,*args:master))
         self.options={"store_settings_loader":lambda _:fixture.store,"common_settings_loader":lambda _:(ListingCommonSettings(3.5),[]),
@@ -87,6 +88,8 @@ class OrderingTests(unittest.TestCase):
         self.assertEqual(block["forced_word_review"]["state"],"company_brand_blocked")
         self.assertIsNone(block["item_payload"])
         self.assertNotIn("forced_word_review_cache",block)
+        self.persist.assert_called_once()
+        self.assertEqual(self.persist.call_args.kwargs["source"], "company_brand_auto")
         self.evidence.assert_not_called();self.candidate.assert_not_called()
 
     def test_seller_bypass_and_word_substrings_still_reach_the_full_evaluator(self):

@@ -44,13 +44,16 @@ class DatabaseFirstTests(NoNetwork):
         self.assertEqual(result.missing_files, [])
         self.assertEqual(result.allowed_phrase_meta["source"], "postgresql")
 
-    def test_unmigrated_db_uses_legacy_without_second_db_read(self):
+    def test_unmigrated_db_uses_legacy_and_keeps_durable_company_ledger(self):
         value = masters()
         with patch.object(listing_master_db, "load_database_master_snapshot", return_value=None) as db, \
+             patch.object(listing_master_db, "load_company_brand_ng", return_value={"B000TEST03": "company"}) as ledger, \
              patch.object(master_loader, "load_master_data", return_value=value) as files, \
              patch.object(master_loader, "apply_store_allowed_phrase_overrides", return_value=value) as overlay:
             self.assertIs(master_loader.load_active_master_data(Path("missing"), "shop", True), value)
         db.assert_called_once_with("shop")
+        ledger.assert_called_once_with("shop")
+        self.assertEqual(value.company_brand_ng, {"B000TEST03": "company"})
         files.assert_called_once_with(Path("missing"), allow_missing=True)
         self.assertFalse(overlay.call_args.kwargs["use_database"])
 

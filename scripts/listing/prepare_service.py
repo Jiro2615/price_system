@@ -21,7 +21,7 @@ from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaPro
 from scripts.listing.listing_text_policy import normalize_listing_text_policy_mode
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.rakuten_payload_builder import build_inventory_payload, build_item_payload
-from scripts.listing.forced_word_policy import load_groups, screen_forced_words
+from scripts.listing.forced_word_policy import load_groups, screen_forced_words, persist_company_brand_exclusion
 from scripts.listing.listing_text_policy import plain_text
 
 
@@ -155,6 +155,9 @@ def precheck_local_listing_exclusion(
             existing_management_number=management_number,
         )
     master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
+    durable = _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings)
+    if durable is not None:
+        return durable
     bypass_rules = set(request.bypass_rules or ())
     if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
         return _base_result(
@@ -173,6 +176,22 @@ def precheck_local_listing_exclusion(
             store_settings=store_settings, common_settings=common_settings,
         )
     return None
+
+
+def _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings):
+    asin = request.asin.strip().upper()
+    reason = master_data.company_brand_ng.get(asin)
+    if reason is None:
+        return None
+    result = _base_result(
+        mode="offline" if request.offline else "dry_run", asin=asin, amazon_result=None, keepa_result=None,
+        listing_status="company_brand_blocked", listing_reason=f"蓄積済みの禁止会社・ブランドNG: {reason}",
+        warnings=warnings + ["蓄積済みの会社・ブランドNGのためKeepa・Amazon取得前に除外しました"],
+        missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
+        store_settings=store_settings, common_settings=common_settings,
+    )
+    result["company_brand_ng_cached"] = True
+    return result
 
 
 def _load_json_payload(path: Path, label: str) -> dict[str, object]:
@@ -558,6 +577,9 @@ def prepare_listing(
     master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
     # Past-NG/blacklist decisions are entirely local. Do not open Amazon or
     # call Keepa for an ASIN already disallowed by the active master.
+    durable = _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings)
+    if durable is not None:
+        return durable
     bypass_rules = set(request.bypass_rules or ())
     if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
         return _base_result(
@@ -690,7 +712,7 @@ def prepare_listing(
                 master_dir=Path(request.master_dir),store_settings=store_settings,common_settings=common_settings,
             )
             early["forced_word_review"] = company_probe["forced_word_review"]
-            return early
+            return persist_company_brand_exclusion(early, offline=request.offline)
 
     resolved_fields = resolved_fields_builder(
         amazon_result=amazon_result,
@@ -979,13 +1001,14 @@ def prepare_listing(
         compliance_evidence=evaluation.compliance_evidence,
         forced_bypass_checks=evaluation.forced_bypass_checks,
     )
-    return screen_forced_words(
+    screened = screen_forced_words(
         prepared, master_data.prohibited_words_rakuten,
         block_company=request.forced_company_brand_block,
         review_uncertain=request.forced_word_review_mode,
         approved_token=request.approved_forced_word_review_token,
         groups=classification_snapshot if request.forced_company_brand_block or request.forced_word_review_mode else None,
     )
+    return persist_company_brand_exclusion(screened, offline=request.offline)
 
 
 def precheck_keepa_before_amazon(

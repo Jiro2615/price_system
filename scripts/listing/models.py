@@ -139,6 +139,8 @@ class MasterData:
     allowed_phrase_meta: dict[str, Any] = field(default_factory=dict)
     allowed_phrase_separate_checks: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     missing_files: list[str] = field(default_factory=list)
+    # Store-scoped durable company/brand exclusions. Not bypassed by past_ng.
+    company_brand_ng: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

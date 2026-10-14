@@ -362,6 +362,11 @@ def evaluate_listing(
     if master_data.missing_files:
         warnings.append("missing master files: " + ", ".join(master_data.missing_files))
 
+    if asin in master_data.company_brand_ng:
+        reason = master_data.company_brand_ng[asin]
+        return EvaluationResult("company_brand_blocked", f"蓄積済みの禁止会社・ブランドNG: {reason}",
+                                [MatchedRule("company_brand_ng", asin, reason)], warnings)
+
     if asin in master_data.kako_ng:
         matched_rules.append(MatchedRule("kakoNG", asin, master_data.kako_ng[asin]))
         if "past_ng" not in bypass_rules:

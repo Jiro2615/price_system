@@ -158,3 +158,35 @@ def restored_observations(cache: dict) -> tuple[AmazonCheckResult, KeepaProductD
         allowed = {field.name for field in fields(cls)}
         return cls(**{key: val for key, val in raw.items() if key in allowed})
     return restore(AmazonCheckResult, "amazon_result"), restore(KeepaProductData, "keepa_result")
+
+
+def persist_company_brand_exclusion(dry: dict, *, offline: bool = False) -> dict:
+    """Save only a positive whole-word company decision, never review/stock NGs.
+
+    Screening itself remains pure. Callers explicitly persist the decision at
+    the early, prepared and final pre-write gates. Fixtures never write a DB.
+    A recording failure keeps the item blocked and is visible in its warnings.
+    """
+    review = dry.get("forced_word_review") or {}
+    matches = [dict(match) for match in review.get("matches", []) if isinstance(match, dict)
+               and match.get("group") == "block" and match.get("rule_kind") == "whole_word"]
+    if (offline or dry.get("listing_status") != "company_brand_blocked"
+            or review.get("state") != "company_brand_blocked" or review.get("block_company") is not True
+            or not matches or dry.get("company_brand_ng_recorded")):
+        return dry
+    from scripts.listing.listing_master_db import COMPANY_BRAND_NG_SOURCE, record_rule_based_past_ng
+    words = list(dict.fromkeys(str(match.get("word") or "") for match in matches))
+    reason = "禁止会社・ブランドの単語一致: " + " / ".join(words)
+    for match in matches:
+        match.update(rule_type="company_brand_blocked", product_title=review.get("title", ""),
+                     classification_version=review.get("version", ""))
+    try:
+        record_rule_based_past_ng(str(dry["asin"]), str(dry["store_code"]), reason, matches,
+                                 source=COMPANY_BRAND_NG_SOURCE)
+        dry["company_brand_ng_recorded"] = True
+        warning = "禁止会社・ブランドNGを蓄積しました（次回は外部取得前に除外）"
+    except Exception as exc:
+        dry["company_brand_ng_recorded"] = False
+        warning = f"禁止会社・ブランドNGの保存に失敗しました: {type(exc).__name__}（今回は除外を維持）"
+    dry["warnings"] = list(dry.get("warnings") or []) + [warning]
+    return dry

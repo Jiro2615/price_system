@@ -24,8 +24,9 @@ from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
-from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations, screen_forced_words
+from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations, screen_forced_words, persist_company_brand_exclusion
 from scripts.listing.forced_word_classification_db import read_active_words
+from scripts.listing.listing_master_db import load_company_brand_ng
 from scripts.db_config import connect_db
 from scripts.price_check_one_asin_db import create_amazon_page
 
@@ -350,6 +351,15 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             )
             readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
             def execute_and_sync():
+                # Another job may have excluded the ASIN while it waited for
+                # this slot. Check the ledger even if the switches are OFF.
+                durable_reason = load_company_brand_ng(args.store, asin=asin).get(asin)
+                if durable_reason is not None:
+                    return {**dry, "listing_status": "company_brand_blocked", "final_status": "company_brand_blocked",
+                            "listing_reason": f"蓄積済みの禁止会社・ブランドNG: {durable_reason}",
+                            "execution_allowed": False, "external_actions_performed": False,
+                            "execution_summary": {**(dry.get("execution_summary") or {}), "can_execute_listing": False},
+                            "company_brand_ng_cached": True}
                 if getattr(args, "block_forbidden_company_brands", False) or getattr(args, "review_uncertain_words", False):
                     # A human may edit a class while this item waits for the
                     # shared write slot. Read it again inside that slot,
@@ -361,6 +371,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                         approved_token=args.approved_word_tokens.get(asin, ""),
                     )
                     if latest.get("listing_status") in HOLD_STATUSES:
+                        persist_company_brand_exclusion(latest)
                         return {**latest, "final_status": latest["listing_status"], "external_actions_performed": False}
                 result = build_real_execute_result(RealExecuteRequest(
                     readiness_json=readiness_path,
