@@ -34,12 +34,18 @@ class NoNetwork(unittest.TestCase):
 
 
 class DatabaseFirstTests(NoNetwork):
+    def setUp(self):
+        super().setUp()
+        guard = patch('scripts.listing.amazon_category_policy.load_category_exclusions', return_value={10: 'common parent'})
+        guard.start(); self.addCleanup(guard.stop)
+
     def test_active_db_does_not_touch_missing_or_corrupt_legacy_files(self):
         with patch.object(listing_master_db, "load_database_master_snapshot", return_value=snapshot()), \
              patch.object(master_loader, "load_master_data", side_effect=AssertionError("legacy read")), \
              patch.object(Path, "read_text", side_effect=AssertionError("file read")):
             result = master_loader.load_active_master_data(Path("missing"), "shop")
         self.assertEqual(result.blacklist, {"B000TEST01"})
+        self.assertEqual(result.amazon_category_exclusions, {10: 'common parent'})
         self.assertEqual(result.kako_ng, {"B000TEST02": "past"})
         self.assertEqual(result.missing_files, [])
         self.assertEqual(result.allowed_phrase_meta["source"], "postgresql")
@@ -54,6 +60,7 @@ class DatabaseFirstTests(NoNetwork):
         db.assert_called_once_with("shop")
         ledger.assert_called_once_with("shop")
         self.assertEqual(value.company_brand_ng, {"B000TEST03": "company"})
+        self.assertEqual(value.amazon_category_exclusions, {10: 'common parent'})
         files.assert_called_once_with(Path("missing"), allow_missing=True)
         self.assertFalse(overlay.call_args.kwargs["use_database"])
 

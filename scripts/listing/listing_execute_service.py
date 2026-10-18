@@ -16,6 +16,7 @@ from scripts.listing.rakuten_image_client import RakutenImageClient, build_uploa
 from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, build_inventory_request
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
+from scripts.listing.amazon_category_policy import check_current_categories
 from scripts.listing.rakuten_shop_category_client import (
     DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
     RakutenShopCategoryClient,
@@ -309,6 +310,7 @@ def execute_listing(
     item_client: RakutenItemClient | None = None,
     inventory_client: RakutenInventoryClient | None = None,
     shop_category_client: RakutenShopCategoryClient | None = None,
+    category_checker: Callable[[dict[str, Any]], dict[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     dry_run_result = dict(request.dry_run_result)
     result = _base_result(request, dry_run_result)
@@ -345,6 +347,12 @@ def execute_listing(
         return _fail(result, status="validation_failed", message="management_number is required")
     if not isinstance(item_payload, dict) or not isinstance(inventory_payload, dict):
         return _fail(result, status="validation_failed", message="item_payload and inventory_payload are required")
+    try:
+        category_block = (category_checker or check_current_categories)(dry_run_result)
+    except RuntimeError as exc:
+        return _fail(result, status='validation_failed', message=str(exc))
+    if category_block:
+        return _fail(result, status='validation_failed', message=category_block['listing_reason'])
     try:
         # Also reject files prepared by old workers, before image upload or
         # any item/inventory write. Forced business-rule bypasses do not apply.

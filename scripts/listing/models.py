@@ -141,6 +141,7 @@ class MasterData:
     missing_files: list[str] = field(default_factory=list)
     # Store-scoped durable company/brand exclusions. Not bypassed by past_ng.
     company_brand_ng: dict[str, str] = field(default_factory=dict)
+    amazon_category_exclusions: dict[int, str] = field(default_factory=dict)
 
 
 @dataclass

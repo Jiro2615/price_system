@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from scripts.listing.attribute_policy import resolve_required_attributes
 from scripts.listing.book_format import digital_book_reason, prepend_book_format
+from scripts.listing.amazon_category_policy import category_exclusion_result
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
 from scripts.listing.compliance_text import validate_advertiser_name
@@ -348,6 +349,12 @@ def evaluate_listing(
     prohibited_word_exceptions: list[dict[str, object]] = []
     legacy_spacing_reviews: list[dict[str, object]] = []
     forced_bypass_checks: list[dict[str, object]] = []
+
+    category_block = category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
+    if category_block:
+        return EvaluationResult(category_block['listing_status'], category_block['listing_reason'],
+                                [MatchedRule('amazon_category', str(key), category_block['listing_reason'])
+                                 for key in category_block['matched_category_ids']], warnings)
 
     # Digital editions are never eligible, including forced-listing runs.
     if keepa_result is not None:

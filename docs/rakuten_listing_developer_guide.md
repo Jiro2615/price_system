@@ -16,6 +16,16 @@
 
 ## 2. 全体フロー
 
+### Amazonカテゴリ除外（2026-10-17追加）
+
+- Web Orchestratorの「Amazonカテゴリ除外」（`#amazon-category-exclusions`）でカテゴリID、確認用の名前、有効／無効を編集する。全店舗共通。名前の部分一致ではなくカテゴリIDで判定する。
+- 指定カテゴリ自身と、その配下の商品を通常出品・条件無視出品の両方から除外する。Keepaの`category_tree`の祖先ID、または直接の`category_id`との一致を使う。有効な除外設定がありカテゴリ階層を確認できない商品は`missing_required_data`で保留する。
+- 保存先は共有PostgreSQLの`public.amazon_category_exclusions`。最初の明示的な保存時に作成する。画面の読み込みと出品判定は読み取りだけで、テーブルがまだ無ければ除外設定なしとして従来どおり動作する。DB取得失敗時は出品を停止する。
+- 設定変更はバッチの準備判定で最大30秒のキャッシュ後に反映。実送信では待機枠を取得した後、Cabinet操作の前と送信サービス入口で最新設定を読み直す。保存済みeligible結果や再開処理も対象。カテゴリ除外を過去NGとして固定保存しないため、設定解除後は再判定できる。
+- 実装は`scripts/listing/amazon_category_policy.py`、`master_loader.py`、`prepare_service.py`、`listing_evaluator.py`、`real_execute_service.py`、`listing_execute_service.py`。画面側は隣接する`web_orchestrator/scripts/amazon_category_editor.py`と`assets/app.js`。今回の作業環境では`C:\rakuten\price_system_listing`と`C:\rakuten\web_orchestrator`を使用。
+- 全出品PCに同じ更新が必要。更新済みOrchestratorの一括出品コマンドは`--require-amazon-category-policy`を渡すため、非対応の旧版ワーカーは実行前に引数エラーで停止する。更新前から実行中の旧版ジョブや、旧版Orchestratorからの起動には遡って適用されない。
+- 検証用: `python -X utf8 -B tests/run_amazon_category_regression.py`。実DB・HTTPを禁止し、親カテゴリの除外、強制出品、出品直前・再開時の阻止、従来のモック実行を確認する。Web側は`tests/test_amazon_category_editor.py`、`tests/test_amazon_category_ui.cjs`、`tests/test_force_listing_marketplace.py`。
+
 楽天新規出品は、次の段階で進めます。
 
 1. `offline` / `dry-run`

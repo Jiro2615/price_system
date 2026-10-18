@@ -78,6 +78,21 @@ class OrderingTests(unittest.TestCase):
                 self.assertIs(actual,keepa)
         self.evidence.assert_not_called();self.candidate.assert_not_called()
 
+    def test_common_category_ancestor_blocks_both_stores_and_forced_listing(self):
+        self.fixture.master.amazon_category_exclusions = {10: '親カテゴリ'}
+        keepa = replace(self.fixture.keepa, category_id=30, category_tree=[{'catId':10}, {'catId':20}, {'catId':30}])
+        for store in ('rakuten_1', 'rakuten_2'):
+            for bypass in ((), ('blacklist', 'past_ng', 'prohibited_words', 'seller_count')):
+                request = replace(self.request, store_code=store, bypass_rules=bypass)
+                block, _ = self.keepa_precheck(keepa, request)
+                self.assertEqual(block['listing_status'], 'business_ng')
+                self.assertIn('親カテゴリ', block['listing_reason'])
+                self.assertIsNone(block['amazon_result'])
+                result = self.evaluate(keepa, bypass_rules=set(bypass))
+                self.assertEqual(result.listing_status, 'business_ng')
+        self.persist.assert_not_called()
+        self.evidence.assert_not_called(); self.candidate.assert_not_called()
+
     def test_company_block_precedes_regulated_search_but_does_not_make_approval_cache(self):
         self.fixture.master.prohibited_words_rakuten=["Foo"]
         keepa=replace(self.fixture.keepa,brand="株式会社Foo",category_tree=[{"name":"ビューティー","catId":1}])

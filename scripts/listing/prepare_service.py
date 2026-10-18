@@ -16,6 +16,7 @@ from scripts.listing.dry_run_summary import (
 )
 from scripts.listing.image_plan import build_image_download_plan
 from scripts.listing.listing_evaluator import evaluate_listing
+from scripts.listing.amazon_category_policy import category_exclusion_result
 from scripts.listing.management_number import build_management_number_bundle_from_selected, generate_management_number_bundle
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, ResolvedField, StoreSettings
 from scripts.listing.listing_text_policy import normalize_listing_text_policy_mode
@@ -666,6 +667,15 @@ def prepare_listing(
             master_dir=Path(request.master_dir),
             store_settings=store_settings,
             common_settings=common_settings,
+        )
+
+    category_block = category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
+    if category_block:
+        return _base_result(
+            mode=mode, asin=asin, amazon_result=amazon_result, keepa_result=keepa_result,
+            listing_status=category_block['listing_status'], listing_reason=category_block['listing_reason'],
+            warnings=warnings, missing_master_files=master_data.missing_files,
+            master_dir=Path(request.master_dir), store_settings=store_settings, common_settings=common_settings,
         )
 
     # These facts already come from Keepa. Check them before attributes,

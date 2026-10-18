@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from hashlib import sha256
 from pathlib import Path
 
 from scripts.listing.image_validator import ValidatedImageResult
 from scripts.listing.listing_execute_service import ExecuteListingRequest, execute_listing
 from scripts.listing.master_loader import load_master_data
+from scripts.listing.models import StoreSettings, ListingCommonSettings
 from scripts.listing.prepare_service import PrepareListingRequest, prepare_listing
 from scripts.listing.rakuten_image_client import RakutenImageClient, RakutenImageUploadResult
 from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, RakutenInventoryResult
@@ -21,6 +23,13 @@ REFERENCE_MASTER_DIR = ROOT_DIR / "reference" / "legacy_listing"
 
 
 class ListingExecuteMockE2ETests(unittest.TestCase):
+    def setUp(self):
+        guard = patch('scripts.listing.amazon_category_policy.load_category_exclusions', return_value={})
+        guard.start(); self.addCleanup(guard.stop)
+        for target in ('apply_store_master_overrides', 'apply_asin_master_overrides'):
+            database = patch('scripts.listing.prepare_service.' + target, side_effect=lambda masters, *args: masters)
+            database.start(); self.addCleanup(database.stop)
+
     def _build_eligible_dry_run(self) -> dict[str, object]:
         return prepare_listing(
             PrepareListingRequest(
@@ -34,6 +43,8 @@ class ListingExecuteMockE2ETests(unittest.TestCase):
                 keepa_result_json=FIXTURE_DIR / "eligible_keepa_result.json",
             ),
             master_data_loader=load_master_data,
+            store_settings_loader=lambda *_args, **_kwargs: StoreSettings(**json.loads((FIXTURE_DIR / "eligible_store_settings.json").read_text(encoding="utf-8"))),
+            common_settings_loader=lambda _: (ListingCommonSettings(3.5), []),
         )
 
     def _http_get(self, url: str, timeout_seconds: float, allow_redirects: bool):  # noqa: ANN001

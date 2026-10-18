@@ -15,6 +15,7 @@ from scripts.listing.rakuten_inventory_client import RakutenInventoryClient
 from scripts.listing.rakuten_item_client import RakutenItemClient
 from scripts.listing.real_readiness_service import save_execution_history_stub
 from scripts.listing.rakuten_transport import build_rakuten_auth_headers
+from scripts.listing.amazon_category_policy import check_current_categories
 
 
 @dataclass
@@ -387,6 +388,19 @@ def build_real_execute_result(
     if current_history_block:
         result["blocking_reasons"] = [current_history_block]
         result["final_status"] = "blocked"
+        return result
+
+    # Recheck after the write slot is acquired, before Cabinet writes.
+    try:
+        category_block = check_current_categories(dry_run_result)
+    except RuntimeError as exc:
+        result['blocking_reasons'] = [str(exc)]
+        result['final_status'] = 'blocked'
+        return result
+    if category_block:
+        result.update(category_block)
+        result['blocking_reasons'] = [category_block['listing_reason']]
+        result['final_status'] = 'blocked'
         return result
 
     # The saved setting remains the root Cabinet folder. Resolve the actual

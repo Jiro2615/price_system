@@ -191,6 +191,7 @@ def load_active_master_data(master_dir: Path, store_code: str, allow_missing: bo
     The file-only loader remains available to migration and fixture tools.
     """
     from scripts.listing.listing_master_db import load_database_master_snapshot, apply_master_snapshot, load_company_brand_ng
+    from scripts.listing.amazon_category_policy import load_category_exclusions
 
     snapshot = load_database_master_snapshot(store_code)
     if snapshot is not None:
@@ -198,9 +199,12 @@ def load_active_master_data(master_dir: Path, store_code: str, allow_missing: bo
             blacklist=set(), kako_ng={}, replacements=[], prohibited_words_rakuten=[],
             prohibited_words_other=[], listed_asins={}, category_map={}, attribute_definitions={},
         )
-        return apply_master_snapshot(empty, snapshot)
+        result = apply_master_snapshot(empty, snapshot)
+        result.amazon_category_exclusions = load_category_exclusions()
+        return result
     legacy = load_master_data(master_dir, allow_missing=allow_missing)
     legacy.company_brand_ng = load_company_brand_ng(store_code)
+    legacy.amazon_category_exclusions = load_category_exclusions()
     return apply_store_allowed_phrase_overrides(legacy, master_dir, store_code, use_database=False)
 
 

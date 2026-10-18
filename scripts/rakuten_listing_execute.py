@@ -431,6 +431,7 @@ def _run_mock_execute(dry_run_result: dict[str, Any], asin: str, management_numb
                 output_root=Path(temp_dir),
             ),
             image_downloader=_mock_download_result,
+            category_checker=lambda _: None,  # This path uses only mock clients, including image download.
             image_validator=_mock_validation_result,
             image_client=image_client,
             item_client=item_client,

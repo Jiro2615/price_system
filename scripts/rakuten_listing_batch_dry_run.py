@@ -37,6 +37,7 @@ KEEPA_PRECHECK_MIN_INTERVAL_SECONDS = 3.1
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--asin-file", type=Path, required=True)
+    parser.add_argument("--require-amazon-category-policy", action="store_true", help="共有カテゴリ除外に対応する出品PCが必要です")
     parser.add_argument("--store", required=True)
     parser.add_argument("--master-dir", type=Path, default=Path("reference/legacy_listing"))
     parser.add_argument("--output-dir", type=Path, required=True)

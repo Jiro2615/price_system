@@ -91,6 +91,10 @@ class AdvertiserConfigTests(unittest.TestCase):
 
 
 class AdvertiserPayloadTests(unittest.TestCase):
+    def setUp(self):
+        guard = patch('scripts.listing.amazon_category_policy.load_category_exclusions', return_value={})
+        guard.start(); self.addCleanup(guard.stop)
+
     def test_normal_company_names_are_preserved(self):
         for name in (GOOD, "ライフフォレスト", "譬商事", "株式会社繝", "LifeForest Co., Ltd.", "㈱テスト"):
             validate_advertiser_name(name)
