@@ -61,6 +61,26 @@ class ContentSyncTests(unittest.TestCase):
             self.assertEqual(len(cur.execute.call_args_list), 1)
             conn.commit.assert_not_called()
 
+    def test_successful_content_refresh_also_saves_confirmed_new_main_image(self):
+        conn = MagicMock()
+        conn.__enter__.return_value = conn
+        cur = conn.cursor.return_value.__enter__.return_value
+        cur.fetchall.return_value = [("B000000001",)]
+        cur.fetchone.return_value = ("lifeforest",)
+        payload = self.payload()
+        payload["raw_execute_result"]["rakuten_image_urls_after"] = ["/123/new-folder/main.jpg"]
+        with patch.object(sync, "_extract_sync_payload", return_value=payload), \
+                patch.object(sync, "_get_store_id", return_value=2), \
+                patch.object(sync, "connect_db", return_value=conn):
+            sync.sync_listing_content_result_to_db(sync.ListingDbSyncRequest(result_json=None, execute=True))
+        writes = [call for call in cur.execute.call_args_list if call.args[0].lstrip().startswith("UPDATE")]
+        self.assertEqual(len(writes), 2)
+        sql, params = writes[1].args
+        self.assertEqual(params, ("https://tshop.r10s.jp/lifeforest/cabinet/123/new-folder/main.jpg", "/123/new-folder/main.jpg", 2, "item"))
+        self.assertNotIn("NULLIF(BTRIM(rakuten_image_url),'') IS NULL", sql)
+        for forbidden in ("current_price", "target_price", "current_stock", "target_stock", "enabled", "force_stop"):
+            self.assertNotIn(forbidden, sql)
+
     def test_bad_amazon_identity_never_saved_as_baseline(self):
         for changes in ({"requested_asin": "B000000002"}, {"page_asin": "B000000002"}, {"system_error": True}):
             payload = self.payload()

@@ -5,7 +5,7 @@ import json
 import platform
 import re
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import parse_qs, urlsplit
@@ -1064,6 +1064,44 @@ async def close_amazon_page(playwright, browser, context, page) -> None:
         pass
 
 
+async def capture_main_image(page, asin: str) -> dict:
+    """Read the selected main image only. No extra navigation or image download."""
+    result = {"amazon_main_image_url": "", "amazon_main_image_error": "main_image_unavailable",
+              "amazon_main_image_checked_at": datetime.now(timezone.utc).isoformat(),
+              "amazon_main_image_verified_asin": asin}
+    if extract_asin(str(page.url)) != asin:
+        return {}  # Neither a redirect nor an unverified page is this product.
+    try:
+        candidates = await page.evaluate("""asin => {
+            const selectedAsin = document.querySelector('#ASIN')?.value;
+            if (selectedAsin && selectedAsin.trim().toUpperCase() !== asin) return [];
+            const image = document.querySelector('#landingImage, #imgBlkFront, #ebooksImgBlkFront');
+            if (!image) return [];
+            let dynamic = {};
+            try { dynamic = JSON.parse(image.getAttribute('data-a-dynamic-image') || '{}'); } catch (_) {}
+            const urls = Object.entries(dynamic).sort((a,b) =>
+                ((b[1]?.[0] || 0)*(b[1]?.[1] || 0))-((a[1]?.[0] || 0)*(a[1]?.[1] || 0))).map(x => x[0]);
+            return [image.getAttribute('data-old-hires'), ...urls, image.currentSrc, image.src];
+        }""", asin)
+        for value in candidates or []:
+            url = str(value or "").strip()
+            try:
+                parts = urlsplit(url)
+                valid = (parts.scheme == "https" and parts.hostname in {
+                        "m.media-amazon.com", "images-na.ssl-images-amazon.com",
+                        "images-fe.ssl-images-amazon.com", "images-eu.ssl-images-amazon.com"}
+                        and not parts.username and not parts.password and parts.port in (None, 443)
+                        and parts.path.startswith("/images/") and not parts.fragment and len(url) <= 2048)
+            except ValueError:
+                valid = False
+            if valid:
+                result.update(amazon_main_image_url=url, amazon_main_image_error="")
+                break
+    except Exception:
+        result["amazon_main_image_error"] = "main_image_read_failed"
+    return result
+
+
 async def check_amazon_one(
     asin: str,
     page=None,
@@ -1165,6 +1203,7 @@ async def check_amazon_one(
                 return result
 
             result["title"] = await get_title(page)
+            result.update(await capture_main_image(page, asin))
 
             out_of_stock_text = await get_first_text(page, "#outOfStock")
             if "この商品の再入荷予定は立っておりません" in out_of_stock_text:

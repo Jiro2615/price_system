@@ -424,7 +424,7 @@ def _record_uploaded_images(cur: Any, sync: dict[str, Any], store_id: int) -> No
         )
 
 
-def _persist_main_image(cur: Any, sync: dict[str, Any], store_id: int) -> None:
+def _persist_main_image(cur: Any, sync: dict[str, Any], store_id: int, *, overwrite: bool = False) -> None:
     """Keep the confirmed main image even when API snapshots expire."""
     raw = sync.get("raw_execute_result") or {}
     locations = raw.get("rakuten_image_urls_after") or []
@@ -461,15 +461,19 @@ def _persist_main_image(cur: Any, sync: dict[str, Any], store_id: int) -> None:
             return
         shop = shop or parts[0]
     url = f"https://tshop.r10s.jp/{shop}/cabinet/{path}" if re.fullmatch(r"[A-Za-z0-9_-]+", shop) else None
-    # Never replace an existing image or a conflicting saved path. If the
-    # shop slug is unavailable, the confirmed path still survives retention.
+    # A normal listing only fills blanks. A confirmed successful content
+    # refresh may replace the old folder/path; never overwrite with an unknown URL.
+    if overwrite and not url:
+        return
+    guard = "" if overwrite else """
+          AND NULLIF(BTRIM(rakuten_image_url),'') IS NULL
+          AND (NULLIF(BTRIM(rakuten_image_path),'') IS NULL OR LTRIM(rakuten_image_path,'/')=%s)
+          AND COALESCE(NULLIF(rakuten_image_type,''),'CABINET')='CABINET'"""
+    params = (url, '/' + path, store_id, sync["management_number"])
     cur.execute("""UPDATE store_products SET rakuten_image_url=%s,
         rakuten_image_path=%s,rakuten_image_type='CABINET'
         WHERE store_id=%s AND mall_item_code=%s
-          AND NULLIF(BTRIM(rakuten_image_url),'') IS NULL
-          AND (NULLIF(BTRIM(rakuten_image_path),'') IS NULL OR LTRIM(rakuten_image_path,'/')=%s)
-          AND COALESCE(NULLIF(rakuten_image_type,''),'CABINET')='CABINET'""",
-        (url, '/' + path, store_id, sync["management_number"], path))
+          """ + guard, params if overwrite else params + (path,))
 
 
 def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
@@ -523,6 +527,7 @@ def sync_listing_content_result_to_db(request: ListingDbSyncRequest) -> dict[str
             cur.execute("""UPDATE store_products SET item_name=%s, updated_at=CURRENT_TIMESTAMP
                 WHERE store_id=%s AND mall_item_code=%s AND UPPER(asin)=%s""",
                         (sync["title"], store_id, sync["management_number"], sync["asin"]))
+            _persist_main_image(cur, sync, store_id, overwrite=True)
             if request.save_snapshot:
                 _insert_snapshot(cur, sync, store_id)
         conn.commit()
