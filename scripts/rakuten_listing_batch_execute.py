@@ -21,7 +21,7 @@ from scripts.listing.prepare_service import (
 )
 from scripts.listing.real_execute_service import RealExecuteRequest, build_real_execute_result
 from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
-from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db
+from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db, sync_listing_content_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
 from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations, screen_forced_words, persist_company_brand_exclusion
@@ -394,8 +394,9 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 # Refresh the folder lookup for each slot: another process
                 # may have consumed Cabinet capacity since the previous item.
                 save_json(item_dir / "execute.json", result)
-                if result.get("final_status") == "completed" and not args.update_existing:
-                    db_sync = sync_listing_result_to_db(
+                if result.get("final_status") == "completed":
+                    sync_result = sync_listing_content_result_to_db if args.update_existing else sync_listing_result_to_db
+                    db_sync = sync_result(
                         ListingDbSyncRequest(result_json=item_dir / "execute.json", dry_run_json=dry_path, store=args.store, execute=True))
                     result["db_sync"] = db_sync
                     if not db_sync.get("external_db_writes_performed"):

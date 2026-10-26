@@ -341,8 +341,15 @@ def _update_or_insert_store_product(cur: Any, sync: dict[str, Any], store_id: in
 
 
 def _insert_snapshot(cur: Any, sync: dict[str, Any], store_id: int) -> None:
+    amazon = sync.get("amazon_result") or {}
+    source_asin = str(amazon.get("requested_asin") or amazon.get("asin") or "").strip().upper()
+    page_asin = str(amazon.get("page_asin") or source_asin).strip().upper()
+    source_title = (str(amazon.get("title") or "").strip()
+                    if source_asin == page_asin == sync["asin"] and not amazon.get("system_error") else "")
     snapshot = sanitize_for_output(
         {
+            "source_amazon_asin": source_asin if source_title else "",
+            "source_amazon_title": source_title,
             "final_status": sync["final_status"],
             "item_success": sync["item_success"],
             "inventory_success": sync["inventory_success"],
@@ -367,6 +374,14 @@ def _insert_snapshot(cur: Any, sync: dict[str, Any], store_id: int) -> None:
             Jsonb(to_jsonable(snapshot)),
         ),
     )
+    if source_title:
+        # A tiny, durable comparison record. Reading every full API payload
+        # just to compare titles requires detoasting large JSON histories.
+        cur.execute("""INSERT INTO rakuten_api_snapshots
+            (store_id,mall_item_code,sku_code,api_name,request_url,response_json,fetched_at)
+            VALUES (%s,%s,%s,'listing.title_baseline',NULL,%s,CURRENT_TIMESTAMP)""",
+                    (store_id, sync["management_number"], sync["variant_id"],
+                     Jsonb({"source_amazon_asin": source_asin, "source_amazon_title": source_title})))
 
 
 def _ensure_uploaded_image_table(cur: Any) -> None:
@@ -475,6 +490,42 @@ def sync_listing_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
                 _insert_snapshot(cur, sync, store_id)
         conn.commit()
 
+    result["external_db_writes_performed"] = True
+    return result
+
+
+def sync_listing_content_result_to_db(request: ListingDbSyncRequest) -> dict[str, Any]:
+    """Save a successful content refresh without touching price/stock/flags.
+
+    Never run the normal listing upsert here: it writes prices, quantities and
+    enables products. The saved Amazon source is a future comparison baseline.
+    """
+    sync = _extract_sync_payload(request)
+    inventory = sync["raw_execute_result"].get("inventory_result") or {}
+    ready = (sync["final_status"] == "completed" and sync["item_success"] and sync["inventory_success"]
+             and inventory.get("skipped") is True
+             and inventory.get("reason") == "content_refresh does not change inventory"
+             and bool(sync["asin"] and sync["store_code"] and sync["management_number"] and sync["title"]))
+    result = {"mode": "listing_content_db_sync", "ready_for_db_sync": bool(ready),
+              "external_db_writes_performed": False,
+              "blocking_reasons": [] if ready else ["successful content-only refresh evidence is required"],
+              "asin": sync["asin"], "store_code": sync["store_code"], "management_number": sync["management_number"]}
+    if not ready or not request.execute:
+        return result
+    with connect_db() as conn:
+        with conn.cursor() as cur:
+            store_id = _get_store_id(cur, sync["store_code"])
+            cur.execute("""SELECT asin FROM store_products
+                WHERE store_id=%s AND mall_item_code=%s FOR UPDATE""", (store_id, sync["management_number"]))
+            targets = cur.fetchall()
+            if not targets or any(str(row[0] or "").upper() != sync["asin"] for row in targets):
+                raise ValueError("content refresh DB target is missing or ASIN changed")
+            cur.execute("""UPDATE store_products SET item_name=%s, updated_at=CURRENT_TIMESTAMP
+                WHERE store_id=%s AND mall_item_code=%s AND UPPER(asin)=%s""",
+                        (sync["title"], store_id, sync["management_number"], sync["asin"]))
+            if request.save_snapshot:
+                _insert_snapshot(cur, sync, store_id)
+        conn.commit()
     result["external_db_writes_performed"] = True
     return result
 

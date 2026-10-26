@@ -134,10 +134,13 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 def sync(*_):
                     self.assertTrue(inside); calls.append("db")
                     return {"external_db_writes_performed": True}
-                stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=sync))
+                normal_sync = stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=sync))
+                content_sync = stack.enter_context(patch.object(module, "sync_listing_content_result_to_db", side_effect=sync))
                 args = arguments(folder); args.update_existing = refresh
                 await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
-                self.assertEqual(calls, ["rms"] if refresh else ["rms", "db"])
+                self.assertEqual(calls, ["rms", "db"])
+                (normal_sync if refresh else content_sync).assert_not_called()
+                (content_sync if refresh else normal_sync).assert_called_once()
                 row = json.loads((Path(folder) / "results.jsonl").read_text())
                 self.assertEqual(row["final_status"], "completed")
 
