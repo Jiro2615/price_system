@@ -1967,6 +1967,8 @@ check_amazon_one = check_amazon_one_v3
 
 
 def save_to_db(data: dict[str, Any]) -> None:
+    from amazon_image_observation import record_main_image
+
     data = dict(data)
     jan_code = re.sub(r"\D", "", str(data.get("jan_code") or data.get("ean") or ""))
     check_total = sum(int(digit) * (3 if position % 2 else 1) for position, digit in enumerate(jan_code[-2::-1], start=1)) if jan_code.isdigit() else -1
@@ -2025,6 +2027,7 @@ def save_to_db(data: dict[str, Any]) -> None:
                 data,
             )
 
+            record_main_image(cur, data)
         conn.commit()
 
     finally:
