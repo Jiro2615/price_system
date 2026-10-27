@@ -189,6 +189,7 @@ class PrimePriceTests(unittest.IsolatedAsyncioTestCase):
 
     async def check(self, *, prime=True):
         page = page_for([offer()] if prime else [])
+        page.evaluate = AsyncMock(return_value={'selected_asin': 'B0G6ZHBKHH'})
         alt = AsyncMock(return_value=1680)
         all_offers = AsyncMock(return_value=None)
         with ExitStack() as stack:

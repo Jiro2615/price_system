@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import builtins
+import importlib.util
 import json
 import platform
 import re
@@ -11,6 +12,31 @@ from typing import Any, Optional
 from urllib.parse import parse_qs, urlsplit
 
 from playwright.async_api import async_playwright
+
+# Loaded by file path because the price worker imports this checker from a
+# different scripts directory. Never fall back to an older module on sys.path.
+_identity_spec = importlib.util.spec_from_file_location(
+    'rakuten_listing_product_identity', Path(__file__).with_name('amazon_product_identity.py'))
+_identity = importlib.util.module_from_spec(_identity_spec)
+_identity_spec.loader.exec_module(_identity)
+
+
+async def verify_product_identity(page, asin, result):
+    try:
+        observation = await page.evaluate(_identity.PRODUCT_IDENTITY_JS)
+    except Exception:
+        observation = {}
+    reason = _identity.identity_error(asin, page.url, observation)
+    if reason:
+        _identity.block_identity_result(result, reason)
+        # A negative identity observation invalidates a previously saved image
+        # too. Do not leave an old URL looking like a current successful read.
+        result.update(amazon_main_image_url='',
+                      amazon_main_image_error='asin_mismatch' if reason.startswith('ASIN不一致') else 'asin_unverified',
+                      amazon_main_image_checked_at=datetime.now(timezone.utc).isoformat(),
+                      amazon_main_image_verified_asin=asin)
+        return False
+    return True
 
 try:
     from scripts.db_config import connect_db
@@ -1189,6 +1215,9 @@ async def check_amazon_one(
                 result["ng_reason"] = "画像認証"
                 return result
 
+            if not await verify_product_identity(page, asin, result):
+                return result
+
             # Amazon can initially activate a furusato-tax or Subscribe &
             # Save accordion for the same ASIN.  Always inspect the regular
             # one-time purchase row before reading price, stock, or BuyBox
@@ -1196,10 +1225,7 @@ async def check_amazon_one(
             if await select_one_time_purchase(page):
                 body = await get_first_text(page, "body")
 
-            current_asin = extract_asin(page.url)
-            if current_asin and current_asin != asin:
-                result["system_error"] = True
-                result["ng_reason"] = f"ASIN不一致 current={current_asin}"
+            if not await verify_product_identity(page, asin, result):
                 return result
 
             result["title"] = await get_title(page)

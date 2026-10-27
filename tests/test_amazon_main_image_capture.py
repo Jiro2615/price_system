@@ -66,7 +66,7 @@ class CaptureTests(unittest.TestCase):
         text = SOURCE.read_text(encoding="utf-8")
         start = text.index("async def check_amazon_one(")
         body = text[start:]
-        self.assertLess(body.index("ASIN不一致"), body.index("await capture_main_image(page, asin)"))
+        self.assertLess(body.index("await verify_product_identity(page, asin, result)"), body.index("await capture_main_image(page, asin)"))
         self.assertLess(body.index("await capture_main_image(page, asin)"), body.index('out_of_stock_text ='))
 
 
