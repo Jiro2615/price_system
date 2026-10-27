@@ -12,8 +12,7 @@ def classify_purchase_restriction(result: dict) -> dict:
     known_restriction = (
         reason == "ギフト不可"
         or reason.startswith("ギフト不可（")
-        or reason == "ASIN不一致（別商品へ遷移）"
-        or reason.startswith("ASIN不一致 current=")
+        or reason.startswith(("ASIN不一致", "ASIN未確認"))
         or reason in {"BuyBox取得失敗", "BuyBoxなし"}
     )
     if known_restriction:

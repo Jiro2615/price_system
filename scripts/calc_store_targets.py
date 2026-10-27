@@ -430,7 +430,7 @@ def calc_target_for_row(row) -> dict:
     if force_stop:
         target_stock = 0
         reason = "force_stop"
-    elif business_ng:
+    elif business_ng or str(ng_reason or '').startswith(('ASIN不一致', 'ASIN未確認')):
         target_stock = 0
         reason = f"business_ng: {ng_reason or ''}"
     elif system_error:
