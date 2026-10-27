@@ -17,6 +17,7 @@ from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, bui
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.amazon_category_policy import check_current_categories
+from scripts.listing.content_refresh_policy import content_refresh_artifact_error
 from scripts.listing.rakuten_shop_category_client import (
     DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
     RakutenShopCategoryClient,
@@ -348,7 +349,11 @@ def execute_listing(
     if not isinstance(item_payload, dict) or not isinstance(inventory_payload, dict):
         return _fail(result, status="validation_failed", message="item_payload and inventory_payload are required")
     try:
-        category_block = (category_checker or check_current_categories)(dry_run_result)
+        if request.content_refresh:
+            identity_error = content_refresh_artifact_error(dry_run_result)
+            if identity_error:
+                return _fail(result, status="validation_failed", message=identity_error)
+        category_block = None if request.content_refresh else (category_checker or check_current_categories)(dry_run_result)
     except RuntimeError as exc:
         return _fail(result, status='validation_failed', message=str(exc))
     if category_block:

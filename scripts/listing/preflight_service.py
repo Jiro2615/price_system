@@ -7,6 +7,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from scripts.listing.models import to_jsonable
+from scripts.listing.content_refresh_policy import content_refresh_artifact_error
 from scripts.listing.rakuten_inventory_client import build_inventory_request
 from scripts.listing.rakuten_item_client import build_item_request
 from scripts.listing.rakuten_transport import rakuten_auth_env_status
@@ -436,8 +437,8 @@ def _build_checks(
         _build_check(
             "title_contains_legacy_spacing_artifact",
             "ク リア" in str(item_payload.get("title") or ""),
-            False,
-            "ok" if "ク リア" not in str(item_payload.get("title") or "") else "blocked",
+            "not required for content refresh" if dry_run_result.get("content_refresh") else False,
+            "ok" if dry_run_result.get("content_refresh") or "ク リア" not in str(item_payload.get("title") or "") else "blocked",
             None,
         ),
         _build_check(
@@ -455,7 +456,8 @@ def _build_checks(
             None,
         ),
         _build_check("genreId", item_payload.get("genreId"), "non-null", "ok" if item_payload.get("genreId") is not None else "blocked", None),
-        _build_check("jan_ean", keepa_ean, "non-empty", "ok" if str(keepa_ean or "").strip() else "blocked", None),
+        _build_check("jan_ean", keepa_ean, "not required for content refresh" if dry_run_result.get("content_refresh") else "non-empty",
+                     "ok" if dry_run_result.get("content_refresh") or str(keepa_ean or "").strip() else "blocked", None),
         _required_attribute_check(
             key="brand",
             attribute_name="ブランド名",
@@ -532,6 +534,9 @@ def _build_checks(
             "auth 未設定は mock execute では warning、real execute では blocked 扱いです" if not auth_ok else None,
         ),
     ]
+    if dry_run_result.get("content_refresh"):
+        error = content_refresh_artifact_error(dry_run_result)
+        checks.append(_build_check("content_refresh_identity", error, None, "blocked" if error else "ok"))
     return checks
 
 

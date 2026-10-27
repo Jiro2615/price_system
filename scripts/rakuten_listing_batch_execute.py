@@ -354,14 +354,14 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             def execute_and_sync():
                 # Another job may have excluded the ASIN while it waited for
                 # this slot. Check the ledger even if the switches are OFF.
-                durable_reason = load_company_brand_ng(args.store, asin=asin).get(asin)
+                durable_reason = None if args.update_existing else load_company_brand_ng(args.store, asin=asin).get(asin)
                 if durable_reason is not None:
                     return {**dry, "listing_status": "company_brand_blocked", "final_status": "company_brand_blocked",
                             "listing_reason": f"蓄積済みの禁止会社・ブランドNG: {durable_reason}",
                             "execution_allowed": False, "external_actions_performed": False,
                             "execution_summary": {**(dry.get("execution_summary") or {}), "can_execute_listing": False},
                             "company_brand_ng_cached": True}
-                if getattr(args, "block_forbidden_company_brands", False) or getattr(args, "review_uncertain_words", False):
+                if not args.update_existing and (getattr(args, "block_forbidden_company_brands", False) or getattr(args, "review_uncertain_words", False)):
                     # A human may edit a class while this item waits for the
                     # shared write slot. Read it again inside that slot,
                     # before any image upload or Item/Inventory API call.

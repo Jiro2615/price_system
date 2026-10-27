@@ -100,6 +100,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_refresh_and_bulk_write_and_db_sync_are_inside_slot(self):
         for refresh in (False, True):
             with self.subTest(refresh=refresh), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+                self.read_ledger.side_effect = AssertionError("Refresh must not screen the NG ledger") if refresh else None
                 module = execute_batch
                 stack.enter_context(patch("psycopg.connect", side_effect=AssertionError("Live DB forbidden")))
                 stack.enter_context(patch("requests.sessions.Session.request", side_effect=AssertionError("HTTP forbidden")))
@@ -137,6 +138,9 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 normal_sync = stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=sync))
                 content_sync = stack.enter_context(patch.object(module, "sync_listing_content_result_to_db", side_effect=sync))
                 args = arguments(folder); args.update_existing = refresh
+                if refresh:
+                    args.block_forbidden_company_brands = args.review_uncertain_words = True
+                    stack.enter_context(patch.object(module, "screen_forced_words", side_effect=AssertionError("Refresh must not screen words")))
                 await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
                 self.assertEqual(calls, ["rms", "db"])
                 (normal_sync if refresh else content_sync).assert_not_called()

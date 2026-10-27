@@ -8,6 +8,7 @@ from typing import Any, Callable, TypeVar
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import load_listing_common_settings, build_seller_count_evaluation
 from scripts.listing.book_format import digital_book_reason
+from scripts.listing.content_refresh_policy import content_identity_error
 from scripts.listing.dry_run_summary import (
     build_blocking_reasons,
     build_execution_summary,
@@ -128,6 +129,10 @@ def precheck_local_listing_exclusion(
     batch_local_data=None,
 ) -> dict[str, object] | None:
     """Return a local-only exclusion result before opening an Amazon page."""
+    if request.update_existing:
+        # The real preparation validates the existing target. Local listing
+        # eligibility must not prevent refreshing a previously forced listing.
+        return None
     asin = request.asin.strip().upper()
     mode = "offline" if request.offline else "dry_run"
     warnings: list[str] = []
@@ -496,13 +501,16 @@ def _build_representative_color_mapping(
     }
 
 
-def _classify_amazon_result(asin: str, amazon_result: AmazonCheckResult | None) -> tuple[str, str] | None:
+def _classify_amazon_result(asin: str, amazon_result: AmazonCheckResult | None, *, content_refresh: bool = False) -> tuple[str, str] | None:
     if amazon_result is None:
         return None
     if amazon_result.amazon_confirmation_waiting:
         return ("amazon_confirmation_waiting", amazon_result.ng_reason or "Amazon確認待ち")
     if amazon_result.system_error:
         return ("system_error", amazon_result.ng_reason or "Amazon確認でシステムエラー")
+    if content_refresh:
+        reason = content_identity_error(asin, amazon_result)
+        return ("business_ng", reason) if reason else None
     if amazon_result.business_ng:
         return ("business_ng", amazon_result.ng_reason or "Amazon確認でNG")
     if amazon_result.page_asin and amazon_result.page_asin != asin:
@@ -550,6 +558,8 @@ def prepare_listing(
         existing_listing_lookup = batch_local_data.existing
 
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
+    if request.update_existing and not existing_listing:
+        raise RuntimeError("最新化対象の有効な既出品がありません（新規出品は行いません）")
     if existing_listing and not request.update_existing:
         existing_management_number = str(existing_listing.get("management_number") or "")
         existing_source = str(existing_listing.get("source") or "store_products")
@@ -578,11 +588,11 @@ def prepare_listing(
     master_data = load_preparation_masters(request, master_data_loader, batch_local_data)
     # Past-NG/blacklist decisions are entirely local. Do not open Amazon or
     # call Keepa for an ASIN already disallowed by the active master.
-    durable = _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings)
+    durable = None if request.update_existing else _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings)
     if durable is not None:
         return durable
     bypass_rules = set(request.bypass_rules or ())
-    if asin in master_data.kako_ng and "past_ng" not in bypass_rules:
+    if not request.update_existing and asin in master_data.kako_ng and "past_ng" not in bypass_rules:
         return _base_result(
             mode=mode, asin=asin, amazon_result=None, keepa_result=None,
             listing_status="business_ng", listing_reason=f"過去NG: {master_data.kako_ng[asin]}",
@@ -590,7 +600,7 @@ def prepare_listing(
             missing_master_files=master_data.missing_files, master_dir=Path(request.master_dir),
             store_settings=store_settings, common_settings=common_settings,
         )
-    if asin in master_data.blacklist and "blacklist" not in bypass_rules:
+    if not request.update_existing and asin in master_data.blacklist and "blacklist" not in bypass_rules:
         return _base_result(
             mode=mode,
             asin=asin,
@@ -606,9 +616,10 @@ def prepare_listing(
         )
 
     # Phrase exceptions matter only after the local-only ASIN exclusions.
-    master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
+    if not request.update_existing:
+        master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
     amazon_result = _resolve_amazon_result(request, asin, amazon_fetcher, warnings)
-    amazon_classification = _classify_amazon_result(asin, amazon_result)
+    amazon_classification = _classify_amazon_result(asin, amazon_result, content_refresh=request.update_existing)
     if amazon_classification is not None:
         listing_status, listing_reason = amazon_classification
         return _base_result(
@@ -628,7 +639,7 @@ def prepare_listing(
     # Price rules are selected by the checked Amazon price.  The initial
     # settings load is still used for local prechecks; reload only the default
     # production loader here so injected/offline test settings remain intact.
-    if store_settings_loader is load_store_settings and amazon_result.amazon_price:
+    if not request.update_existing and store_settings_loader is load_store_settings and amazon_result and amazon_result.amazon_price:
         store_settings = store_settings_loader(
             request.store_code,
             amazon_price=int(amazon_result.amazon_price),
@@ -669,7 +680,7 @@ def prepare_listing(
             common_settings=common_settings,
         )
 
-    category_block = category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
+    category_block = None if request.update_existing else category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
     if category_block:
         return _base_result(
             mode=mode, asin=asin, amazon_result=amazon_result, keepa_result=keepa_result,
@@ -681,10 +692,10 @@ def prepare_listing(
     # These facts already come from Keepa. Check them before attributes,
     # Japanese-regulated evidence or marketplace HTTP requests. A caller's
     # explicit seller-count bypass remains in force; adult/digital rules do not.
-    cheap_reason = digital_book_reason(keepa_result)
-    if not cheap_reason and keepa_result.is_adult:
+    cheap_reason = None if request.update_existing else digital_book_reason(keepa_result)
+    if not request.update_existing and not cheap_reason and keepa_result.is_adult:
         cheap_reason = "Keepa isAdult=true"
-    if not cheap_reason and "seller_count" not in bypass_rules:
+    if not request.update_existing and not cheap_reason and "seller_count" not in bypass_rules:
         if keepa_result.avg90_new_offer_count is None:
             cheap_reason = "過去90日の新品出品者数平均が未取得のため出品不可"
         else:
@@ -703,9 +714,9 @@ def prepare_listing(
         )
 
     classification_snapshot = None
-    if request.forced_company_brand_block or request.forced_word_review_mode:
+    if not request.update_existing and (request.forced_company_brand_block or request.forced_word_review_mode):
         classification_snapshot = load_groups(use_database=True)
-    if request.forced_company_brand_block:
+    if not request.update_existing and request.forced_company_brand_block:
         # These original title/brand/maker fields are also checked verbatim at
         # the final gate. Do not early-block raw descriptions/features here:
         # cleanup may legitimately remove those before payload screening.
@@ -764,7 +775,7 @@ def prepare_listing(
                     f"{category}候補: 楽天同一JAN候補は確認できたが、本文に区分・メーカー・原産国の証跡が揃わないため広告文責は追記しません"
                 )
             else:
-                warnings.append(f"{category}候補: 楽天同一JAN候補を確認できないため出品不可")
+                warnings.append(f"{category}候補: 楽天同一JAN候補を確認できません" + ("（最新化の出品判定は省略）" if request.update_existing else "、出品不可"))
         else:
             # Exact-JAN Rakuten search captions are factual attribute fallbacks.
             # Keepa remains authoritative whenever it already has a value.
@@ -798,7 +809,7 @@ def prepare_listing(
             )
 
     evaluation_master = master_data
-    if request.forced_company_brand_block or request.forced_word_review_mode:
+    if not request.update_existing and (request.forced_company_brand_block or request.forced_word_review_mode):
         _, groups = classification_snapshot
         # Named/review words are controlled exclusively by the new switches,
         # not by the legacy substring check (even when general words aren't
@@ -823,6 +834,7 @@ def prepare_listing(
         bypass_rules=bypass_rules,
         require_minimum_same_jan_listings=request.require_minimum_same_jan_listings,
         minimum_rakuten_shops=request.minimum_rakuten_shops,
+        **({"content_refresh": True} if request.update_existing else {}),
     )
 
     if evaluation.prohibited_word_exceptions:
@@ -845,7 +857,8 @@ def prepare_listing(
     # regulated facts, while a missing JAN, API failure, or unrelated search
     # hit remains a strict business NG.
     if (
-        category
+        not request.update_existing
+        and category
         and not quasi_drug_evidence
         and not same_jan_candidate
         and evaluation.listing_status == "eligible"
@@ -858,7 +871,7 @@ def prepare_listing(
         evaluation.warnings.append(
             f"{category}候補は広告文責・メーカー名または販売業者名・原産国・商品区分を確認できないため出品停止です"
         )
-    elif category and not quasi_drug_evidence and not same_jan_candidate and evaluation.listing_status == "eligible":
+    elif not request.update_existing and category and not quasi_drug_evidence and not same_jan_candidate and evaluation.listing_status == "eligible":
         evaluation.forced_bypass_checks.append({"rule": "regulated_evidence", "reason": f"{category}証跡不足"})
         evaluation.warnings.append(f"条件無視で通過: {category}証跡不足（広告文責は追記しません）")
 
@@ -940,12 +953,23 @@ def prepare_listing(
         max_images=store_settings.listing_image_limit,
     )
 
+    price_options = {}
+    if request.update_existing:
+        try:
+            existing_price = int(existing_listing.get("current_price"))
+        except (TypeError, ValueError):
+            raise RuntimeError("既出品の販売価格が未取得のため最新化できません") from None
+        if existing_price <= 0:
+            raise RuntimeError("既出品の販売価格が不正なため最新化できません")
+        price_options["preserved_standard_price"] = existing_price
+
     item_payload = item_payload_builder(
         management_number=management_number,
         evaluation=evaluation,
         store_settings=store_settings,
         amazon_price=int(amazon_result.amazon_price or 0),
         amazon_point=0,
+        **price_options,
     )
     inventory_payload = inventory_payload_builder(
         management_number=management_number,
@@ -953,16 +977,6 @@ def prepare_listing(
         store_settings=store_settings,
     )
     if existing_listing and request.update_existing:
-        existing_price = existing_listing.get("current_price")
-        try:
-            existing_price_int = int(existing_price) if existing_price is not None else None
-        except (TypeError, ValueError):
-            existing_price_int = None
-        if existing_price_int is not None and existing_price_int >= 0:
-            variants = item_payload.get("variants") if isinstance(item_payload, dict) else None
-            variant = variants.get(management_number) if isinstance(variants, dict) else None
-            if isinstance(variant, dict):
-                variant["standardPrice"] = str(existing_price_int)
         existing_stock = existing_listing.get("current_stock")
         try:
             existing_stock_int = int(existing_stock) if existing_stock is not None else 0
@@ -1011,6 +1025,14 @@ def prepare_listing(
         compliance_evidence=evaluation.compliance_evidence,
         forced_bypass_checks=evaluation.forced_bypass_checks,
     )
+    if request.update_existing:
+        prepared["content_refresh"] = True
+        prepared["listing_reason"] = "最新化可能（出品判定は省略・ASIN一致確認済み）"
+        prepared["warnings"].append("最新化: 出品可否判定を省略し、文言変換・ASIN一致確認を実施。価格・在庫は変更しません")
+        for check in prepared["review_checklist"]:
+            if check["key"] in {"amazon_price", "available_qty", "jan_ean", "seller_count_actual", "seller_count_threshold", "amazon_business_ng"}:
+                check.update(status="not_checked", note="最新化では出品条件として判定しません")
+        return prepared
     screened = screen_forced_words(
         prepared, master_data.prohibited_words_rakuten,
         block_company=request.forced_company_brand_block,
@@ -1041,6 +1063,25 @@ def precheck_keepa_before_amazon(
     because the current Amazon title can supply evidence for those cases.
     """
     asin = request.asin.strip().upper()
+    if request.update_existing:
+        # Fetch actual content only; no fabricated Amazon placeholder or
+        # seller/word/marketplace eligibility checks on the refresh path.
+        try:
+            keepa = _resolve_keepa_result(request, asin, keepa_fetcher, [])
+            error = _classify_keepa_result_value(keepa)
+            if keepa is None:
+                error = ("missing_required_data", "Keepa結果がありません")
+            elif isinstance(keepa, KeepaProductData) and keepa.asin.strip().upper() != asin:
+                error = ("business_ng", "ASIN不一致: Keepaの商品ASINが異なります")
+        except Exception as exc:
+            keepa = None
+            error = _classify_keepa_fetch_exception(exc)
+        if error:
+            status, reason = error
+            return {"asin": asin, "store_code": request.store_code, "listing_status": status,
+                    "listing_reason": reason, "blocking_reasons": [reason], "execution_allowed": False,
+                    "amazon_result": None, "keepa_result": None}, None
+        return None, keepa
     placeholder_amazon = AmazonCheckResult(
         requested_asin=asin,
         page_asin=asin,

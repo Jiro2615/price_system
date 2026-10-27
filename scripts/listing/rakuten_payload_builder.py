@@ -150,8 +150,11 @@ def build_item_payload(
     store_settings: StoreSettings,
     amazon_price: int,
     amazon_point: int,
+    preserved_standard_price: int | None = None,
 ) -> dict[str, object]:
-    standard_price = calc_listing_price(
+    if preserved_standard_price is not None and preserved_standard_price <= 0:
+        raise ValueError("既出品の販売価格を取得できないため最新化できません")
+    standard_price = preserved_standard_price if preserved_standard_price is not None else calc_listing_price(
         amazon_price=amazon_price,
         amazon_point=amazon_point,
         store_settings=store_settings,

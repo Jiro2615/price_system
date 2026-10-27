@@ -16,6 +16,7 @@ from scripts.listing.rakuten_item_client import RakutenItemClient
 from scripts.listing.real_readiness_service import save_execution_history_stub
 from scripts.listing.rakuten_transport import build_rakuten_auth_headers
 from scripts.listing.amazon_category_policy import check_current_categories
+from scripts.listing.content_refresh_policy import content_refresh_artifact_error
 
 
 @dataclass
@@ -378,6 +379,13 @@ def build_real_execute_result(
         result["final_status"] = "blocked"
         return result
 
+    if request.content_refresh:
+        identity_error = content_refresh_artifact_error(dry_run_result)
+        if identity_error:
+            result["blocking_reasons"] = [identity_error]
+            result["final_status"] = "blocked"
+            return result
+
     current_history_block = None if request.content_refresh else _current_history_block_reason(
         history_path,
         expected_image_count=_expected_image_count(dry_run_result),
@@ -392,7 +400,7 @@ def build_real_execute_result(
 
     # Recheck after the write slot is acquired, before Cabinet writes.
     try:
-        category_block = check_current_categories(dry_run_result)
+        category_block = None if request.content_refresh else check_current_categories(dry_run_result)
     except RuntimeError as exc:
         result['blocking_reasons'] = [str(exc)]
         result['final_status'] = 'blocked'

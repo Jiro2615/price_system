@@ -8,6 +8,7 @@ from scripts.listing.amazon_category_policy import category_exclusion_result
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
 from scripts.listing.compliance_text import validate_advertiser_name
+from scripts.listing.content_refresh_policy import content_identity_error
 from scripts.listing.models import AmazonCheckResult, EvaluationResult, KeepaProductData, ListingCommonSettings, MasterData, MatchedRule, ResolvedField, StoreSettings
 from scripts.listing.prohibited_word_masking import detect_legacy_spacing_reviews
 from scripts.listing.listing_text_policy import analyze_listing_text_policy
@@ -335,6 +336,7 @@ def evaluate_listing(
     bypass_rules: set[str] | frozenset[str] | None = None,
     require_minimum_same_jan_listings: bool = False,
     minimum_rakuten_shops: int = MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
+    content_refresh: bool = False,
 ) -> EvaluationResult:
     if isinstance(minimum_rakuten_shops, bool) or not isinstance(minimum_rakuten_shops, int) or not 1 <= minimum_rakuten_shops <= 30:
         raise ValueError("minimum_rakuten_shops must be an integer between 1 and 30")
@@ -350,14 +352,14 @@ def evaluate_listing(
     legacy_spacing_reviews: list[dict[str, object]] = []
     forced_bypass_checks: list[dict[str, object]] = []
 
-    category_block = category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
+    category_block = None if content_refresh else category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
     if category_block:
         return EvaluationResult(category_block['listing_status'], category_block['listing_reason'],
                                 [MatchedRule('amazon_category', str(key), category_block['listing_reason'])
                                  for key in category_block['matched_category_ids']], warnings)
 
-    # Digital editions are never eligible, including forced-listing runs.
-    if keepa_result is not None:
+    # Digital editions are never eligible for new listings, including forced runs.
+    if keepa_result is not None and not content_refresh:
         digital_reason = digital_book_reason(keepa_result)
         if digital_reason:
             return EvaluationResult("business_ng", digital_reason, matched_rules, warnings)
@@ -369,12 +371,12 @@ def evaluate_listing(
     if master_data.missing_files:
         warnings.append("missing master files: " + ", ".join(master_data.missing_files))
 
-    if asin in master_data.company_brand_ng:
+    if not content_refresh and asin in master_data.company_brand_ng:
         reason = master_data.company_brand_ng[asin]
         return EvaluationResult("company_brand_blocked", f"蓄積済みの禁止会社・ブランドNG: {reason}",
                                 [MatchedRule("company_brand_ng", asin, reason)], warnings)
 
-    if asin in master_data.kako_ng:
+    if not content_refresh and asin in master_data.kako_ng:
         matched_rules.append(MatchedRule("kakoNG", asin, master_data.kako_ng[asin]))
         if "past_ng" not in bypass_rules:
             return EvaluationResult(
@@ -388,7 +390,7 @@ def evaluate_listing(
             )
         record_bypass("past_ng", f"過去NG: {master_data.kako_ng[asin]}")
 
-    if asin in master_data.blacklist:
+    if not content_refresh and asin in master_data.blacklist:
         matched_rules.append(MatchedRule("blacklist", asin, "ASIN matched blacklist"))
         if "blacklist" not in bypass_rules:
             return EvaluationResult(
@@ -424,7 +426,12 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    if amazon_result.business_ng:
+    if content_refresh:
+        identity_error = content_identity_error(asin, amazon_result)
+        if identity_error:
+            return EvaluationResult("business_ng", identity_error, matched_rules, warnings)
+
+    if amazon_result.business_ng and not content_refresh:
         return EvaluationResult(
             "business_ng",
             amazon_result.ng_reason or "Amazon\u78ba\u8a8d\u3067NG",
@@ -446,7 +453,7 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    if amazon_result.amazon_price is None or amazon_result.amazon_price <= 0:
+    if not content_refresh and (amazon_result.amazon_price is None or amazon_result.amazon_price <= 0):
         return EvaluationResult(
             "business_ng",
             "Amazon\u4fa1\u683c\u304c\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093",
@@ -457,7 +464,7 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    if amazon_result.available_qty is None or amazon_result.available_qty <= 0:
+    if not content_refresh and (amazon_result.available_qty is None or amazon_result.available_qty <= 0):
         return EvaluationResult(
             "business_ng",
             "Amazon\u5728\u5eab\u304c\u3042\u308a\u307e\u305b\u3093",
@@ -468,7 +475,7 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    if amazon_result.gift_available is not True:
+    if not content_refresh and amazon_result.gift_available is not True:
         return EvaluationResult(
             "business_ng",
             "Amazon\u30ae\u30d5\u30c8\u8a2d\u5b9a\u304c\u7121\u52b9\u3067\u3059",
@@ -490,7 +497,10 @@ def evaluate_listing(
             legacy_spacing_reviews=legacy_spacing_reviews,
         )
 
-    if keepa_result.is_adult:
+    if content_refresh and str(keepa_result.asin or "").strip().upper() != asin:
+        return EvaluationResult("business_ng", "ASIN不一致: Keepaの商品ASINが異なります", matched_rules, warnings)
+
+    if keepa_result.is_adult and not content_refresh:
         return EvaluationResult(
             "business_ng",
             "Keepa isAdult=true",
@@ -518,7 +528,13 @@ def evaluate_listing(
         # Do not let legacy product-word cleanup rules alter them.
         description_pc, description_sp = _build_quasi_drug_descriptions(title, keepa_result, quasi_drug_evidence)
 
-    prohibited_analysis = analyze_listing_text_policy(
+    # Refresh shares all text transformations, but never runs new-listing
+    # word screening (including same-JAN exceptions or separate reviews).
+    text_policy = analyze_listing_text_policy if not content_refresh else lambda *args, **kwargs: {
+        "allowed_phrase_matches": [], "matched_forbidden_words": [],
+        "required_separate_checks": [], "matched_separate_check_phrases": [],
+    }
+    prohibited_analysis = text_policy(
         {
             "title": title,
             "description_pc": description_pc,
@@ -715,7 +731,7 @@ def evaluate_listing(
         attribute_fields[f"attribute:{attr_name}"] = cleaned_value
 
     if attribute_fields:
-        attribute_analysis = analyze_listing_text_policy(
+        attribute_analysis = text_policy(
             attribute_fields,
             list(master_data.prohibited_words_rakuten) + list(master_data.prohibited_words_other),
             master_data.allowed_phrase_rules,
@@ -767,7 +783,7 @@ def evaluate_listing(
                 record_bypass("prohibited_words", f"属性の禁止語: {words or '一致あり'}")
                 matched_forbidden_words = []
 
-    legacy_spacing_reviews = detect_legacy_spacing_reviews(
+    legacy_spacing_reviews = [] if content_refresh else detect_legacy_spacing_reviews(
         {
             "title": title_original,
             "description_pc": description_pc_original,
@@ -790,7 +806,9 @@ def evaluate_listing(
         common_settings, common_setting_warnings = load_listing_common_settings(store_settings)
         warnings.extend(common_setting_warnings)
 
-    if keepa_result.avg90_new_offer_count is None:
+    if content_refresh:
+        seller_count_evaluation = {"skipped": True, "reason": "既出品の内容最新化では出品判定を行いません"}
+    elif keepa_result.avg90_new_offer_count is None:
         if "seller_count" not in bypass_rules:
             return EvaluationResult(
                 "business_ng",
@@ -822,7 +840,7 @@ def evaluate_listing(
             actual_value=keepa_result.avg90_new_offer_count,
             minimum_value=common_settings.min_avg90_new_offer_count,
         )
-    if not seller_count_evaluation["passed"]:
+    if not content_refresh and not seller_count_evaluation["passed"]:
         if "seller_count" not in bypass_rules:
             return EvaluationResult(
                 "business_ng",
@@ -861,7 +879,7 @@ def evaluate_listing(
         attributes.append({"name": attr_name, "value": value})
 
     if missing_attrs:
-        if "missing_attributes" not in bypass_rules:
+        if not content_refresh and "missing_attributes" not in bypass_rules:
             return EvaluationResult(
                 "missing_required_data",
                 "\u5c5e\u6027\u4e0d\u8db3: " + ", ".join(missing_attrs),
@@ -885,15 +903,16 @@ def evaluate_listing(
         for attr_name in missing_attrs:
             resolved_attributes[attr_name] = ResolvedField(
                 value="-",
-                source="forced_bypass",
+                source="content_refresh" if content_refresh else "forced_bypass",
                 transform="missing_required_attribute",
                 confidence="none",
-                evidence="条件無視ASIN出品で属性不足を明示的に許可",
+                evidence="最新化の未取得属性は従来のハイフン表記を使用" if content_refresh else "条件無視ASIN出品で属性不足を明示的に許可",
                 fallback_used=True,
                 resolution_action="use_legacy_dash",
             )
             attributes.append({"name": attr_name, "value": "-"})
-        record_bypass("missing_attributes", "属性不足: " + ", ".join(missing_attrs))
+        if not content_refresh:
+            record_bypass("missing_attributes", "属性不足: " + ", ".join(missing_attrs))
 
     article_number = keepa_result.ean or asin
 
@@ -931,7 +950,7 @@ def evaluate_listing(
     # master/data rules. When enabled it retains external resale evidence:
     # distinct Rakuten shops must sell the exact JAN, or the same product must
     # be confirmed through a high-confidence maker/model/title match.
-    if require_minimum_same_jan_listings:
+    if require_minimum_same_jan_listings and not content_refresh:
         marketplace_evidence = rakuten_marketplace_evidence(
             jan_code=keepa_result.ean,
             title=amazon_result.title or keepa_result.title,
@@ -1007,7 +1026,7 @@ def evaluate_listing(
                    if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required"}},
             }
         )
-    elif "rakuten_marketplace_evidence" in bypass_rules:
+    elif "rakuten_marketplace_evidence" in bypass_rules and not content_refresh:
         record_bypass("rakuten_marketplace_evidence", f"楽天複数店舗確認を未判定（{minimum_rakuten_shops}店舗以上の確認を省略）")
 
     return EvaluationResult(
