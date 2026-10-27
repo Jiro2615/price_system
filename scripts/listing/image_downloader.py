@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+import tempfile
 from typing import Any, Callable
 
 from scripts.listing.rakuten_transport import create_requests_session
@@ -52,7 +53,10 @@ def requests_http_get(url: str, timeout_seconds: float, allow_redirects: bool) -
 
 def _relative_output_path(planned_relative_path: str) -> Path:
     posix_path = PurePosixPath(str(planned_relative_path or "").strip())
-    return Path(*posix_path.parts)
+    path = Path(*posix_path.parts)
+    if not posix_path.parts or posix_path.is_absolute() or path.is_absolute() or path.drive or ".." in path.parts:
+        raise ValueError("image output path must be relative and stay inside the download directory")
+    return path
 
 
 def download_image_plan(
@@ -68,6 +72,7 @@ def download_image_plan(
     items = list((plan or {}).get("items") or [])
 
     results: list[DownloadedImageResult] = []
+    execution_root: Path | None = None
     for item in items:
         source_url = str(item.get("source_url") or "").strip()
         relative_path = str(item.get("planned_relative_path") or "").strip()
@@ -79,7 +84,7 @@ def download_image_plan(
             planned_filename=str(item.get("planned_filename") or ""),
             relative_path=relative_path,
             local_path=str(local_path),
-            local_exists=local_path.exists(),
+            local_exists=False,
             download_status="not_started",
             http_status=None,
             content_type=None,
@@ -91,18 +96,6 @@ def download_image_plan(
 
         if not execution_allowed or not item.get("download_required", False):
             base.download_status = "skipped"
-            results.append(base)
-            continue
-
-        if local_path.exists() and local_path.is_file():
-            base.download_status = "reused"
-            base.local_exists = True
-            try:
-                base.file_size = local_path.stat().st_size
-            except OSError as exc:
-                base.download_status = "failed"
-                base.error_type = "filesystem_error"
-                base.error_message = str(exc)
             results.append(base)
             continue
 
@@ -133,6 +126,14 @@ def download_image_plan(
             continue
 
         try:
+            # Legacy files have no reliable product/source provenance. Fetch afresh
+            # into a private execution directory; concurrent runs must not replace
+            # the bytes another run is about to validate or upload.
+            if execution_root is None:
+                output_root.mkdir(parents=True, exist_ok=True)
+                execution_root = Path(tempfile.mkdtemp(prefix="download-", dir=output_root))
+            local_path = execution_root / _relative_output_path(relative_path)
+            base.local_path = str(local_path)
             local_path.parent.mkdir(parents=True, exist_ok=True)
             local_path.write_bytes(response.content)
             base.local_exists = True

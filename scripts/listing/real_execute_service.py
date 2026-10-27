@@ -7,6 +7,7 @@ from typing import Any, Callable
 from scripts.listing.image_downloader import download_image_plan, requests_http_get
 from scripts.listing.image_validator import validate_downloaded_images
 from scripts.listing.image_overlay import overlay_downloader
+from scripts.listing.image_plan import image_upload_resume_error, normalize_image_download_plan
 from scripts.listing.cabinet_rotation import CabinetRotationError, resolve_cabinet_upload_folder
 from scripts.listing.listing_execute_service import ExecuteListingRequest, execute_listing
 from scripts.listing.preflight_service import load_json
@@ -307,6 +308,30 @@ def _write_history(
     )
 
 
+def _restore_uploaded_image_plan(dry_run_result: dict[str, Any], history: dict[str, Any]) -> None:
+    saved = (history.get("response_summaries") or {}).get("uploaded_image_plan")
+    if not saved:
+        return
+    for key in ("asin", "store_code", "management_number"):
+        if str(history.get(key) or "") != str(dry_run_result.get(key) or ""):
+            raise ValueError("保存済み画像の出品先店舗・商品情報が現在の出品データと一致しません")
+    expected = normalize_image_download_plan(
+        dry_run_result.get("image_download_plan"), asin=dry_run_result.get("asin") or "",
+        image_base_name=dry_run_result.get("management_number") or "",
+    )
+    actual_items, expected_items = list(saved.get("items") or []), list(expected.get("items") or [])
+    if len(actual_items) != len(expected_items) or any(
+        any(actual.get(key) != target.get(key) for key in ("order", "source_url", "planned_filename"))
+        or not actual.get("item_location")
+        for actual, target in zip(actual_items, expected_items)
+    ):
+        raise ValueError("保存済みのアップロード画像と現在の出品画像が一致しません")
+    resume_error = image_upload_resume_error({**dry_run_result, "image_download_plan": saved})
+    if resume_error:
+        raise ValueError(resume_error)
+    dry_run_result["image_download_plan"] = saved
+
+
 def build_real_execute_result(
     request: RealExecuteRequest,
     *,
@@ -362,6 +387,17 @@ def build_real_execute_result(
     result["execution_history"]["resume_after_image_upload"] = request.resume_after_image_upload
     result["execution_history"]["resume_after_item_upsert"] = request.resume_after_item_upsert
     history_path = Path(str(duplicate_guard.get("history_path") or "")).resolve() if duplicate_guard.get("history_path") else None
+
+    if request.resume_after_image_upload or request.resume_after_item_upsert:
+        if history_path and history_path.exists():
+            try:
+                _restore_uploaded_image_plan(dry_run_result, load_json(history_path))
+            except (ValueError, OSError) as exc:
+                blocking_reasons.append(str(exc))
+        if not request.resume_after_item_upsert:
+            resume_error = image_upload_resume_error(dry_run_result)
+            if resume_error:
+                blocking_reasons.append(resume_error)
 
     if blocking_reasons:
         result["final_status"] = "blocked"
@@ -496,7 +532,7 @@ def build_real_execute_result(
         final_status=final_status,
         item_registered=item_registered,
         inventory_registered=inventory_registered,
-        images_uploaded=sum(1 for item in upload_results if str(item.get("upload_status") or "") == "uploaded"),
+        images_uploaded=sum(1 for item in upload_results if str(item.get("upload_status") or "") in {"uploaded", "reused"}),
         cleanup_completed=False,
         manual_image_cleanup_completed=request.manual_image_cleanup_completed,
         request_hashes={
@@ -505,6 +541,7 @@ def build_real_execute_result(
         },
         response_summaries={
             "cabinet_destination": resolved_cabinet,
+            "uploaded_image_plan": raw_execute_result.get("uploaded_image_plan"),
             "item_result": item_result,
             "shop_category_result": (raw_execute_result.get("shop_category_result") or {}),
             "inventory_result": inventory_result,

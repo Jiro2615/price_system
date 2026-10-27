@@ -20,6 +20,9 @@ This directory contains design notes and operating guides for
 
 ## Reference Notes
 
+- `listing_image_isolation.md`
+  - Product-specific image filenames, isolated downloads, and safe upload retry behavior.
+
 - `advertiser_encoding.md`
   - Advertiser-name configuration encoding, pre-send guards, and the local diagnostic command.
 

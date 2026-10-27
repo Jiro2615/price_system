@@ -946,7 +946,7 @@ def prepare_listing(
     management_number = requested_management_number or management_bundle.selected
     image_download_plan = image_plan_builder(
         asin=asin,
-        image_base_name=management_bundle.legacy_candidate,
+        image_base_name=management_number,
         image_urls=image_urls,
         image_source=image_source,
         listing_status=evaluation.listing_status,

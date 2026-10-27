@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from scripts.listing.image_downloader import download_image_plan
+from scripts.listing.image_plan import IMAGE_FILENAME_POLICY, image_upload_resume_error, normalize_image_download_plan, product_image_filename
 from scripts.listing.image_validator import validate_downloaded_images
 from scripts.listing.models import sanitize_for_output, to_jsonable
 from scripts.listing.compliance_text import ComplianceTextError, validate_advertiser_payload
@@ -72,6 +73,10 @@ def _build_existing_rakuten_image_locations(dry_run_result: dict[str, Any]) -> l
     store_settings = dict(dry_run_result.get("store_settings") or {})
     cabinet = dict(store_settings.get("cabinet") or {})
     folder_path = str(cabinet.get("folder_path") or "").replace("\\", "/").strip().strip("/")
+    if plan.get("filename_policy") == IMAGE_FILENAME_POLICY:
+        return [f"/{folder_path}/{item['planned_filename']}" for item in plan_items] if folder_path else []
+    # Inventory-only recovery of an already registered legacy item retains its
+    # existing locations. It never uploads images or sends an Item API update.
     management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
     image_base_name = str(
         management_candidates.get("legacy_candidate")
@@ -110,15 +115,11 @@ def _build_upload_metadata(dry_run_result: dict[str, Any], item: Any) -> dict[st
         if source_url and str(candidate.get("source_url") or "") == source_url:
             match = candidate
             break
-    management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
-    image_base_name = str(
-        management_candidates.get("legacy_candidate")
-        or dry_run_result.get("management_number")
-        or dry_run_result.get("asin")
-        or ""
-    ).strip()
-    safe_file_name = f"{image_base_name}_{int(order)}.jpg" if image_base_name and order is not None else ""
-    file_name = str(safe_file_name or (match or {}).get("planned_filename") or getattr(item, "planned_filename", None) or "").strip()
+    file_name = product_image_filename(
+        asin=dry_run_result.get("asin") or "",
+        image_base_name=dry_run_result.get("management_number") or dry_run_result.get("asin") or "",
+        order=int(order or 0), source_url=source_url,
+    )
     cabinet_folder_path = str(cabinet.get("folder_path") or "").replace("\\", "/").strip().strip("/")
     item_location = (match or {}).get("item_location")
     if not item_location and cabinet_folder_path and file_name:
@@ -366,6 +367,10 @@ def execute_listing(
         return _fail(result, status="validation_failed", message=str(exc))
 
     if request.resume_after_image_upload or request.resume_after_item_upsert:
+        if not request.resume_after_item_upsert:
+            resume_error = image_upload_resume_error(dry_run_result)
+            if resume_error:
+                return _fail(result, status="validation_failed", message=resume_error)
         rakuten_image_urls = _build_existing_rakuten_image_locations(dry_run_result)
         expected_image_count = _expected_image_count(dry_run_result)
         resume_reason = "resume_after_item_upsert" if request.resume_after_item_upsert else "resume_after_image_upload"
@@ -387,6 +392,9 @@ def execute_listing(
                 final_state="partial_failure",
             )
     else:
+        dry_run_result["image_download_plan"] = normalize_image_download_plan(
+            dry_run_result.get("image_download_plan"), asin=asin, image_base_name=management_number,
+        )
         download_result = image_downloader(
             dry_run_result.get("image_download_plan"),
             output_root=Path(request.output_root),
@@ -436,6 +444,15 @@ def execute_listing(
         rakuten_image_urls = [str(upload.rakuten_image_url) for upload in upload_results if upload.rakuten_image_url]
         if not rakuten_image_urls:
             return _fail(result, status="image_failed", message="rakuten image URLs were not returned", final_state="partial_failure")
+
+    # Persist the actual names for retries, including executions migrated from
+    # old saved plans. A later inventory retry must not reconstruct legacy URLs.
+    uploaded_plan = copy.deepcopy(dry_run_result.get("image_download_plan") or {})
+    if (uploaded_plan.get("filename_policy") == IMAGE_FILENAME_POLICY
+            and len(uploaded_plan.get("items") or []) == len(rakuten_image_urls)):
+        for planned, location in zip(uploaded_plan["items"], rakuten_image_urls):
+            planned["item_location"] = location
+        result["uploaded_image_plan"] = uploaded_plan
 
     executed_item_payload = _copy_item_payload_with_image_urls(item_payload, rakuten_image_urls)
     item_request = build_item_request(management_number, executed_item_payload, request.item_headers or {}, store_code=store_code)

@@ -5,6 +5,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from scripts.listing.models import to_jsonable
+from scripts.listing.image_plan import product_image_filename
 from scripts.listing.rakuten_inventory_client import build_inventory_request
 from scripts.listing.rakuten_item_client import build_item_request
 from scripts.listing.preflight_service import load_json
@@ -34,10 +35,6 @@ def _normalize_shop_url(value: str | None) -> str:
     return parsed.path.strip("/") if parsed.netloc else raw
 
 
-def _build_safe_image_name(image_base_name: str, order: int) -> str:
-    return f"{str(image_base_name or '').strip()}_{order}.jpg"
-
-
 def _build_image_plan(dry_run_result: dict[str, Any], readiness_result: dict[str, Any], asin: str) -> dict[str, Any]:
     cabinet_config = dict(readiness_result.get("cabinet_config") or {})
     folder_id = cabinet_config.get("folder_id")
@@ -48,11 +45,11 @@ def _build_image_plan(dry_run_result: dict[str, Any], readiness_result: dict[str
     image_urls = [str(item.get("source_url") or "").strip() for item in planned_items if str(item.get("source_url") or "").strip()]
     if not image_urls:
         image_urls = list(dry_run_result.get("image_urls") or [])
-    management_candidates = dict(to_jsonable(dry_run_result.get("management_number_candidates")) or {})
-    image_base_name = str(management_candidates.get("legacy_candidate") or dry_run_result.get("management_number") or asin).strip()
+    image_base_name = str(dry_run_result.get("management_number") or asin).strip()
     items: list[dict[str, Any]] = []
     for index, source_url in enumerate(image_urls, start=1):
-        filename = _build_safe_image_name(image_base_name, index)
+        filename = product_image_filename(asin=asin, image_base_name=image_base_name,
+                                          order=index, source_url=source_url)
         item_location = f"/{folder_path}/{filename}" if folder_path else None
         full_url = f"https://image.rakuten.co.jp/{shop_url}/cabinet/{folder_path}/{filename}" if folder_path and shop_url else None
         items.append(

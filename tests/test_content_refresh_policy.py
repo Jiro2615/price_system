@@ -91,6 +91,15 @@ class ContentRefreshTests(unittest.TestCase):
         self.assertIsNone(rejected)
         self.assertIs(observed, self.keepa)
 
+    def test_refresh_preparation_retains_full_management_identity_for_images(self):
+        names = []
+        for suffix in ("4f86", "0382"):
+            self.existing["management_number"] = "20260926202326_187_" + suffix
+            result = self.prepare()
+            self.assertTrue(result["execution_allowed"])
+            names.append(result["image_download_plan"]["items"][0]["planned_filename"])
+        self.assertNotEqual(*names)
+
     def test_identity_failure_and_retrieval_failure_still_block(self):
         for changes in ({"page_asin": "B000OTHER1"}, {"page_asin": ""}, {"requested_asin": "B000OTHER1"},
                         {"business_ng": True, "ng_reason": "ASIN不一致: canonical mismatch"},
