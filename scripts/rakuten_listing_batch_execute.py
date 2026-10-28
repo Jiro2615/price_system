@@ -352,6 +352,13 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             )
             readiness_path = item_dir / "readiness.json"; save_json(readiness_path, readiness)
             def execute_and_sync():
+                if not args.update_existing:
+                    from scripts.listing.listing_duplicate_check import find_existing_listing
+                    latest_listing = find_existing_listing(asin,args.store)
+                    if latest_listing:
+                        return {**dry,'listing_status':'already_listed','final_status':'already_listed',
+                                'listing_reason':'出品済み、またはASIN入れ替え予約中: '+str(latest_listing.get('management_number') or ''),
+                                'external_actions_performed':False}
                 # Another job may have excluded the ASIN while it waited for
                 # this slot. Check the ledger even if the switches are OFF.
                 durable_reason = None if args.update_existing else load_company_brand_ng(args.store, asin=asin).get(asin)

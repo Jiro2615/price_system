@@ -18,7 +18,7 @@ from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, bui
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.amazon_category_policy import check_current_categories
-from scripts.listing.content_refresh_policy import content_refresh_artifact_error
+from scripts.listing.content_refresh_policy import content_refresh_artifact_error, replacement_artifact_error
 from scripts.listing.rakuten_shop_category_client import (
     DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
     RakutenShopCategoryClient,
@@ -44,6 +44,7 @@ class ExecuteListingRequest:
     resume_after_image_upload: bool = False
     resume_after_item_upsert: bool = False
     content_refresh: bool = False
+    asin_replacement: bool = False
 
 
 def _payload_hash(payload: dict[str, Any] | None) -> str | None:
@@ -350,8 +351,12 @@ def execute_listing(
     if not isinstance(item_payload, dict) or not isinstance(inventory_payload, dict):
         return _fail(result, status="validation_failed", message="item_payload and inventory_payload are required")
     try:
+        if dry_run_result.get('replace_source_asin') and not request.asin_replacement:
+            return _fail(result,status='validation_failed',message='ASIN入れ替え専用の実行経路が必要です')
+        if request.asin_replacement and not request.content_refresh:
+            return _fail(result,status='validation_failed',message='入れ替え中の在庫自動送信は許可しません')
         if request.content_refresh:
-            identity_error = content_refresh_artifact_error(dry_run_result)
+            identity_error = replacement_artifact_error(dry_run_result) if request.asin_replacement else content_refresh_artifact_error(dry_run_result)
             if identity_error:
                 return _fail(result, status="validation_failed", message=identity_error)
         category_block = None if request.content_refresh else (category_checker or check_current_categories)(dry_run_result)

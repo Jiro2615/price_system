@@ -219,6 +219,12 @@ def _build_management_number_consistency(dry_run_result: dict[str, Any], argumen
     values = [management_number, item_number, variant_key, inventory_management, inventory_variant_key]
     present_values = [value for value in values if value]
     argument_match = (not argument_management_number) or argument_management_number == management_number
+    all_match = bool(present_values) and len(set(present_values)) == 1 and argument_match
+    if dry_run_result.get('replace_source_asin'):
+        expected_sku = str(dry_run_result.get('replace_sku_code') or '').strip()
+        all_match = (bool(management_number) and item_number == inventory_management == management_number
+                     and bool(expected_sku) and variant_key == inventory_variant_key == expected_sku
+                     and argument_match and len(item_payload.get('variants') or {}) == 1)
     return {
         "dry_run_management_number": management_number,
         "argument_management_number": argument_management_number,
@@ -226,7 +232,7 @@ def _build_management_number_consistency(dry_run_result: dict[str, Any], argumen
         "item_payload_variant_key": variant_key,
         "inventory_payload_managementNumber": inventory_management,
         "inventory_payload_variantKey": inventory_variant_key,
-        "all_match": bool(present_values) and len(set(present_values)) == 1 and argument_match,
+        "all_match": all_match,
         "argument_match": argument_match,
     }
 

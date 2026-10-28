@@ -17,7 +17,7 @@ from scripts.listing.rakuten_item_client import RakutenItemClient
 from scripts.listing.real_readiness_service import save_execution_history_stub
 from scripts.listing.rakuten_transport import build_rakuten_auth_headers
 from scripts.listing.amazon_category_policy import check_current_categories
-from scripts.listing.content_refresh_policy import content_refresh_artifact_error
+from scripts.listing.content_refresh_policy import content_refresh_artifact_error, replacement_artifact_error
 
 
 @dataclass
@@ -44,6 +44,7 @@ class RealExecuteRequest:
     resume_after_image_upload: bool = False
     resume_after_item_upsert: bool = False
     content_refresh: bool = False
+    asin_replacement: bool = False
 
 
 def _compact_text_validation_issues(issues: Any) -> list[str]:
@@ -415,8 +416,16 @@ def build_real_execute_result(
         result["final_status"] = "blocked"
         return result
 
+    if dry_run_result.get("replace_source_asin") and not request.asin_replacement:
+        result["blocking_reasons"] = ["ASIN入れ替え専用の実行経路が必要です"]
+        result["final_status"] = "blocked"
+        return result
+    if request.asin_replacement and (not request.content_refresh or not dry_run_result.get("replace_source_asin")):
+        result["blocking_reasons"] = ["ASIN入れ替え専用の準備結果が必要です"]
+        result["final_status"] = "blocked"
+        return result
     if request.content_refresh:
-        identity_error = content_refresh_artifact_error(dry_run_result)
+        identity_error = replacement_artifact_error(dry_run_result) if request.asin_replacement else content_refresh_artifact_error(dry_run_result)
         if identity_error:
             result["blocking_reasons"] = [identity_error]
             result["final_status"] = "blocked"
@@ -510,6 +519,7 @@ def build_real_execute_result(
             resume_after_image_upload=request.resume_after_image_upload,
             resume_after_item_upsert=request.resume_after_item_upsert,
             content_refresh=request.content_refresh,
+            asin_replacement=request.asin_replacement,
         ),
         http_get=http_get,
         image_downloader=image_downloader,

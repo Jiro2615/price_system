@@ -47,3 +47,20 @@ def content_refresh_artifact_error(result: dict) -> str | None:
     if str(keepa_asin or "").strip().upper() != str(result.get("asin") or "").strip().upper():
         return "ASIN不一致: Keepaの商品ASINが異なります"
     return None
+
+
+def replacement_artifact_error(result: dict) -> str | None:
+    """A replacement can resume stock; content-only refresh cannot."""
+    error = content_refresh_artifact_error(result)
+    if error:
+        return error
+    source = str(result.get('replace_source_asin') or '')
+    if not source or source == result.get('asin'):
+        return 'ASIN入れ替え元の確認がありません'
+    amazon = result['amazon_result']
+    get = amazon.get if isinstance(amazon,dict) else lambda key:getattr(amazon,key,None)
+    if get('business_ng') or get('gift_available') is not True:
+        return '新ASINの発注条件を満たしていません'
+    if not get('amazon_price') or get('amazon_price') <= 0 or not get('available_qty') or get('available_qty') <= 0:
+        return '新ASINの価格・在庫を確認できません'
+    return None

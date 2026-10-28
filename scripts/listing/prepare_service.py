@@ -41,6 +41,9 @@ class PrepareListingRequest:
     skip_keepa: bool = False
     management_number: str = ""
     update_existing: bool = False
+    # Only the confirmed ASIN replacement worker supplies this. Ordinary
+    # content refresh continues preserving the existing price and stock.
+    replace_source_asin: str = ""
     allow_missing_master: bool = False
     page_timeout_ms: int = 15000
     store_settings_json: Path | None = None
@@ -560,6 +563,8 @@ def prepare_listing(
     existing_listing = None if request.offline else existing_listing_lookup(asin, request.store_code)
     if request.update_existing and not existing_listing:
         raise RuntimeError("最新化対象の有効な既出品がありません（新規出品は行いません）")
+    if request.update_existing and existing_listing and existing_listing.get('replacement_reserved'):
+        raise RuntimeError("ASIN入れ替え依頼が残っています。専用画面で状態を確認してください")
     if existing_listing and not request.update_existing:
         existing_management_number = str(existing_listing.get("management_number") or "")
         existing_source = str(existing_listing.get("source") or "store_products")
@@ -579,6 +584,11 @@ def prepare_listing(
         )
 
     if existing_listing and request.update_existing:
+        if request.replace_source_asin and (
+            request.replace_source_asin == asin
+            or existing_listing.get("asin") != request.replace_source_asin
+        ):
+            raise RuntimeError("ASIN入れ替え元の商品確認が一致しません")
         existing_management_number = str(existing_listing.get("management_number") or "").strip()
         if not existing_management_number:
             raise RuntimeError("既出品の管理番号が取得できないため最新化できません")
@@ -620,6 +630,14 @@ def prepare_listing(
         master_data = apply_asin_master_overrides(master_data, request.store_code, request.asin)
     amazon_result = _resolve_amazon_result(request, asin, amazon_fetcher, warnings)
     amazon_classification = _classify_amazon_result(asin, amazon_result, content_refresh=request.update_existing)
+    if request.replace_source_asin:
+        if not request.update_existing:
+            raise RuntimeError("ASIN入れ替えは既存商品専用です")
+        # Refresh normally ignores sale eligibility; replacement explicitly
+        # resumes selling, so BOTH identity and fresh purchasing checks apply.
+        amazon_classification = amazon_classification or _classify_amazon_result(asin, amazon_result)
+        if amazon_result is None:
+            amazon_classification = ("system_error", "新ASINのAmazon確認結果がありません")
     if amazon_classification is not None:
         listing_status, listing_reason = amazon_classification
         return _base_result(
@@ -639,7 +657,7 @@ def prepare_listing(
     # Price rules are selected by the checked Amazon price.  The initial
     # settings load is still used for local prechecks; reload only the default
     # production loader here so injected/offline test settings remain intact.
-    if not request.update_existing and store_settings_loader is load_store_settings and amazon_result and amazon_result.amazon_price:
+    if (not request.update_existing or request.replace_source_asin) and store_settings_loader is load_store_settings and amazon_result and amazon_result.amazon_price:
         store_settings = store_settings_loader(
             request.store_code,
             amazon_price=int(amazon_result.amazon_price),
@@ -954,7 +972,7 @@ def prepare_listing(
     )
 
     price_options = {}
-    if request.update_existing:
+    if request.update_existing and not request.replace_source_asin:
         try:
             existing_price = int(existing_listing.get("current_price"))
         except (TypeError, ValueError):
@@ -976,7 +994,7 @@ def prepare_listing(
         quantity=int(amazon_result.available_qty or 0),
         store_settings=store_settings,
     )
-    if existing_listing and request.update_existing:
+    if existing_listing and request.update_existing and not request.replace_source_asin:
         existing_stock = existing_listing.get("current_stock")
         try:
             existing_stock_int = int(existing_stock) if existing_stock is not None else 0
@@ -1027,6 +1045,11 @@ def prepare_listing(
     )
     if request.update_existing:
         prepared["content_refresh"] = True
+        if request.replace_source_asin:
+            prepared["replace_source_asin"] = request.replace_source_asin
+            prepared["listing_reason"] = "ASIN入れ替え準備完了（新ASINの価格・在庫・配送条件を確認）"
+            prepared["warnings"].append("専用の入れ替え処理のみで実行してください。通常の最新化では実行できません")
+            return prepared
         prepared["listing_reason"] = "最新化可能（出品判定は省略・ASIN一致確認済み）"
         prepared["warnings"].append("最新化: 出品可否判定を省略し、文言変換・ASIN一致確認を実施。価格・在庫は変更しません")
         for check in prepared["review_checklist"]:

@@ -5,6 +5,17 @@ from typing import Any
 from scripts.db_config import connect_db
 
 
+def _replacement_reservations(cur, asins, store_code):
+    cur.execute("SELECT to_regclass('public.listing_asin_replacements') IS NOT NULL")
+    if not cur.fetchone()[0]:
+        return {}
+    cur.execute("""SELECT target_asin,management_number FROM listing_asin_replacements
+        WHERE LOWER(store_code)=LOWER(%s) AND target_asin=ANY(%s)
+        AND state NOT IN ('completed','failed','canceled')""",(store_code,asins))
+    return {asin:{'management_number':number,'source':'asin_replacement_reservation',
+                  'replacement_reserved':True} for asin,number in cur.fetchall()}
+
+
 def find_existing_listings(asins: list[str], store_code: str) -> dict[str, dict[str, Any]]:
     """Bulk form of the same current-listing predicate; never use audit history."""
     normalized = list(dict.fromkeys(asin.strip().upper() for asin in asins if asin.strip()))
@@ -12,6 +23,7 @@ def find_existing_listings(asins: list[str], store_code: str) -> dict[str, dict[
         return {}
     found = {}
     with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
+        reserved = _replacement_reservations(cur,normalized,store_code)
         for offset in range(0, len(normalized), 1000):
             cur.execute(
                 """
@@ -33,7 +45,7 @@ def find_existing_listings(asins: list[str], store_code: str) -> dict[str, dict[
                         "current_stock": stock, "sku_code": str(sku or code).strip(),
                         "source": "store_products",
                     }
-    return found
+    return {**found,**reserved}
 
 
 def find_existing_listing(asin: str, store_code: str) -> dict[str, Any] | None:
@@ -44,6 +56,9 @@ def find_existing_listing(asin: str, store_code: str) -> dict[str, Any] | None:
     from ``store_products`` must allow the ASIN to be listed again.
     """
     with connect_db(options="-c default_transaction_read_only=on") as conn, conn.cursor() as cur:
+        reserved = _replacement_reservations(cur,[asin.strip().upper()],store_code)
+        if reserved:
+            return reserved[asin.strip().upper()]
         cur.execute(
             """
             SELECT sp.mall_item_code, sp.current_price, sp.current_stock,
