@@ -979,6 +979,8 @@ def evaluate_listing(
             evidence_summary += " / 店舗数確認では個数・セット数不問"
         if marketplace_evidence.get("postage_included_required") is False:
             evidence_summary += " / 店舗数確認では送料条件不問"
+        if marketplace_evidence.get("shop_grouping_policy"):
+            evidence_summary += f" / 店名・同系列候補で集約: 名義{marketplace_evidence['raw_shop_count']}店舗→{confirmed_shop_count}店舗分"
         if query:
             evidence_summary += f" / 検索: {query}"
         reference_min_price = marketplace_evidence.get("reference_min_price")
@@ -991,6 +993,13 @@ def evaluate_listing(
         if marketplace_evidence.get("different_pack_price_items_excluded"):
             evidence_summary += f" / 個数・セット数が異なる{marketplace_evidence['different_pack_price_items_excluded']}件は価格比較から除外"
         warnings.append(evidence_summary)
+        for group in marketplace_evidence.get("shop_groups") or []:
+            if int(group.get("raw_shop_count") or 0) > 1:
+                names = group.get("shop_names") or group.get("shop_codes") or []
+                detail = " / ".join(str(name) for name in names[:12])
+                if len(names) > 12:
+                    detail += f" / 他{len(names)-12}名称"
+                warnings.append(f"店舗名から同系列候補として1店舗分に集約（運営会社の同一性は未確認）: {detail}")
         rejection_labels = {"jan_not_attested": "検索結果にJAN記載なし", "identity_not_proven": "同一商品を確認できず",
                             "pack_mismatch": "個数・セット数違い", "capacity_mismatch": "容量違い",
                             "capacity_or_spec_mismatch": "容量・仕様違い", "colour_mismatch": "色違い",
@@ -1023,7 +1032,8 @@ def evaluate_listing(
                 "minimum_shops": minimum_shops,
                 "confirmed_shop_count": confirmed_shop_count,
                 **{key: value for key, value in marketplace_evidence.items()
-                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required"}},
+                   if key.startswith("reference_") or key.endswith("price_items_excluded") or key in {"search_attempts", "pack_count_required", "postage_included_required",
+                       "shop_grouping_policy", "raw_shop_count", "merged_shop_count", "shop_groups"}},
             }
         )
     elif "rakuten_marketplace_evidence" in bypass_rules and not content_refresh:

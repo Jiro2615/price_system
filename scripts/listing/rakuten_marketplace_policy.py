@@ -13,6 +13,7 @@ from urllib.parse import unquote, urlsplit, urlunsplit
 import requests
 from dotenv import load_dotenv
 from scripts.listing.rakuten_search_client import search_items
+from scripts.listing.rakuten_shop_groups import shop_identity as _shop_identity, shop_group_evidence
 
 
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
@@ -59,16 +60,6 @@ def _item_mentions_exact_jan(item: object, jan: str) -> bool:
 def _search_items(keyword: str, timeout: float, *, postage_included: bool = True) -> list[dict[str, Any]] | None:
     """API failures are acquisition errors, never an empty-product result."""
     return search_items(keyword, timeout, postage_included=postage_included)
-
-
-def _shop_identity(item: dict[str, Any]) -> str:
-    """Return a stable shop key so multiple variants from one shop count once."""
-    for key in ("shopCode", "shopUrl", "shopName"):
-        value = re.sub(r"\s+", "", str(item.get(key) or "")).casefold()
-        if value:
-            return f"{key}:{value}"
-    # A result without shop information cannot demonstrate a separate seller.
-    return ""
 
 
 def _shop_names(items: list[dict[str, Any]]) -> list[str]:
@@ -554,16 +545,17 @@ def rakuten_marketplace_evidence(
     minimum_shops: int = MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
     timeout: float = 15.0,
 ) -> dict[str, Any] | None:
-    """Confirm independent Rakuten shops for a forced-listing product.
+    """Count conservatively distinct Rakuten shop groups for a forced listing.
 
     Exact JAN is preferred.  If merchants omit JANs, a high-confidence title
-    match may also pass, but only after deduplicating by shop identity.  This
+    match may also pass, after deduplicating raw IDs and name/family candidates. This
     deliberately does not accept a broad name-only hit. Sale-pack counts are
     not product-identity requirements here, but remain price requirements.
     """
     minimum_shops = max(1, int(minimum_shops))
     attempts: list[dict[str, Any]] = []
     identity = dict(title=title, brand=brand, manufacturer=manufacturer, model=model, part_number=part_number)
+    maker_aliases = _maker_aliases(brand, manufacturer)
     jan = re.sub(r"\D", "", str(jan_code or ""))
     jan_items = _search_items(jan, timeout, postage_included=False) if jan else []
     if jan_items is None:
@@ -579,28 +571,25 @@ def rakuten_marketplace_evidence(
             matching_text_items.append(item)
         else:
             jan_rejected["jan_not_attested"] += 1
-    exact_shops = _shop_names(exact_items)
-    text_shops = _text_only_shop_names(exact_items, matching_text_items)
-    confirmed_shops = _shop_names([*exact_items, *matching_text_items])
+    shops = shop_group_evidence(exact_items, matching_text_items, maker_aliases=maker_aliases)
     if jan:
         attempts.append({"kind": "jan", "query": jan, "raw_result_count": len(jan_items),
-                         "matched_item_count": len(exact_items) + len(matching_text_items), "matched_shop_count": len(confirmed_shops),
+                         "matched_item_count": len(exact_items) + len(matching_text_items), "matched_shop_count": shops['confirmed_shop_count'],
+                         "raw_shop_count": shops['raw_shop_count'], "merged_shop_count": shops['merged_shop_count'],
                          "postage_included_only": False,
                          "jan_url_match_count": sum("itemUrl_path" in _jan_evidence_sources(item, jan) for item in exact_items),
                          "core_name_match_count": sum(_matches_product_name_core(item, **identity) for item in matching_text_items),
                          "rejected_counts": dict(jan_rejected)})
-    if len(confirmed_shops) >= minimum_shops:
+    if shops['confirmed_shop_count'] >= minimum_shops:
         return {
             "accepted": True,
-            "source": "jan_and_text_high_confidence" if exact_shops and text_shops else ("jan_exact" if exact_shops else "text_high_confidence"),
+            "source": "jan_and_text_high_confidence" if shops['jan_exact_shop_count'] and shops['text_match_shop_count'] else ("jan_exact" if shops['jan_exact_shop_count'] else "text_high_confidence"),
             "minimum_shops": minimum_shops,
             "pack_count_required": False,
             "postage_included_required": False,
-            "jan_exact_shop_count": len(exact_shops),
-            "text_match_shop_count": len(text_shops),
-            "confirmed_shop_count": len(confirmed_shops),
+            **shops,
             "query": jan,
-            "shop_names": confirmed_shops[:minimum_shops],
+            "shop_names": shops['shop_names'][:minimum_shops],
             "search_attempts": attempts,
             **_reference_price_summary([*exact_items, *matching_text_items], title),
         }
@@ -621,11 +610,9 @@ def rakuten_marketplace_evidence(
             "minimum_shops": minimum_shops,
             "pack_count_required": False,
             "postage_included_required": False,
-            "jan_exact_shop_count": len(exact_shops),
-            "text_match_shop_count": len(text_shops),
-            "confirmed_shop_count": len(confirmed_shops),
+            **shops,
             "query": "",
-            "shop_names": confirmed_shops[:minimum_shops],
+            "shop_names": shops['shop_names'][:minimum_shops],
             "search_attempts": attempts,
             **_reference_price_summary([*exact_items, *matching_text_items], title),
         }
@@ -651,28 +638,26 @@ def rakuten_marketplace_evidence(
                 matched_text.append(item)
         exact_items.extend(matched_jan)
         matching_text_items.extend(matched_text)
+        attempt_shops = shop_group_evidence(matched_jan, matched_text, maker_aliases=maker_aliases)
         attempts.append({"kind": "text", "query": query, "raw_result_count": len(text_items),
-                         "matched_item_count": len(matched), "matched_shop_count": len(_shop_names(matched)),
+                         "matched_item_count": len(matched), "matched_shop_count": attempt_shops['confirmed_shop_count'],
+                         "raw_shop_count": attempt_shops['raw_shop_count'], "merged_shop_count": attempt_shops['merged_shop_count'],
                          "postage_included_only": False,
                          "jan_url_match_count": sum("itemUrl_path" in _jan_evidence_sources(item, jan) for item in matched_jan),
                          "core_name_match_count": sum(_matches_product_name_core(item, **identity) for item in matched_text),
                          "rejected_counts": dict(rejected)})
-        if len(_shop_names([*exact_items, *matching_text_items])) >= minimum_shops:
+        shops = shop_group_evidence(exact_items, matching_text_items, maker_aliases=maker_aliases)
+        if shops['confirmed_shop_count'] >= minimum_shops:
             break
-    exact_shops = _shop_names(exact_items)
-    text_shops = _text_only_shop_names(exact_items, matching_text_items)
-    confirmed_shops = _shop_names([*exact_items, *matching_text_items])
     return {
-        "accepted": len(confirmed_shops) >= minimum_shops,
-        "source": "jan_and_text_high_confidence" if exact_shops and text_shops else ("jan_exact" if exact_shops else "text_high_confidence"),
+        "accepted": shops['confirmed_shop_count'] >= minimum_shops,
+        "source": "jan_and_text_high_confidence" if shops['jan_exact_shop_count'] and shops['text_match_shop_count'] else ("jan_exact" if shops['jan_exact_shop_count'] else "text_high_confidence"),
         "minimum_shops": minimum_shops,
         "pack_count_required": False,
         "postage_included_required": False,
-        "jan_exact_shop_count": len(exact_shops),
-        "text_match_shop_count": len(text_shops),
-        "confirmed_shop_count": len(confirmed_shops),
+        **shops,
         "query": query,
-        "shop_names": confirmed_shops[:minimum_shops],
+        "shop_names": shops['shop_names'][:minimum_shops],
         "search_attempts": attempts,
         **_reference_price_summary([*exact_items, *matching_text_items], title),
     }
