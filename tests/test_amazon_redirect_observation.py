@@ -21,6 +21,7 @@ class RedirectTests(unittest.IsolatedAsyncioTestCase):
             page=self.page(url)
             result=await c.capture_redirect_observation(page,OLD,{'selected_asin':NEW})
             self.assertEqual(result['target_asin'],NEW)
+            self.assertEqual(result['page_url_asin'],url)
             self.assertEqual(result['title'],'New title')
             self.assertEqual(result['image_url'],IMAGE)
             self.assertFalse(result['error'])
@@ -44,6 +45,7 @@ class RedirectTests(unittest.IsolatedAsyncioTestCase):
             result=await c.capture_redirect_observation(self.page(**changes),OLD,{'selected_asin':NEW})
             self.assertEqual(result['error'],'identity_unconfirmed')
             self.assertFalse(result['image_url'])
+            self.assertNotIn('page_url_asin',result)
 
     async def test_error_and_missing_image_never_affect_business_result(self):
         page=self.page(images=['https://evil.invalid/image.jpg'])

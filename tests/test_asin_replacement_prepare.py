@@ -64,3 +64,30 @@ class AsinReplacementPrepareTests(ContentRefreshTests):
         self.existing['replacement_reserved']=True
         with self.assertRaisesRegex(RuntimeError,'入れ替え依頼'):
             self.prepare()
+
+    def mock_replacement(self, explicit=True, mutate=None):
+        from scripts.listing.mock_execute_service import build_mock_execute_result
+        dry = self.replacement()
+        if mutate:
+            mutate(dry)
+        preflight = {'asin':self.asin,'management_number':dry['management_number'],
+                     'preflight_status':'passed','ready_for_mock_execute':True}
+        with patch('scripts.listing.listing_execute_service.time.sleep'):
+            return build_mock_execute_result(dry,preflight,asin=self.asin,
+                management_number=dry['management_number'],approved=True,asin_replacement=explicit)
+
+    def test_replacement_mock_reproduces_missing_flag_and_passes_explicit_path(self):
+        missing = self.mock_replacement(explicit=False)
+        self.assertEqual(missing['final_status'],'validation_failed')
+        self.assertIn('ASIN入れ替え専用の実行経路',str(missing['errors']))
+        result = self.mock_replacement()
+        self.assertEqual(result['final_status'],'completed',result.get('errors'))
+        self.assertTrue(result['mock_only'])
+        self.assertFalse(result['external_actions_performed'])
+        self.assertTrue(result['raw_execute_result']['inventory_result']['skipped'])
+
+    def test_replacement_mock_still_checks_identity_price_and_inventory(self):
+        for changes in ({'page_asin':'B000OTHER1'},{'available_qty':0},{'gift_available':False},{'amazon_price':None}):
+            with self.subTest(changes=changes):
+                result = self.mock_replacement(mutate=lambda dry:dry.update(amazon_result=replace(self.amazon,**changes)))
+                self.assertEqual(result['final_status'],'validation_failed')

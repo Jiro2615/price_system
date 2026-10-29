@@ -86,7 +86,8 @@ async def capture_redirect_observation(page, source, initial):
         }''')
         if not isinstance(snapshot, dict) or redirect_target(source, snapshot.get('url'), snapshot.get('identity')) != target:
             return record
-        record.update(target_asin=target, title=str(snapshot.get('title') or '').strip()[:2000])
+        record.update(target_asin=target, title=str(snapshot.get('title') or '').strip()[:2000],
+                      page_url_asin=_identity.url_asin(snapshot.get('url')))
         for value in snapshot.get('images') or []:
             url = str(value or '').strip()
             try:

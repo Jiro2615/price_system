@@ -466,6 +466,7 @@ def build_mock_execute_result(
     management_number: str,
     approved: bool,
     fail_step: str = "",
+    asin_replacement: bool = False,
 ) -> dict[str, Any]:
     validation_errors = _determine_validation_errors(preflight_result, dry_run_result, asin, management_number, approved)
     execution_sequence = [
@@ -510,6 +511,10 @@ def build_mock_execute_result(
             approved=True,
             asin=asin,
             management_number=management_number,
+            # Exercise exactly the guarded replacement path. Never infer
+            # authorization from an artifact in the ordinary listing flow.
+            asin_replacement=asin_replacement,
+            content_refresh=asin_replacement,
             # Mock downloaders return metadata only, so a stable workspace path
             # is sufficient and avoids creating temporary directories on Windows.
             output_root=MOCK_TEMP_ROOT,
