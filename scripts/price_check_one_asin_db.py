@@ -55,6 +55,9 @@ def redirect_target(source, page_url, observation):
     details = observation.get('detail_asins')
     if isinstance(details, list):
         values.extend(_identity.normalized_asin(v) for v in details)
+    purchases = observation.get('purchase_asins')
+    if isinstance(purchases, list):
+        values.extend(_identity.normalized_asin(v) for v in purchases)
     identities = set(values) - {''}
     if len(identities) != 1:
         return ''

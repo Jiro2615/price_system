@@ -28,7 +28,8 @@ class RedirectTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_conflicting_dom_url_only_or_foreign_host_cannot_label_image(self):
         for evidence in ({}, {'selected_asin':OLD,'canonical_url':URL+NEW},
-                         {'selected_asin':NEW,'detail_asins':[OTHER]}):
+                         {'selected_asin':NEW,'detail_asins':[OTHER]},
+                         {'selected_asin':NEW,'purchase_asins':[OTHER]}):
             page=self.page()
             result=await c.capture_redirect_observation(page,OLD,evidence)
             self.assertFalse(result['target_asin'])
