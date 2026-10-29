@@ -22,6 +22,7 @@ _identity_spec.loader.exec_module(_identity)
 
 
 async def verify_product_identity(page, asin, result):
+    result['amazon_redirect_observation'] = None
     try:
         observation = await page.evaluate(_identity.PRODUCT_IDENTITY_JS)
     except Exception:
@@ -35,8 +36,71 @@ async def verify_product_identity(page, asin, result):
                       amazon_main_image_error='asin_mismatch' if reason.startswith('ASIN不一致') else 'asin_unverified',
                       amazon_main_image_checked_at=datetime.now(timezone.utc).isoformat(),
                       amazon_main_image_verified_asin=asin)
+        if reason.startswith('ASIN不一致'):
+            result['amazon_redirect_observation'] = await capture_redirect_observation(page, asin, observation)
         return False
     return True
+
+
+def redirect_target(source, page_url, observation):
+    """Only coherent page identity can label a preview, never authorize a sale.
+
+    Amazon sometimes keeps the requested URL while changing the selected item.
+    Accept that URL only when all available DOM identities agree on one target.
+    """
+    if not isinstance(observation, dict):
+        return ''
+    values = [_identity.normalized_asin(observation.get('selected_asin')),
+              _identity.url_asin(observation.get('canonical_url'))]
+    details = observation.get('detail_asins')
+    if isinstance(details, list):
+        values.extend(_identity.normalized_asin(v) for v in details)
+    identities = set(values) - {''}
+    if len(identities) != 1:
+        return ''
+    target = identities.pop()
+    url_asin = _identity.url_asin(page_url)
+    return target if target != source and url_asin in {source, target} else ''
+
+
+async def capture_redirect_observation(page, source, initial):
+    """Metadata from one DOM snapshot. No waits, navigation or image downloads."""
+    record = {'source_asin':source, 'target_asin':'', 'title':'', 'image_url':'',
+              'checked_at':datetime.now(timezone.utc).isoformat(), 'error':'identity_unconfirmed'}
+    target = redirect_target(source, page.url, initial)
+    if not target:
+        return record
+    try:
+        snapshot = await page.evaluate('''() => {
+            const identity = (''' + _identity.PRODUCT_IDENTITY_JS + ''')();
+            const image = document.querySelector('#landingImage, #imgBlkFront, #ebooksImgBlkFront');
+            let dynamic = {};
+            try { dynamic = JSON.parse(image?.getAttribute('data-a-dynamic-image') || '{}'); } catch (_) {}
+            const urls = Object.entries(dynamic).sort((a,b) =>
+                ((b[1]?.[0]||0)*(b[1]?.[1]||0))-((a[1]?.[0]||0)*(a[1]?.[1]||0))).map(x=>x[0]);
+            return {identity, url:location.href, title:document.querySelector('#productTitle')?.textContent || '',
+                images:[image?.getAttribute('data-old-hires'), ...urls, image?.currentSrc, image?.src]};
+        }''')
+        if not isinstance(snapshot, dict) or redirect_target(source, snapshot.get('url'), snapshot.get('identity')) != target:
+            return record
+        record.update(target_asin=target, title=str(snapshot.get('title') or '').strip()[:2000])
+        for value in snapshot.get('images') or []:
+            url = str(value or '').strip()
+            try:
+                parts = urlsplit(url)
+                if (len(url) <= 2048 and parts.scheme == 'https' and parts.hostname in {
+                        'm.media-amazon.com', 'images-na.ssl-images-amazon.com',
+                        'images-fe.ssl-images-amazon.com', 'images-eu.ssl-images-amazon.com'}
+                        and not parts.username and not parts.password and parts.port in (None,443)
+                        and parts.path.startswith('/images/') and not parts.fragment):
+                    record['image_url'] = url
+                    break
+            except ValueError:
+                continue
+        record['error'] = '' if record['title'] and record['image_url'] else 'metadata_unavailable'
+    except Exception:
+        record['error'] = 'metadata_read_failed'
+    return record
 
 try:
     from scripts.db_config import connect_db
