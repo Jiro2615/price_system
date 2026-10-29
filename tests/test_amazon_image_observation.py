@@ -14,6 +14,7 @@ import amazon_image_observation as images
 class ObservationTests(unittest.TestCase):
     def setUp(self):
         images._schema = (0.0, False)
+        images._redirect_schema = (0.0, False)
         self.cur = MagicMock()
         self.cur.fetchall.return_value = [(name,) for name in ("amazon_main_image_url", "amazon_main_image_checked_at", "amazon_main_image_error")]
         self.data = {"asin": "B000000001", "amazon_main_image_verified_asin": "B000000001",
@@ -78,6 +79,32 @@ class ObservationTests(unittest.TestCase):
         self.assertIn("UPDATE amazon_products", self.cur.execute.call_args_list[-1].args[0])
         conn.commit.assert_called_once()
         conn.close.assert_called_once()
+
+    def test_redirect_is_separate_optional_source_column_without_target_insert(self):
+        record = {'source_asin':self.data['asin'],'target_asin':'B000NEW001','title':'New',
+                  'image_url':self.data['amazon_main_image_url'],'checked_at':self.data['amazon_main_image_checked_at']}
+        data={**self.data,'business_ng':True,'ng_reason':'ASIN不一致 current=B000NEW001','amazon_redirect_observation':record}
+        self.cur.fetchone.return_value=(1,)
+        images.record_redirect_observation(self.cur,data)
+        sql,values=self.cur.execute.call_args.args
+        self.assertIn('SET amazon_redirect_observation=',sql)
+        self.assertNotIn('title=',sql);self.assertNotIn('amazon_price',sql)
+        self.assertEqual(values[1],self.data['asin'])
+        self.assertEqual(values[0].obj['target_asin'],'B000NEW001')
+        self.assertNotIn('ALTER',' '.join(c.args[0] for c in self.cur.execute.call_args_list))
+
+    def test_redirect_missing_migration_and_wrong_source_are_safe(self):
+        self.cur.fetchone.return_value=None
+        images.record_redirect_observation(self.cur,{**self.data,'amazon_redirect_observation':None})
+        self.assertEqual(self.cur.execute.call_count,1)
+        images.record_redirect_observation(self.cur,{**self.data,'amazon_redirect_observation':{'source_asin':'WRONG'}})
+        self.assertEqual(self.cur.execute.call_count,1)
+
+    def test_redirect_valid_identity_clears_old_preview(self):
+        self.cur.fetchone.return_value=(1,)
+        images.record_redirect_observation(self.cur,{**self.data,'amazon_redirect_observation':None})
+        self.assertEqual(self.cur.execute.call_args.args[1],(None,self.data['asin'],None))
+        self.assertIn('IS DISTINCT FROM',self.cur.execute.call_args.args[0])
 
 
 if __name__ == "__main__":

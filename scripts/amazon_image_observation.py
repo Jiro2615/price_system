@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 _lock = threading.Lock()
 _schema = (0.0, False)
+_redirect_schema = (0.0, False)
 IMAGE_HOSTS = frozenset({"m.media-amazon.com", "images-na.ssl-images-amazon.com",
                          "images-fe.ssl-images-amazon.com", "images-eu.ssl-images-amazon.com"})
 
@@ -58,3 +59,38 @@ def record_main_image(cur, data):
         amazon_main_image_checked_at=%s,amazon_main_image_error=%s
         WHERE asin=%s AND (amazon_main_image_checked_at IS NULL OR amazon_main_image_checked_at <= %s)""",
                 (url, observed.astimezone(timezone.utc), error, data["asin"], observed))
+
+
+def record_redirect_observation(cur, data):
+    """Separate source-to-target preview; never write target price/stock/title."""
+    global _redirect_schema
+    if 'amazon_redirect_observation' not in data:
+        return
+    record = data['amazon_redirect_observation']
+    if record is not None:
+        if not isinstance(record, dict) or record.get('source_asin') != data.get('asin'):
+            return
+        if not data.get('business_ng') or not str(data.get('ng_reason') or '').startswith('ASIN不一致'):
+            return
+        try:
+            stamp = datetime.fromisoformat(str(record.get('checked_at')).replace('Z','+00:00'))
+            if stamp.tzinfo is None:
+                return
+        except ValueError:
+            return
+        record = dict(record)
+        if not valid_image_url(record.get('image_url')):
+            record['image_url'] = ''
+    with _lock:
+        if time.monotonic() >= _redirect_schema[0]:
+            cur.execute("""SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+                AND table_name='amazon_products' AND column_name='amazon_redirect_observation'""")
+            _redirect_schema = (time.monotonic() + 300, bool(cur.fetchone()))
+        supported = _redirect_schema[1]
+    if not supported:
+        return
+    from psycopg.types.json import Jsonb
+    value = Jsonb(record) if record is not None else None
+    # Most normal products have no redirect. Avoid a second physical write.
+    cur.execute('''UPDATE amazon_products SET amazon_redirect_observation=%s WHERE asin=%s
+        AND amazon_redirect_observation IS DISTINCT FROM %s''', (value, data['asin'], value))

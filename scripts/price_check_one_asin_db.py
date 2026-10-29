@@ -1967,7 +1967,7 @@ check_amazon_one = check_amazon_one_v3
 
 
 def save_to_db(data: dict[str, Any]) -> None:
-    from amazon_image_observation import record_main_image
+    from amazon_image_observation import record_main_image, record_redirect_observation
 
     data = dict(data)
     jan_code = re.sub(r"\D", "", str(data.get("jan_code") or data.get("ean") or ""))
@@ -2028,6 +2028,7 @@ def save_to_db(data: dict[str, Any]) -> None:
             )
 
             record_main_image(cur, data)
+            record_redirect_observation(cur, data)
         conn.commit()
 
     finally:
