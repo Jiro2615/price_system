@@ -13,6 +13,7 @@ OTHER = 'B0DXPWV7XS'
 URL = f'https://www.amazon.co.jp/dp/{EXPECTED}?th=1&psc=1'
 CHILD, PARENT = 'B0BNH43W1M', 'B0F42X5JXG'
 CHILD_URL = f'https://www.amazon.co.jp/dp/{CHILD}?th=1&psc=1'
+PARENT_URL = f'https://www.amazon.co.jp/dp/{PARENT}'
 
 
 def parent_observation(**changes):
@@ -25,6 +26,45 @@ def parent_observation(**changes):
 
 
 class IdentityTests(unittest.TestCase):
+    def test_seven_observed_parent_canonicals_are_allowed(self):
+        for child, parent, details in (
+                ('B0CZNHXP5R', 'B0FJXY2CVX', ['B0CZNHXP5R']),
+                ('B0CLNYSFZ6', 'B0GVJVQQRN', ['B0CLNYSFZ6']),
+                ('B0CG16JCB1', 'B0HFZ9229L', ['B0HFZ9229L']),
+                ('B0C7V45RFJ', 'B0C8124NKF', []),
+                ('B0BWDTQBLX', 'B0F1MP36YG', ['B0F1MP36YG']),
+                ('B0BSL7FJYT', 'B0FQJN1HKW', []),
+                ('B0BG5SPV3Q', 'B0GC3S3JT2', ['B0GC3S3JT2'])):
+            with self.subTest(asin=child):
+                evidence = {'selected_asin':child,'canonical_url':'https://www.amazon.co.jp/dp/'+parent,
+                            'purchase_asins':[child],'detail_asins':details,
+                            'parent_relationship':{'source':'twister-js-init-dpx-data',
+                                                   'current_asin':child,'parent_asin':parent}}
+                self.assertEqual(policy.identity_error(child,'https://www.amazon.co.jp/dp/'+child,evidence),'')
+
+    def test_parent_canonical_requires_child_purchase_and_unambiguous_relationship(self):
+        baseline = parent_observation(canonical_url=PARENT_URL, detail_asins=[])
+        for changes in ({'selected_asin':''}, {'selected_asin':OTHER}, {'selected_asin':PARENT},
+                        {'purchase_asins':[]}, {'purchase_asins':None}, {'purchase_asins':CHILD},
+                        {'purchase_asins':[CHILD,'']}, {'purchase_asins':[PARENT]},
+                        {'purchase_asins':[CHILD,OTHER]}, {'parent_relationship':None},
+                        {'parent_relationship':{}},
+                        {'parent_relationship':{'source':'recommendations','current_asin':CHILD,'parent_asin':PARENT}},
+                        {'parent_relationship':{'source':'twister-js-init-dpx-data','current_asin':OTHER,'parent_asin':PARENT}},
+                        {'parent_relationship':{'source':'twister-js-init-dpx-data','current_asin':CHILD,'parent_asin':OTHER}}):
+            with self.subTest(changes=changes):
+                self.assertTrue(policy.identity_error(CHILD,CHILD_URL,{**baseline,**changes}).startswith('ASIN不一致'))
+
+    def test_parent_canonical_does_not_allow_other_detail_or_browser_redirect(self):
+        evidence = parent_observation(canonical_url=PARENT_URL)
+        self.assertIn('商品詳細2='+OTHER,policy.identity_error(CHILD,CHILD_URL,
+            {**evidence,'detail_asins':[PARENT,OTHER]}))
+        for url in (PARENT_URL,URL,'https://evil.invalid/dp/'+CHILD):
+            with self.subTest(url=url):
+                self.assertTrue(policy.identity_error(CHILD,url,evidence).startswith('ASIN不一致'))
+        self.assertIn('正規URL='+OTHER,policy.identity_error(CHILD,CHILD_URL,
+            {**evidence,'canonical_url':'https://www.amazon.co.jp/dp/'+OTHER}))
+
     def test_verified_child_with_parent_only_in_details_is_accepted(self):
         for details in ([PARENT], [CHILD, PARENT], [PARENT, PARENT]):
             self.assertEqual(policy.identity_error(CHILD, CHILD_URL,
@@ -96,12 +136,38 @@ class IdentityTests(unittest.TestCase):
 
 class CheckerTests(unittest.IsolatedAsyncioTestCase):
     async def test_parent_details_pass_with_one_read_and_clear_stale_observation(self):
-        page = SimpleNamespace(url=CHILD_URL, evaluate=AsyncMock(return_value=parent_observation()))
-        result = {'asin': CHILD, 'amazon_redirect_observation': {'target_asin': PARENT}}
-        self.assertTrue(await checker.verify_product_identity(page, CHILD, result))
-        self.assertIsNone(result['amazon_redirect_observation'])
-        self.assertNotIn('business_ng', result)
-        page.evaluate.assert_awaited_once()
+        for canonical in (CHILD_URL,PARENT_URL):
+            page = SimpleNamespace(url=CHILD_URL, evaluate=AsyncMock(return_value=parent_observation(canonical_url=canonical)))
+            result = {'asin': CHILD, 'amazon_redirect_observation': {'target_asin': PARENT}}
+            self.assertTrue(await checker.verify_product_identity(page, CHILD, result))
+            self.assertIsNone(result['amazon_redirect_observation'])
+            self.assertNotIn('business_ng', result)
+            page.evaluate.assert_awaited_once()
+
+    async def test_listing_bridge_uses_same_guard_and_preserves_rejection(self):
+        from scripts.listing import amazon_bridge
+        from scripts.listing.prepare_service import _classify_amazon_result
+        # Only the surrounding price/shipping fetch is simulated. The bridge,
+        # identity guard and listing rejection classifier are production code.
+        async def checked_page(asin, *, page, **kwargs):
+            result = {'asin':asin,'amazon_price':1000,'available_qty':1,'gift_available':True}
+            await checker.verify_product_identity(page,asin,result)
+            return result
+        with patch.object(amazon_bridge,'_amazon_module',None):
+            self.assertIs(amazon_bridge._load_amazon_module(),checker)
+            for purchases, accepted in (([CHILD],True),([OTHER],False)):
+                page = SimpleNamespace(url=CHILD_URL, evaluate=AsyncMock(return_value=
+                    parent_observation(canonical_url=PARENT_URL,purchase_asins=purchases)))
+                with patch.object(checker,'check_amazon_one',side_effect=checked_page):
+                    result = await amazon_bridge.fetch_amazon_result(CHILD,page=page)
+                self.assertEqual(result.business_ng,not accepted)
+                classified = _classify_amazon_result(CHILD,result)
+                if accepted:
+                    self.assertIsNone(classified)
+                    self.assertEqual(result.page_asin,CHILD)
+                else:
+                    self.assertEqual(classified[0],'business_ng')
+                    self.assertTrue(classified[1].startswith('ASIN不一致'))
 
     async def test_mismatch_returns_before_title_image_offer_or_price(self):
         for evidence in ({'selected_asin': OTHER}, {}):

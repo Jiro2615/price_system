@@ -57,7 +57,7 @@ def url_asin(value):
 
 
 def identity_error(expected, page_url, observation):
-    """Reject conflicts except a proven parent in details of the selected child."""
+    """Allow a proven parent only in canonical/details, never purchase identity."""
     expected = normalized_asin(expected)
     if not expected:
         return 'ASIN未確認 指定ASINが不正です'
@@ -68,19 +68,21 @@ def identity_error(expected, page_url, observation):
     details = observation.get('detail_asins')
     purchases = observation.get('purchase_asins')
     relationship = observation.get('parent_relationship')
-    # Require independent agreement from URL, canonical, selection, purchase
-    # form and primary variation data. This exception applies ONLY to details.
-    detail_parent = ''
-    if (evidence['URL'] == selected == canonical == expected
+    # URL, selection, purchase form and primary variation data must identify
+    # the same child. Canonical/details may name only its proven parent.
+    verified_parent = ''
+    if (evidence['URL'] == selected == expected
             and isinstance(purchases, list) and purchases
             and all(normalized_asin(value) == expected for value in purchases)
             and isinstance(relationship, dict)
             and relationship.get('source') == 'twister-js-init-dpx-data'
             and normalized_asin(relationship.get('current_asin')) == expected):
-        detail_parent = normalized_asin(relationship.get('parent_asin'))
+        parent = normalized_asin(relationship.get('parent_asin'))
+        if parent and parent != expected and canonical in {expected, parent}:
+            verified_parent = parent
     if selected:
         evidence['選択商品'] = selected
-    if canonical:
+    if canonical and canonical != verified_parent:
         evidence['正規URL'] = canonical
     if isinstance(purchases, list):
         for index, value in enumerate(purchases):
@@ -89,7 +91,7 @@ def identity_error(expected, page_url, observation):
     if isinstance(details, list):
         for index, value in enumerate(details[:5]):
             detail = normalized_asin(value)
-            if detail and detail != detail_parent:
+            if detail and detail != verified_parent:
                 evidence[f'商品詳細{index+1}'] = detail
     conflicts = [f'{source}={value}' for source, value in evidence.items() if value and value != expected]
     if conflicts:
