@@ -655,6 +655,10 @@ def ensure_retry_state_table(conn) -> None:
     """Create the small retry-state table on first continuous API use."""
     with conn.transaction():
         with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass(%s), to_regclass(%s)",
+                        (RETRY_STATE_TABLE, "idx_rakuten_price_api_retry_state_due"))
+            if all(cur.fetchone()):
+                return
             cur.execute(
                 f"""
                 CREATE TABLE IF NOT EXISTS {RETRY_STATE_TABLE} (
@@ -744,6 +748,10 @@ def ensure_pending_state_table(conn) -> None:
     """Create the durable queue used by the continuous price API worker."""
     with conn.transaction():
         with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass(%s), to_regclass(%s)",
+                        (PENDING_STATE_TABLE, "idx_rakuten_price_api_pending_state_order"))
+            if all(cur.fetchone()):
+                return
             cur.execute(
                 f"""
                 CREATE TABLE IF NOT EXISTS {PENDING_STATE_TABLE} (
@@ -793,6 +801,12 @@ def refresh_pending_price_queue(conn, store_code: str | None) -> None:
                   AND COALESCE(sp.current_price, -1) <> sp.target_price
                   AND COALESCE(sp.mall_item_code, '') <> ''
                   {store_condition}
+                  AND NOT EXISTS (
+                    SELECT 1 FROM {PENDING_STATE_TABLE} unchanged
+                    WHERE unchanged.store_product_id = sp.id
+                      AND unchanged.store_code = s.store_code
+                      AND unchanged.target_price = sp.target_price
+                  )
                 ON CONFLICT (store_product_id) DO UPDATE SET
                     store_code = EXCLUDED.store_code,
                     target_price = EXCLUDED.target_price,
@@ -802,6 +816,8 @@ def refresh_pending_price_queue(conn, store_code: str | None) -> None:
                         ELSE {PENDING_STATE_TABLE}.pending_since
                     END,
                     updated_at = CURRENT_TIMESTAMP
+                WHERE {PENDING_STATE_TABLE}.store_code IS DISTINCT FROM EXCLUDED.store_code
+                   OR {PENDING_STATE_TABLE}.target_price IS DISTINCT FROM EXCLUDED.target_price
                 """,
                 tuple(params),
             )

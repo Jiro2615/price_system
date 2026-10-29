@@ -112,6 +112,16 @@ def get_target_asins(limit: int, hours: int) -> list[str]:
         conn.close()
 
 
+def amazon_check_schema_columns(cur, table_name: str) -> set[str]:
+    """Read current schema without taking an ALTER TABLE lock; never cache it."""
+    cur.execute(
+        """SELECT attname FROM pg_attribute
+           WHERE attrelid = to_regclass(%s) AND attnum > 0 AND NOT attisdropped""",
+        (table_name,),
+    )
+    return {row[0] for row in cur.fetchall()}
+
+
 def ensure_amazon_check_stats_schema() -> None:
     sql = """
         ALTER TABLE amazon_check_stats
@@ -127,6 +137,10 @@ def ensure_amazon_check_stats_schema() -> None:
 
     try:
         with conn.cursor() as cur:
+            required = {"status", "worker_id", "locked_at", "lock_expires_at",
+                        "consecutive_system_error_count", "last_system_error_reason"}
+            if required <= amazon_check_schema_columns(cur, "amazon_check_stats"):
+                return
             cur.execute(sql)
         conn.commit()
     finally:
@@ -235,6 +249,12 @@ def ensure_amazon_check_worker_runs_schema() -> None:
 
     try:
         with conn.cursor() as cur:
+            required = {"id", "worker_id", "claimed_count", "checked_count", "success_count",
+                        "changed_count", "stable_count", "system_error_count", "business_ng_count",
+                        "page_reset_count", "elapsed_seconds", "avg_seconds_per_item",
+                        "returncode", "started_at", "finished_at", "created_at"}
+            if required <= amazon_check_schema_columns(cur, "amazon_check_worker_runs"):
+                return
             cur.execute(create_sql)
             cur.execute(alter_sql)
         conn.commit()
