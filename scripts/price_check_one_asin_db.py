@@ -271,7 +271,13 @@ def is_amazon_official_offer_text(in_text: str) -> bool:
     separate_amazon = bool(re.search(r"出荷元\s*Amazon\.co\.jp", normalized, re.I)) and bool(
         re.search(r"販売元\s*Amazon\.co\.jp", normalized, re.I)
     )
-    return direct_amazon or separate_amazon
+    # Keep word boundaries for the new visible combined label: do not infer
+    # shipping from Amazon customer service or an Amazon-prefixed shop name.
+    sentence_text = re.sub(r"\s+", " ", in_text or "").strip()
+    sentence_amazon = bool(re.search(
+        r"(?:^|\s)Amazon\.co\.jp\s*による発送と販売(?=$|\s)", sentence_text, re.I,
+    ))
+    return direct_amazon or separate_amazon or sentence_amazon
 
 
 def is_amazon_fulfilled_offer_text(in_text: str) -> bool:
