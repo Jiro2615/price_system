@@ -604,10 +604,21 @@ async def get_quantity_dropdown_details(page, root=None) -> tuple[Optional[int],
                 if await select.count() == 0:
                     continue
                 options = select.locator("option")
-                option_values: list[tuple[str, str]] = []
-                for index in range(await options.count()):
-                    option = options.nth(index)
-                    option_values.append(((await option.get_attribute("value")) or "", await safe_inner_text(option)))
+                try:
+                    # Read every option in one snapshot, including the minimum
+                    # order label. Do not change the selection or just inspect
+                    # the last/max option, which could lose that restriction.
+                    snapshot = await options.evaluate_all(
+                        "nodes => nodes.map(node => [node.getAttribute('value') || '', node.innerText])"
+                    )
+                    option_values = [(value, text.strip()) for value, text in snapshot]
+                except Exception:
+                    # A changed/detached DOM still gets the existing read path;
+                    # a fast-read failure must not discard quantity restrictions.
+                    option_values = []
+                    for index in range(await options.count()):
+                        option = options.nth(index)
+                        option_values.append(((await option.get_attribute("value")) or "", await safe_inner_text(option)))
                 maximum, minimum_order_quantity = quantity_dropdown_details(option_values)
                 if maximum is not None:
                     return maximum, minimum_order_quantity
@@ -1025,6 +1036,36 @@ async def open_all_offers(page) -> None:
         raise RuntimeError("Amazon全出品の読み込み未完了（出品内容が未表示）。再確認が必要です。") from exc
 
 
+async def get_aod_offer_price(offer) -> int:
+    """Keep price priority without waiting for absent optional price layouts.
+
+    Called only after open_all_offers has waited for the cards to load. If no
+    usable price is present yet, retain the old waiting/fallback path instead
+    of prematurely treating a partially rendered card as an ineligible offer.
+    """
+    selectors = (
+        (".apex-pricetopay-value .a-price-whole", parse_price),
+        (".apex-pricetopay-accessibility-label", parse_yen_price),
+        ("#aod-offer-price", parse_yen_price),
+    )
+    try:
+        for selector, parser in selectors:
+            field = offer.locator(selector).first
+            if await field.count() == 0:
+                continue
+            price = parser(await safe_inner_text(field))
+            if price > 0:
+                return price
+    except Exception:
+        pass  # Retry through the established read path on a changing DOM.
+
+    for selector, parser in selectors:
+        price = parser(await safe_inner_text(offer.locator(selector).first))
+        if price > 0:
+            return price
+    return 0
+
+
 async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optional[dict[str, Any]]:
     """Find the lowest-priced AOD offer Amazon can ship free within one week.
 
@@ -1049,13 +1090,7 @@ async def read_lowest_amazon_fulfilled_offer(page, quantity: int = 1) -> Optiona
             # accessibility label may begin with a discount percentage, e.g.
             # "6パーセントの割引で￥2,500", so it must be parsed by yen mark
             # rather than by its first number.
-            price = parse_price(await safe_inner_text(offer.locator(".apex-pricetopay-value .a-price-whole").first))
-            if price <= 0:
-                price = parse_yen_price(
-                    await safe_inner_text(offer.locator(".apex-pricetopay-accessibility-label").first)
-                )
-            if price <= 0:
-                price = parse_yen_price(await safe_inner_text(offer.locator("#aod-offer-price").first))
+            price = await get_aod_offer_price(offer)
             delivery_node = offer.locator("[data-csa-c-delivery-price]").first
             delivery_price = await delivery_node.get_attribute("data-csa-c-delivery-price") if await delivery_node.count() else ""
             delivery_time = await delivery_node.get_attribute("data-csa-c-delivery-time") if await delivery_node.count() else ""
