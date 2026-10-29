@@ -114,6 +114,36 @@ def has_table(conn, table_name: str) -> bool:
         return cur.fetchone() is not None
 
 
+def fetch_target_schema(conn) -> tuple[set[str], set[tuple[str, str]]]:
+    """Read all calculation capabilities together, without caching settings.
+
+    Use the same permission-aware catalog views as has_table/has_table_column.
+    Query afresh on every calculation so migrations and optional capabilities
+    are observed immediately; DB failures must still propagate to the caller.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 'table' AS kind, table_name, NULL::text AS column_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = ANY(%s)
+            UNION ALL
+            SELECT 'column' AS kind, table_name, column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND ((table_name = 'stores' AND column_name = 'max_stock')
+                   OR (table_name = 'store_settings' AND column_name = ANY(%s)))
+            """,
+            (["store_settings", "rakuten_competitor_price_snapshots", "asin_fixed_price_settings"],
+             ["rakuten_competitor_price_enabled", "rakuten_competitor_floor_enabled",
+              "rakuten_competitor_undercut_enabled", "rakuten_competitor_undercut_yen",
+              "rakuten_competitor_min_profit_amount"]),
+        )
+        rows = cur.fetchall()
+    return ({table for kind, table, _ in rows if kind == "table"},
+            {(table, column) for kind, table, column in rows if kind == "column"})
+
+
 def apply_rakuten_competitor_price_floor(
     base_target_price: int,
     competitor_price_enabled: bool,
@@ -238,14 +268,15 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
         where.append("sp.asin = ANY(%s)")
         params.append(asins)
 
-    has_store_max_stock = has_table_column(conn, "stores", "max_stock")
+    schema_tables, schema_columns = fetch_target_schema(conn)
+    has_store_max_stock = ("stores", "max_stock") in schema_columns
     if not has_store_max_stock:
         raise RuntimeError("stores.max_stock column is required for safe target_stock calculation")
 
-    has_store_settings = has_table(conn, "store_settings")
-    has_competitor_setting = has_table_column(conn, "store_settings", "rakuten_competitor_price_enabled")
-    has_competitor_snapshots = has_table(conn, "rakuten_competitor_price_snapshots")
-    has_fixed_price_settings = has_table(conn, "asin_fixed_price_settings")
+    has_store_settings = "store_settings" in schema_tables
+    has_competitor_setting = ("store_settings", "rakuten_competitor_price_enabled") in schema_columns
+    has_competitor_snapshots = "rakuten_competitor_price_snapshots" in schema_tables
+    has_fixed_price_settings = "asin_fixed_price_settings" in schema_tables
     competitor_setting_select = (
         "COALESCE(ss.rakuten_competitor_price_enabled, FALSE)"
         if has_competitor_setting
@@ -273,7 +304,7 @@ def fetch_calc_targets(conn, store_code: str | None = None, asins: list[str] | N
          AND afps.enabled = TRUE
     """ if has_fixed_price_settings else ""
     def setting_select(column_name: str, default: str) -> str:
-        return f"COALESCE(ss.{column_name}, {default})" if has_table_column(conn, "store_settings", column_name) else default
+        return f"COALESCE(ss.{column_name}, {default})" if ("store_settings", column_name) in schema_columns else default
 
     target_price_floor_select = (
         "CASE WHEN COALESCE(ss.order_fulfillment_settings_json->>'rakuten_target_price_floor', '') ~ '^[0-9]+$' "
