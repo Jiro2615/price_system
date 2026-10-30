@@ -20,13 +20,25 @@ _identity_spec = importlib.util.spec_from_file_location(
 _identity = importlib.util.module_from_spec(_identity_spec)
 _identity_spec.loader.exec_module(_identity)
 
+_safety_spec = importlib.util.spec_from_file_location(
+    'rakuten_listing_page_safety', Path(__file__).with_name('amazon_page_safety.py'))
+_safety = importlib.util.module_from_spec(_safety_spec)
+_safety_spec.loader.exec_module(_safety)
+
+PRODUCT_IDENTITY_SAFETY_JS = (
+    '() => { if ((' + _safety.HUMAN_VERIFICATION_JS + ')()) return {human_verification_required:true}; '
+    'return (' + _identity.PRODUCT_IDENTITY_JS + ')(); }'
+)
+
 
 async def verify_product_identity(page, asin, result):
     result['amazon_redirect_observation'] = None
     try:
-        observation = await page.evaluate(_identity.PRODUCT_IDENTITY_JS)
+        observation = await page.evaluate(PRODUCT_IDENTITY_SAFETY_JS)
     except Exception:
         observation = {}
+    if isinstance(observation, dict) and observation.get('human_verification_required') is True:
+        raise _safety.HumanVerificationRequired()
     reason = _identity.identity_error(asin, page.url, observation)
     if reason:
         _identity.block_identity_result(result, reason)
@@ -747,8 +759,11 @@ async def select_one_time_purchase(page) -> bool:
         try:
             if not await header.is_visible(timeout=500):
                 continue
+            if ("a-accordion-active" in ((await row.get_attribute("class")) or "")
+                    or await header.get_attribute("aria-expanded", timeout=500) == "true"):
+                return False
             radio = header.locator(".a-accordion-radio").first
-            radio_class = (await radio.get_attribute("class")) or ""
+            radio_class = ((await radio.get_attribute("class", timeout=500)) or "") if await radio.count() else ""
             if "a-icon-radio-active" in radio_class:
                 return False
 
@@ -788,10 +803,14 @@ async def get_selected_new_buybox_row(page):
             if first_visible is None:
                 first_visible = row
             row_class = (await row.get_attribute("class")) or ""
+            if "a-accordion-active" in row_class:
+                return row
             header = row.locator(".a-accordion-row-a11y").first
-            header_expanded = (await header.get_attribute("aria-expanded")) or ""
+            header_expanded = ((await header.get_attribute("aria-expanded", timeout=500)) or "") if await header.count() else ""
+            if header_expanded.lower() == "true":
+                return row
             radio = header.locator(".a-accordion-radio").first
-            radio_class = (await radio.get_attribute("class")) or ""
+            radio_class = ((await radio.get_attribute("class", timeout=500)) or "") if await radio.count() else ""
             if (
                 "a-accordion-active" in row_class
                 or header_expanded.lower() == "true"
@@ -969,6 +988,7 @@ def delivery_within_one_week(text: str) -> bool:
 
 async def open_all_offers(page) -> None:
     """Open Amazon's all-offers panel and load its currently available pages."""
+    await _safety.check_human_verification_async(page)
     ingress = page.locator("#aod-ingress-link")
     if await ingress.count() == 0:
         # Products without a BuyBox use a normal offer-listing link instead
@@ -982,6 +1002,7 @@ async def open_all_offers(page) -> None:
         offers = page.locator("#aod-offer-list #aod-offer")
         await offers.first.wait_for(state="visible", timeout=30000)
     except Exception as exc:
+        await _safety.check_human_verification_async(page)
         raise RuntimeError("Amazon全出品の読み込み未完了（一覧の初期表示に失敗）。再確認が必要です。") from exc
 
     # ``すべての出品`` is a virtual scroller on some product pages.  Check the
@@ -989,11 +1010,12 @@ async def open_all_offers(page) -> None:
     expected_count = 0
     total = page.locator("#aod-total-offer-count").first
     try:
-        expected_count = int(((await total.get_attribute("value")) or "0").strip())
+        expected_count = int(((await total.get_attribute("value", timeout=500)) or "0").strip()) if await total.count() else 0
     except (TypeError, ValueError):
         pass
 
     while expected_count <= 0 or await offers.count() < expected_count:
+        await _safety.check_human_verification_async(page)
         more = page.locator("#aod-show-more-offers")
         try:
             before = await offers.count()
@@ -1014,13 +1036,14 @@ async def open_all_offers(page) -> None:
                 arg=before, timeout=15000, polling=250,
             )
             try:
-                expected_count = int(((await total.get_attribute("value")) or "0").strip())
+                expected_count = int(((await total.get_attribute("value", timeout=500)) or "0").strip()) if await total.count() else 0
             except (TypeError, ValueError):
                 pass
         except Exception:
             break
 
     loaded_count = await offers.count()
+    await _safety.check_human_verification_async(page)
     if expected_count <= 0 or loaded_count < expected_count:
         # A partial list cannot establish the cheapest eligible offer or
         # prove that no eligible offer exists. Let the caller record a
@@ -1282,6 +1305,7 @@ async def check_amazon_one(
             for confirmation_attempt in range(1, AMAZON_CONFIRMATION_RETRY_LIMIT + 1):
                 await page.goto(url, wait_until="domcontentloaded", timeout=page_timeout_ms)
                 await page.wait_for_timeout(settle_timeout_ms)
+                await _safety.check_human_verification_async(page)
                 body = await get_first_text(page, "body")
                 current_url = str(getattr(page, "url", "") or "")
                 if not is_amazon_confirmation_page(current_url, body):
@@ -1320,9 +1344,7 @@ async def check_amazon_one(
                 return result
 
             if "下に表示されている文字を入力してください" in body:
-                result["system_error"] = True
-                result["ng_reason"] = "画像認証"
-                return result
+                raise _safety.HumanVerificationRequired()
 
             if not await verify_product_identity(page, asin, result):
                 return result
@@ -1568,6 +1590,15 @@ async def check_amazon_one(
             return result
 
         except Exception as e:
+            # A challenge can replace a product/AOD page while waiting for it.
+            if isinstance(e, _safety.HumanVerificationRequired):
+                return _safety.block_verification_result(result)
+            try:
+                await _safety.check_human_verification_async(page)
+            except _safety.HumanVerificationRequired:
+                return _safety.block_verification_result(result)
+            except Exception:
+                pass
             result["system_error"] = True
             result["ng_reason"] = str(e)
             if not own_page:
@@ -1575,6 +1606,13 @@ async def check_amazon_one(
             return result
 
     finally:
+        if page is not None:
+            try:
+                await _safety.check_human_verification_async(page)
+            except _safety.HumanVerificationRequired:
+                _safety.block_verification_result(result)
+            except Exception:
+                pass
         if own_page:
             await close_amazon_page(playwright, browser, context, page)
 

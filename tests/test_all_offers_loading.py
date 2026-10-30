@@ -21,7 +21,7 @@ def loader():
     node.returns = None
     async def click_force(element):
         await element.click()
-    namespace = {"click_force": click_force}
+    namespace = {"click_force": click_force, "_safety": Mock(check_human_verification_async=AsyncMock())}
     exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])), str(source), "exec"), namespace)
     return namespace[node.name]
 
@@ -38,6 +38,7 @@ class OfferLoadingTests(unittest.IsolatedAsyncioTestCase):
         ingress.click = AsyncMock()
         total_node = Mock()
         total_node.first = total_node
+        total_node.count = AsyncMock(return_value=1)
         total_node.get_attribute = AsyncMock(return_value=total)
         more = Mock()
         more.first = more
