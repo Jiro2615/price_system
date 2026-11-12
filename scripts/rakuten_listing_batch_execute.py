@@ -10,6 +10,7 @@ from pathlib import Path
 from scripts.rakuten_listing_batch_dry_run import MAX_ASINS, load_asins, parse_bypass_rules, parse_minimum_rakuten_shops
 from scripts.listing.amazon_bridge import fetch_amazon_result
 from scripts.listing.batch_local_data import BatchLocalData, LazyAmazonPages
+from scripts.listing.chatwork_hold import ListingTabHold
 from scripts.listing.mock_execute_service import build_mock_execute_result
 from scripts.listing.models import sanitize_for_output, to_jsonable
 from scripts.listing.preflight_service import build_preflight_result
@@ -146,6 +147,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     print(f"LISTING_WRITE_PROTOCOL {LISTING_WRITE_PROTOCOL_VERSION}", flush=True)
     refresh_stage("preparing")
     prepare_pages = LazyAmazonPages(create_amazon_page, args.prepare_workers)
+    auth_hold = ListingTabHold(args.store, active=not args.update_existing)
 
     # 最速の経路は、ローカル判定・Keepa・Amazon・RMSを独立させること。
     # Keepa は契約トークンを守るため1本・一定間隔、Amazonはページごとに
@@ -284,6 +286,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 return
             index, asin, request, keepa_result = candidate
             try:
+                await auth_hold.gate.wait()
                 amazon_page = await prepare_pages.get(tab_number)
                 dry = await prepare_amazon_candidate(
                     index, asin, request, keepa_result, amazon_page, tab_number,
@@ -291,6 +294,9 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             except Exception as exc:
                 dry = {"asin": asin, "final_status": "system_error", "error": str(exc)}
             await prepared_queue.put((index, asin, dry))
+            # Let the result writer persist the block while this same tab stays
+            # on the page. Do not interact with the challenge or retry the item.
+            await auth_hold.after_result(asin, dry)
 
     async def close_local_stage() -> None:
         workers = [
