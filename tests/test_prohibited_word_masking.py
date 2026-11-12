@@ -219,26 +219,26 @@ class ProhibitedWordMaskingTests(unittest.TestCase):
         self.assertIn("クリ", payload["rules"])
         self.assertIn("クリア", payload["rules"]["クリ"])
 
-    def test_cosmetic_allowed_phrases_are_limited_to_rakuten_2(self) -> None:
+    def test_fallback_masters_share_cosmetic_rules_but_not_new_db_overrides(self) -> None:
         store_1_master = load_master_data(REFERENCE_MASTER_DIR, allow_missing=True)
         store_2_master = load_master_data(REFERENCE_MASTER_DIR, allow_missing=True)
-        apply_store_allowed_phrase_overrides(store_1_master, REFERENCE_MASTER_DIR, "rakuten_1")
-        apply_store_allowed_phrase_overrides(store_2_master, REFERENCE_MASTER_DIR, "rakuten_2")
-
-        # アイライナー is now common because it originated in a legacy
-        # spacing-only replacement. Keep validating a phrase still exclusive
-        # to rakuten_2 as well as the remaining store-specific cosmetics rules.
+        apply_store_allowed_phrase_overrides(store_1_master, REFERENCE_MASTER_DIR, "rakuten_1", use_database=False)
+        apply_store_allowed_phrase_overrides(store_2_master, REFERENCE_MASTER_DIR, "rakuten_2", use_database=False)
+        self.assertEqual(store_1_master.allowed_phrase_rules, store_2_master.allowed_phrase_rules)
+        self.assertEqual(store_1_master.allowed_phrase_separate_checks, store_2_master.allowed_phrase_separate_checks)
+        self.assertNotIn("医薬部外品", store_1_master.prohibited_words_rakuten)
+        self.assertNotIn("化粧品", store_1_master.prohibited_words_rakuten)
         self.assertIn("アイライナー", store_1_master.allowed_phrase_rules.get("イラ", []))
         self.assertIn("アイライナー", store_2_master.allowed_phrase_rules.get("イラ", []))
-        self.assertNotIn("アイライン", store_1_master.allowed_phrase_rules.get("イラ", []))
+        self.assertIn("アイライン", store_1_master.allowed_phrase_rules.get("イラ", []))
         self.assertIn("アイライン", store_2_master.allowed_phrase_rules.get("イラ", []))
-        self.assertNotIn("マカデミア", store_1_master.allowed_phrase_rules.get("マカ", []))
+        self.assertIn("マカデミア", store_1_master.allowed_phrase_rules.get("マカ", []))
         self.assertIn("マカデミア", store_2_master.allowed_phrase_rules.get("マカ", []))
-        self.assertNotIn("セラミド", store_1_master.allowed_phrase_rules.get("セラ", []))
+        self.assertIn("セラミド", store_1_master.allowed_phrase_rules.get("セラ", []))
         self.assertIn("セラミド", store_2_master.allowed_phrase_rules.get("セラ", []))
-        self.assertNotIn("スキンケア", store_1_master.allowed_phrase_rules.get("スキン", []))
+        self.assertIn("スキンケア", store_1_master.allowed_phrase_rules.get("スキン", []))
         self.assertIn("スキンケア", store_2_master.allowed_phrase_rules.get("スキン", []))
-        self.assertNotIn("アルギニン", store_1_master.allowed_phrase_rules.get("アルギニン", []))
+        self.assertIn("アルギニン", store_1_master.allowed_phrase_rules.get("アルギニン", []))
         self.assertIn("アルギニン", store_2_master.allowed_phrase_rules.get("アルギニン", []))
 
     def test_separate_check_phrase_is_reported_without_forbidden_hit(self) -> None:

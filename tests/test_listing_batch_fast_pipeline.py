@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from scripts import rakuten_listing_batch_dry_run as dry_batch
 from scripts import rakuten_listing_batch_execute as execute_batch
+from scripts.listing.chatwork_hold import ListingTabHold
 from scripts.listing.models import MasterData, ListingCommonSettings
 
 
@@ -25,12 +26,59 @@ def arguments(folder):
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        # The final write-slot check normally queries the real product DB.
+        duplicate = patch("scripts.listing.listing_duplicate_check.find_existing_listing", return_value=None)
+        duplicate.start()
+        self.addCleanup(duplicate.stop)
         self.ledger = patch.object(execute_batch, "load_company_brand_ng", return_value={})
         self.read_ledger = self.ledger.start()
         self.addCleanup(self.ledger.stop)
         self.persistence = patch("scripts.listing.listing_master_db.record_rule_based_past_ng")
         self.save_ng = self.persistence.start()
         self.addCleanup(self.persistence.stop)
+
+    async def test_last_challenged_item_is_recorded_during_hold_then_exits_without_revisiting(self):
+        module = execute_batch
+        asin = "B000TEST01"
+        for forced in (False, True):
+            with self.subTest(forced=forced), tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+                for fn in ("psycopg.connect","requests.sessions.Session.request"):
+                    stack.enter_context(patch(fn,side_effect=AssertionError("External action forbidden")))
+                for fn in ("BatchLocalData","build_preflight_result","build_mock_execute_result","build_real_readiness_result"):
+                    stack.enter_context(patch.object(module,fn,return_value={}))
+                stack.enter_context(patch.object(module,"precheck_local_listing_exclusion",return_value=None))
+                stack.enter_context(patch.object(module,"precheck_keepa_before_amazon",return_value=(None,"keepa")))
+                stack.enter_context(patch.object(module,"create_amazon_page",new=AsyncMock(return_value=(None,None,None,"page"))))
+                fetch=stack.enter_context(patch.object(module,"fetch_amazon_result",new=AsyncMock(
+                    return_value=SimpleNamespace(human_verification_required=True))))
+                dry={"asin":asin, "listing_status":"amazon_confirmation_waiting", "listing_reason":"Amazon認証待ち: 商品情報・在庫は更新していません"}
+                stack.enter_context(patch.object(module,"prepare_listing",return_value=dry))
+                stack.enter_context(patch.object(module,"run_with_listing_write_slot",return_value={**dry,"final_status":"blocked"}))
+                now=[1000.]
+                sleeping,release=asyncio.Event(),asyncio.Event()
+                async def sleep(seconds):
+                    self.assertEqual(seconds,60)
+                    sleeping.set()
+                    await release.wait()
+                    now[0]+=seconds
+                hold=ListingTabHold("shop",True,notify=lambda *_: False,clock=lambda:now[0],sleep=sleep)
+                stack.enter_context(patch.object(module,"ListingTabHold",return_value=hold))
+                args=arguments(folder);args.prepare_workers=1
+                args.ignore_rules="past_ng" if forced else ""
+                task=asyncio.create_task(module.run_batch(args,[asin]))
+                try:
+                    await asyncio.wait_for(sleeping.wait(),2)
+                    async def saved():
+                        path=Path(folder)/"results.jsonl"
+                        while not (text:=path.read_text(encoding="utf-8")):
+                            await asyncio.sleep(.01)
+                        return json.loads(text)
+                    self.assertEqual((await asyncio.wait_for(saved(),2))["final_status"],"blocked")
+                    self.assertFalse(task.done())
+                finally:
+                    release.set()
+                    await asyncio.wait_for(task,3)
+                self.assertEqual(fetch.await_count,1)
 
     async def test_class_edit_while_waiting_for_write_slot_stops_before_any_send(self):
         from tests.test_forced_word_policy import prepared
@@ -59,7 +107,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             args.block_forbidden_company_brands=True
             args.review_uncertain_words=True
             await asyncio.wait_for(module.run_batch(args,["B000TEST01"]),timeout=5)
-            result=json.loads((Path(folder)/"results.jsonl").read_text())
+            result=json.loads((Path(folder)/"results.jsonl").read_text(encoding="utf-8"))
             self.assertEqual(result["final_status"],"company_brand_blocked")
             self.save_ng.assert_called_once()
             self.assertEqual(self.save_ng.call_args.kwargs["source"], "company_brand_auto")
@@ -93,7 +141,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(request.forced_company_brand_block)
                 self.assertTrue(request.forced_word_review_mode)
                 for call in forbidden: call.assert_not_called()
-                result = json.loads((Path(folder)/"results.jsonl").read_text())
+                result = json.loads((Path(folder)/"results.jsonl").read_text(encoding="utf-8"))
                 self.assertEqual(result["final_status"], status)
                 self.assertFalse(result["external_actions_performed"])
 
@@ -145,7 +193,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(calls, ["rms", "db"])
                 (normal_sync if refresh else content_sync).assert_not_called()
                 (content_sync if refresh else normal_sync).assert_called_once()
-                row = json.loads((Path(folder) / "results.jsonl").read_text())
+                row = json.loads((Path(folder) / "results.jsonl").read_text(encoding="utf-8"))
                 self.assertEqual(row["final_status"], "completed")
 
     async def test_company_ng_added_while_waiting_stops_all_modes_inside_slot(self):
@@ -183,7 +231,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             args = arguments(folder); args.ignore_rules="past_ng"; args.block_forbidden_company_brands=False
             await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
             execute.assert_not_called(); sync.assert_not_called()
-            result = json.loads((Path(folder)/"results.jsonl").read_text())
+            result = json.loads((Path(folder)/"results.jsonl").read_text(encoding="utf-8"))
             self.assertEqual(result["final_status"], "company_brand_blocked")
             self.assertFalse(result["external_actions_performed"])
             self.assertFalse(result["execution_allowed"])
@@ -211,10 +259,10 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 browser.assert_not_awaited(); keepa.assert_not_called()
                 if module is execute_batch:
                     rms.assert_not_called()
-                rows = [json.loads(line) for line in (Path(folder) / "results.jsonl").read_text().splitlines()]
+                rows = [json.loads(line) for line in (Path(folder) / "results.jsonl").read_text(encoding="utf-8").splitlines()]
                 self.assertEqual(len(rows), len(asins))
                 self.assertEqual({row["asin"] for row in rows}, set(asins))
-                summary = json.loads((Path(folder) / "summary.json").read_text())
+                summary = json.loads((Path(folder) / "summary.json").read_text(encoding="utf-8"))
                 self.assertEqual(summary["minimum_rakuten_shops"], 3)
 
     async def test_new_rule_or_db_failure_at_final_gate_prevents_live_execution(self):
@@ -243,7 +291,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 self.assertIs(keepa.call_args.kwargs["prepare_kwargs"]["batch_local_data"], cache.return_value)
                 self.assertIs(prepared.call_args.kwargs["batch_local_data"], cache.return_value)
                 guard.assert_called_once(); rms.assert_not_called(); sync.assert_not_called()
-                row = json.loads((Path(folder) / "results.jsonl").read_text())
+                row = json.loads((Path(folder) / "results.jsonl").read_text(encoding="utf-8"))
                 self.assertEqual(row["final_status"], "system_error" if error else "business_ng")
 
 

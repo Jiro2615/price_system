@@ -25,8 +25,15 @@ def _normalized(value: object) -> str:
     return re.sub(r"(?:株式会社|\(?株\)?|\(株\))", "", normalized)
 
 
-def _configured(store_code: str) -> dict[str, str] | None:
+def advertiser_prefix(store_code: str) -> str:
     prefix = str(store_code or "").strip().upper()
+    # Both shops use the same advertiser. Only share the two display fields,
+    # never the store identity, API credentials or evidence lookup.
+    return "RAKUTEN_2" if prefix == "RAKUTEN_1" else prefix
+
+
+def _configured(store_code: str) -> dict[str, str] | None:
+    prefix = advertiser_prefix(store_code)
     if not prefix:
         return None
     # Read just these settings from the current UTF-8 file. load_dotenv's

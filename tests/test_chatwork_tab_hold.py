@@ -1,47 +1,68 @@
 import asyncio
 import os
 import unittest
-from unittest.mock import patch, Mock
+from types import SimpleNamespace
+from unittest.mock import patch, Mock, AsyncMock
 
 from scripts.listing.chatwork_hold import ListingTabHold
+from scripts.listing import amazon_bridge
 
-HIT = dict(listing_status="amazon_confirmation_waiting", listing_reason="Amazon認証待ち: 商品情報・在庫は更新していません")
+HIT = SimpleNamespace(human_verification_required=True)
 
 
 class HoldTests(unittest.IsolatedAsyncioTestCase):
-    async def test_only_acknowledged_post_holds_exactly_60_seconds_and_other_tabs_wait(self):
-        entered, release, navigated = asyncio.Event(), asyncio.Event(), asyncio.Event()
-        async def sleep(seconds):
-            self.assertEqual(seconds, 60)
-            self.assertFalse(hold.gate.is_set())
-            entered.set()
-            await release.wait()
-        with patch.dict(os.environ, WEB_ORCHESTRATOR_MANAGED_RUN_ID="run_one"):
-            notify = Mock(return_value=True)
-            hold = ListingTabHold("rakuten_1", True, notify=notify, sleep=sleep)
-        async def next_tab():
-            await hold.gate.wait()
-            navigated.set()
-        first = asyncio.create_task(hold.after_result("B000000001", HIT))
-        await asyncio.wait_for(entered.wait(), 2)
-        second = asyncio.create_task(hold.after_result("B000000002", HIT))
-        next_page = asyncio.create_task(next_tab())
-        await asyncio.sleep(0)
-        self.assertFalse(navigated.is_set())
-        release.set()
-        await asyncio.gather(first, second, next_page)
-        notify.assert_called_once_with("rakuten_1", "run_one", "B000000001")
-        self.assertTrue(navigated.is_set())
+    async def test_every_detection_holds_regardless_of_notice_outcome_or_managed_run(self):
+        for run, outcome in [("run_one", True), ("run_one", False), ("run_one", OSError()), ("", False)]:
+            with self.subTest(run=run, outcome=outcome), patch.dict(os.environ, WEB_ORCHESTRATOR_MANAGED_RUN_ID=run):
+                now=[1000.]
+                async def advance(seconds): now[0]+=seconds
+                notify=Mock(side_effect=[outcome,outcome])
+                hold=ListingTabHold("rakuten_1",True,notify=notify,clock=lambda:now[0],sleep=AsyncMock(side_effect=advance))
+                for asin in ["B000000001", "B000000002"]:
+                    hold.observe(asin,HIT)
+                    if run: await hold.notice_task
+                    await hold.wait()
+                self.assertEqual([c.args for c in hold.sleep.await_args_list],[(60.,),(60.,)])
+                self.assertEqual(notify.call_count,2 if run else 0)
 
-    async def test_no_pause_for_refresh_other_wait_suppression_or_delivery_failure(self):
-        for active, result, outcome, calls in [
-            (False, HIT, True, 0), (True, dict(HIT,listing_reason="ショッピング継続確認"), True, 0),
-            (True,HIT,False,1), (True,HIT,OSError(),1),
-        ]:
-            with patch.dict(os.environ, WEB_ORCHESTRATOR_MANAGED_RUN_ID="run_one"):
-                notify = Mock(side_effect=[outcome])
-                hold = ListingTabHold("rakuten_1",active,notify=notify,sleep=Mock(side_effect=AssertionError))
-            await hold.after_result("B000000001",result)
-            self.assertEqual(calls, notify.call_count)
-            self.assertEqual(hold.sleep.call_count, 0)
-            self.assertTrue(hold.gate.is_set())
+    async def test_second_in_flight_hit_extends_deadline_for_existing_waiter(self):
+        now=[0.]
+        delays=[]
+        entered=asyncio.Queue()
+        async def sleep(seconds):
+            delays.append(seconds)
+            wake=asyncio.Event()
+            await entered.put(wake)
+            await wake.wait()
+        with patch.dict(os.environ,WEB_ORCHESTRATOR_MANAGED_RUN_ID=""):
+            hold=ListingTabHold("rakuten_1",True,clock=lambda:now[0],sleep=sleep)
+        hold.observe("B000000001",HIT)
+        waiting=asyncio.create_task(hold.wait())
+        wake=await asyncio.wait_for(entered.get(),1)
+        now[0]=45
+        hold.observe("B000000002",HIT)
+        now[0]=60
+        wake.set()
+        wake=await asyncio.wait_for(entered.get(),1)
+        self.assertFalse(waiting.done())
+        self.assertEqual(delays,[60,45])
+        now[0]=105
+        wake.set()
+        await asyncio.wait_for(waiting,1)
+
+    async def test_refresh_and_non_human_confirmation_do_not_hold_or_notify(self):
+        for active, result in [(False,HIT),(True,SimpleNamespace(amazon_confirmation_waiting=True))]:
+            hold=ListingTabHold("rakuten_1",active,notify=Mock(),sleep=AsyncMock())
+            hold.observe("B000000001",result)
+            await hold.wait()
+            hold.sleep.assert_not_awaited()
+            hold.notify.assert_not_called()
+            self.assertIsNone(hold.notice_task)
+
+    async def test_bridge_preserves_only_explicit_checker_flag(self):
+        for flag, expected in [(True,True),(False,False),(None,False)]:
+            checker=SimpleNamespace(check_amazon_one=AsyncMock(return_value={
+                "amazon_confirmation_waiting":True,"human_verification_required":flag}))
+            with patch.object(amazon_bridge,"_load_amazon_module",return_value=checker):
+                result=await amazon_bridge.fetch_amazon_result("B000000001")
+            self.assertEqual(result.human_verification_required,expected)

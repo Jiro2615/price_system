@@ -175,6 +175,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     ) -> dict[str, object]:
         """Use one visible tab for a Keepa-approved candidate."""
         try:
+            await auth_hold.wait()  # Page creation may have yielded since the worker last checked.
             print(
                 f"LISTING_PREPARE_TAB_START tab={tab_number}/{args.prepare_workers} "
                 f"index={index} asin={asin}",
@@ -185,6 +186,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 page_timeout_ms=args.page_timeout,
                 page=amazon_page,
             )
+            auth_hold.observe(asin, amazon_result)
             dry = await asyncio.to_thread(
                 prepare_listing,
                 request,
@@ -286,7 +288,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 return
             index, asin, request, keepa_result = candidate
             try:
-                await auth_hold.gate.wait()
+                await auth_hold.wait()
                 amazon_page = await prepare_pages.get(tab_number)
                 dry = await prepare_amazon_candidate(
                     index, asin, request, keepa_result, amazon_page, tab_number,
@@ -294,9 +296,9 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             except Exception as exc:
                 dry = {"asin": asin, "final_status": "system_error", "error": str(exc)}
             await prepared_queue.put((index, asin, dry))
-            # Let the result writer persist the block while this same tab stays
-            # on the page. Do not interact with the challenge or retry the item.
-            await auth_hold.after_result(asin, dry)
+            # Persist independently, but keep even the last tab/item open.
+            # No challenge interaction or retry of the same item.
+            await auth_hold.wait()
 
     async def close_local_stage() -> None:
         workers = [

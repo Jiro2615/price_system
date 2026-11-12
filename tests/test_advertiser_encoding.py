@@ -62,6 +62,24 @@ class AdvertiserConfigTests(unittest.TestCase):
         os.environ.update({NAME_KEY: GOOD, PHONE_KEY: "000-0000-0000"})
         self.assertEqual(compliance._configured("rakuten_2")["advertiser_name"], GOOD)
 
+    def test_store1_uses_exact_same_disclosure_pair_not_another_stores_api_credentials(self):
+        self.save(GOOD)
+        os.environ.update(RAKUTEN_1_COMPLIANCE_ADVERTISER_NAME="旧社名",
+                          RAKUTEN_1_COMPLIANCE_ADVERTISER_PHONE="old-phone")
+        self.assertEqual(compliance._configured("rakuten_1"),compliance._configured("rakuten_2"))
+        self.assertEqual(compliance._configured("rakuten_1")["advertiser_phone"], "000-0000-0000")
+        self.assertIsNone(compliance._configured("rakuten_3"))
+        self.save(BAD)
+        with self.assertRaises(ComplianceTextError):
+            compliance._configured("rakuten_1")
+
+    def test_store1_does_not_assign_store2_display_category(self):
+        from scripts.listing.listing_execute_service import _requires_cosmetics_shop_category
+        for dry in ({"keepa_result":{"category_tree":[{"name":"ビューティー"}]}},
+                    {"item_payload":{"title":"薬用（医薬部外品）"}}):
+            self.assertFalse(_requires_cosmetics_shop_category(dry,"rakuten_1"))
+            self.assertTrue(_requires_cosmetics_shop_category(dry,"rakuten_2"))
+
     def test_corrupted_configuration_raises_not_missing_evidence_even_without_phone(self):
         for phone in ("", "000-0000-0000"):
             self.save(BAD, phone=phone)
@@ -86,7 +104,7 @@ class AdvertiserConfigTests(unittest.TestCase):
 
     def test_store_scoping_and_blank_store(self):
         self.save(GOOD)
-        self.assertIsNone(compliance._configured("rakuten_1"))
+        self.assertIsNone(compliance._configured("unrelated_shop"))
         self.assertIsNone(compliance._configured(""))
 
 

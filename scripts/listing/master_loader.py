@@ -25,6 +25,11 @@ MASTER_FILENAMES = {
 }
 
 STORE_ALLOWED_PHRASES_FILENAME = "allowed_phrases_rakuten.{store_code}.json"
+# These entries are still printed in the archived legacy export. Both shops
+# retired them; never use this file-only adjustment to override a live DB rule.
+LEGACY_RETIRED_SHOP_WORDS = {
+    "ウカ", "スプレー", "セラ", "トムス", "マッサージ", "ローション", "化粧品", "医薬部外品", "男性用", "部外品",
+}
 OPTIONAL_MASTER_KEYS = {"prohibited_other"}
 
 
@@ -150,6 +155,13 @@ def apply_store_allowed_phrase_overrides(
     override_path = Path(master_dir) / STORE_ALLOWED_PHRASES_FILENAME.format(
         store_code=normalized_store_code
     )
+    if normalized_store_code in {"rakuten_1", "rakuten_2"}:
+        master_data.prohibited_words_rakuten = [
+            word for word in master_data.prohibited_words_rakuten if word not in LEGACY_RETIRED_SHOP_WORDS
+        ]
+    if normalized_store_code == "rakuten_1" and not override_path.exists():
+        # Active deployments load independent, editable copies from PostgreSQL.
+        override_path = Path(master_dir) / STORE_ALLOWED_PHRASES_FILENAME.format(store_code="rakuten_2")
     if override_path.exists():
         overlay = load_allowed_phrase_rules(override_path)
         merged_rules = {

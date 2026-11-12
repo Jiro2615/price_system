@@ -225,6 +225,8 @@ def _requires_cosmetics_shop_category(dry_run_result: dict[str, Any], store_code
     while an explicit ``医薬部外品`` marker covers products that are not
     consistently placed below that hierarchy in Keepa.
     """
+    # Store 1 leaves new items unassigned ("その他"); never change an existing
+    # mapping. In particular its category ID 2 is おもちゃ, not 化粧品.
     if str(store_code or "").strip().lower() != "rakuten_2":
         return False
     keepa = dry_run_result.get("keepa_result") or {}

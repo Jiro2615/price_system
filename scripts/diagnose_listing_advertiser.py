@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from scripts.listing.quasi_drug_compliance import ENV_PATH, _configured
+from scripts.listing.quasi_drug_compliance import ENV_PATH, _configured, advertiser_prefix
 from scripts.listing.compliance_text import ComplianceTextError
 
 
@@ -16,7 +16,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="広告文責の会社名と文字化けだけを確認（電話番号・認証情報は出力しません）")
     parser.add_argument("--store", default="rakuten_2")
     args = parser.parse_args()
-    inherited_name = os.getenv(f"{args.store.strip().upper()}_COMPLIANCE_ADVERTISER_NAME", "")
+    inherited_name = os.getenv(f"{advertiser_prefix(args.store)}_COMPLIANCE_ADVERTISER_NAME", "")
     try:
         config = _configured(args.store)
     except ComplianceTextError as exc:

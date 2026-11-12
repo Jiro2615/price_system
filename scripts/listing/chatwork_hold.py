@@ -1,4 +1,4 @@
-"""Keep the challenged listing tab open only for an acknowledged notification."""
+"""Pause new Amazon navigation on every human challenge, independently of notification."""
 import asyncio
 import os
 import re
@@ -43,31 +43,33 @@ def request_notice(store, run, asin):
 class ListingTabHold:
     def __init__(self, store, active, *, notify=request_notice, sleep=asyncio.sleep, clock=time.monotonic):
         self.store = store
-        self.run = os.getenv("WEB_ORCHESTRATOR_MANAGED_RUN_ID", "") if active else ""
+        self.active = active
+        self.run = os.getenv("WEB_ORCHESTRATOR_MANAGED_RUN_ID", "")
         self.notify, self.sleep, self.clock = notify, sleep, clock
         self.next_check = 0.
-        self.gate = asyncio.Event()
-        self.gate.set()
+        self.hold_until = 0.
+        self.notice_task = None
 
-    async def after_result(self, asin, result):
-        if (not self.run or not re.fullmatch(r"[A-Z0-9]{10}", asin)
-                or result.get("listing_status") != "amazon_confirmation_waiting"
-                or result.get("listing_reason") != "Amazon認証待ち: 商品情報・在庫は更新していません"):
+    def observe(self, asin, result):
+        if not self.active or getattr(result, "human_verification_required", False) is not True:
             return
-        if not self.gate.is_set():
-            await self.gate.wait()
-            return
-        if self.clock() < self.next_check:
-            return
-        self.gate.clear()
+        now = self.clock()
+        self.hold_until = now + 60
+        print(f"LISTING_HUMAN_VERIFICATION_HOLD: {asin} 検知から60秒、次のAmazonページへ進みません", flush=True)
+        if (self.run and re.fullmatch(r"[A-Z0-9]{10}", asin) and now >= self.next_check
+                and (self.notice_task is None or self.notice_task.done())):
+            self.notice_task = asyncio.create_task(self._notify(asin))
+
+    async def wait(self):
+        # Another in-flight tab can detect a challenge during sleep. Its own
+        # full minute must elapse before new navigations (or batch exit).
+        while (remaining := self.hold_until - self.clock()) > 0:
+            await self.sleep(remaining)
+
+    async def _notify(self, asin):
         try:
             if await asyncio.to_thread(self.notify, self.store, self.run, asin):
-                # The DB enforces the store-wide 10-minute interval. Don't mirror
-                # it here: this PC can receive the acknowledgement slightly later.
-                print(f"CHATWORK_SENT: {asin} 認証画面のまま60秒待機します", flush=True)
-                await self.sleep(60)
+                print(f"CHATWORK_SENT: {asin}", flush=True)
         except Exception as exc:
             print(f"CHATWORK_NOTICE_UNAVAILABLE: {type(exc).__name__}", flush=True)
             self.next_check = self.clock() + 10
-        finally:
-            self.gate.set()

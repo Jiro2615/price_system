@@ -33,6 +33,7 @@ class AmazonCheckResult:
     defer_retry_seconds: int = 0
     ng_reason: str = ""
     current_url: str = ""
+    human_verification_required: bool = False
 
 
 @dataclass
