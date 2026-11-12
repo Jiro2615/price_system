@@ -311,6 +311,10 @@ This repository depends heavily on PostgreSQL. The most important tables are:
 - `price_update_sim_measurements`
   - named measurement windows for simulation reports
 
+価格・在庫チェックは、最終判定が確認待ちになった回数を、人間認証（`human_verification_count`）とその他の確認待ち（`other_confirmation_wait_count`）に分けて記録します。人間認証は検知フラグで判定し、通信エラーや在庫0からは推測しません。次の巡回で同じASINが再び確認待ちになれば別の1回です。
+
+「価格・在庫チェック → 今日のAmazon確認待ち」で、全店舗の当日分（日本時間、チェック件数のある保存済みの完了バッチ）をワーカー別に確認できます。旧ワーカーの記録は未計測（NULL）です。新旧混在の場合、件数は記録分のみです。列は通常のワーカー起動時のスキーマ確認で追加し、過去行は埋め戻しません。
+
 For management-setting tables, see:
 
 - [settings_inventory.md](/abs/path/C:/price_system/docs/settings_inventory.md)

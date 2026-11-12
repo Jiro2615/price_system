@@ -217,6 +217,8 @@ def ensure_amazon_check_worker_runs_schema() -> None:
             stable_count INTEGER NOT NULL DEFAULT 0,
             system_error_count INTEGER NOT NULL DEFAULT 0,
             business_ng_count INTEGER NOT NULL DEFAULT 0,
+            human_verification_count INTEGER,
+            other_confirmation_wait_count INTEGER,
             page_reset_count INTEGER NOT NULL DEFAULT 0,
             elapsed_seconds NUMERIC(12,3),
             avg_seconds_per_item NUMERIC(12,3),
@@ -236,6 +238,8 @@ def ensure_amazon_check_worker_runs_schema() -> None:
         ADD COLUMN IF NOT EXISTS stable_count INTEGER NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS system_error_count INTEGER NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS business_ng_count INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS human_verification_count INTEGER,
+        ADD COLUMN IF NOT EXISTS other_confirmation_wait_count INTEGER,
         ADD COLUMN IF NOT EXISTS page_reset_count INTEGER NOT NULL DEFAULT 0,
         ADD COLUMN IF NOT EXISTS elapsed_seconds NUMERIC(12,3),
         ADD COLUMN IF NOT EXISTS avg_seconds_per_item NUMERIC(12,3),
@@ -251,6 +255,7 @@ def ensure_amazon_check_worker_runs_schema() -> None:
         with conn.cursor() as cur:
             required = {"id", "worker_id", "claimed_count", "checked_count", "success_count",
                         "changed_count", "stable_count", "system_error_count", "business_ng_count",
+                        "human_verification_count", "other_confirmation_wait_count",
                         "page_reset_count", "elapsed_seconds", "avg_seconds_per_item",
                         "returncode", "started_at", "finished_at", "created_at"}
             if required <= amazon_check_schema_columns(cur, "amazon_check_worker_runs"):
@@ -1384,7 +1389,17 @@ def needs_retry_after_page_closed(data: dict[str, Any]) -> bool:
     )
 
 
+def confirmation_wait_metric(data: dict[str, Any]) -> str | None:
+    # Count only explicit final observations. A timeout/price miss is not proof of a challenge.
+    if not data.get("amazon_confirmation_waiting"):
+        return None
+    return "human_verification_count" if data.get("human_verification_required") is True else "other_confirmation_wait_count"
+
+
 def asin_result_label(data: dict[str, Any]) -> str:
+    wait = confirmation_wait_metric(data)
+    if wait:
+        return wait.removesuffix("_count")
     if data.get("system_error"):
         return "system_error"
     if data.get("business_ng"):
@@ -1400,6 +1415,8 @@ def build_worker_run_summary(metrics: dict[str, Any]) -> str:
         "success_count",
         "system_error_count",
         "business_ng_count",
+        "human_verification_count",
+        "other_confirmation_wait_count",
         "changed_count",
         "stable_count",
         "page_reset_count",
@@ -1423,6 +1440,8 @@ def save_worker_run_summary(metrics: dict[str, Any]) -> None:
             stable_count,
             system_error_count,
             business_ng_count,
+            human_verification_count,
+            other_confirmation_wait_count,
             page_reset_count,
             elapsed_seconds,
             avg_seconds_per_item,
@@ -1439,6 +1458,8 @@ def save_worker_run_summary(metrics: dict[str, Any]) -> None:
             %(stable_count)s,
             %(system_error_count)s,
             %(business_ng_count)s,
+            %(human_verification_count)s,
+            %(other_confirmation_wait_count)s,
             %(page_reset_count)s,
             %(elapsed_seconds)s,
             %(avg_seconds_per_item)s,
@@ -1842,6 +1863,8 @@ async def main() -> int:
         "success_count": 0,
         "system_error_count": 0,
         "business_ng_count": 0,
+        "human_verification_count": 0,
+        "other_confirmation_wait_count": 0,
         "changed_count": 0,
         "stable_count": 0,
         "page_reset_count": 0,
@@ -1941,6 +1964,7 @@ async def main() -> int:
             print(f"success_count        : {metrics['success_count']}")
             print(f"system_error_count   : {metrics['system_error_count']}")
             print(f"business_ng_count    : {metrics['business_ng_count']}")
+            print(f"人間認証: {metrics['human_verification_count']}件 / その他の確認待ち: {metrics['other_confirmation_wait_count']}件")
             print(f"changed_count        : {metrics['changed_count']}")
             print(f"stable_count         : {metrics['stable_count']}")
             print(f"page_reset_count     : {metrics['page_reset_count']}")
@@ -2067,6 +2091,9 @@ async def main() -> int:
                     print("共有Chrome/page再初期化完了")
                     data = await check_amazon_one(asin, page=shared_page, page_timeout_ms=args.page_timeout)
 
+                wait_metric = confirmation_wait_metric(data)
+                if wait_metric:
+                    metrics[wait_metric] += 1
                 repeated_error_streak = apply_repeated_system_error_stock_stop(data, existing_stats)
                 if data.get("system_error") and data.get("business_ng"):
                     print(
@@ -2246,6 +2273,7 @@ async def main() -> int:
         print(f"変化あり件数  : {changed_count}")
         print(f"安定件数      : {stable_count}")
         print(f"システムエラー件数: {system_error_count}")
+        print(f"人間認証: {metrics['human_verification_count']}件 / その他の確認待ち: {metrics['other_confirmation_wait_count']}件")
         print(f"business_ng件数: {business_ng_count}")
         print(f"page_reset件数 : {page_reset_count}")
         print(f"elapsed_seconds: {elapsed_seconds:.3f}")

@@ -41,6 +41,7 @@ class WorkerSchemaTests(unittest.TestCase):
              "consecutive_system_error_count", "last_system_error_reason"}
     RUNS = {"id", "worker_id", "claimed_count", "checked_count", "success_count",
             "changed_count", "stable_count", "system_error_count", "business_ng_count",
+            "human_verification_count", "other_confirmation_wait_count",
             "page_reset_count", "elapsed_seconds", "avg_seconds_per_item", "returncode",
             "started_at", "finished_at", "created_at"}
 
@@ -77,6 +78,12 @@ class WorkerSchemaTests(unittest.TestCase):
             self.assertEqual(len(conn.sql), 3)
             self.assertIn("CREATE TABLE IF NOT EXISTS", conn.sql[1][0])
             self.assertIn("ALTER TABLE amazon_check_worker_runs", conn.sql[2][0])
+
+    def test_older_workers_and_history_can_leave_wait_counts_unknown(self):
+        conn,_=self.invoke("ensure_amazon_check_worker_runs_schema", self.RUNS-{"human_verification_count","other_confirmation_wait_count"})
+        for sql,_ in conn.sql[1:]:
+            for key in ("human_verification_count","other_confirmation_wait_count"):
+                self.assertRegex(sql,key+r" INTEGER\s*,")  # NULL, no default/backfill
 
     def test_schema_is_checked_again_and_not_cached(self):
         conn, ns = self.invoke("ensure_amazon_check_stats_schema", self.STATS)

@@ -345,6 +345,8 @@ def run_child_once(
             "success_count",
             "system_error_count",
             "business_ng_count",
+            "human_verification_count",
+            "other_confirmation_wait_count",
             "changed_count",
             "stable_count",
             "page_reset_count",
