@@ -78,6 +78,18 @@ class OrderingTests(unittest.TestCase):
                 self.assertIs(actual,keepa)
         self.evidence.assert_not_called();self.candidate.assert_not_called()
 
+    def test_online_game_is_definitively_blocked_before_amazon_and_forced_exceptions(self):
+        keepa = replace(self.fixture.keepa, product_type=1, root_category=637394, title="作品A")
+        for store in ('rakuten_1', 'rakuten_2'):
+            for bypass in ((), ('blacklist','past_ng','prohibited_words','seller_count','rakuten_marketplace_evidence')):
+                request = replace(self.request, store_code=store, bypass_rules=bypass)
+                block, _ = self.keepa_precheck(keepa, request)
+                self.assertEqual(block['listing_status'], 'business_ng')
+                self.assertIn('オンラインコード納品', block['listing_reason'])
+                self.assertFalse(block['execution_allowed'])
+                self.assertIsNone(block['amazon_result'])
+                self.assertEqual(self.evaluate(keepa,bypass_rules=set(bypass)).listing_status,'business_ng')
+
     def test_common_category_ancestor_blocks_both_stores_and_forced_listing(self):
         self.fixture.master.amazon_category_exclusions = {10: '親カテゴリ'}
         keepa = replace(self.fixture.keepa, category_id=30, category_tree=[{'catId':10}, {'catId':20}, {'catId':30}])

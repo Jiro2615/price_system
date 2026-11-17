@@ -8,6 +8,7 @@ from typing import Any, Callable, TypeVar
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import load_listing_common_settings, build_seller_count_evaluation
 from scripts.listing.book_format import digital_book_reason
+from scripts.listing.game_delivery_policy import game_delivery_block
 from scripts.listing.content_refresh_policy import content_identity_error
 from scripts.listing.dry_run_summary import (
     build_blocking_reasons,
@@ -698,6 +699,14 @@ def prepare_listing(
             common_settings=common_settings,
         )
 
+    if not request.update_existing or request.replace_source_asin:
+        delivery_block = game_delivery_block(keepa_result, getattr(amazon_result, "title", ""))
+        if delivery_block:
+            return _base_result(
+                mode=mode, asin=asin, amazon_result=amazon_result, keepa_result=keepa_result,
+                **delivery_block, warnings=warnings, missing_master_files=master_data.missing_files,
+                master_dir=Path(request.master_dir), store_settings=store_settings, common_settings=common_settings,
+            )
     category_block = None if request.update_existing else category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
     if category_block:
         return _base_result(

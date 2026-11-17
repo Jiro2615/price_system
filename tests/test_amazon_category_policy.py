@@ -93,12 +93,29 @@ class CategoryPolicyTests(unittest.TestCase):
         self.assertEqual(result['final_state'], 'blocked')
         download.assert_not_called()
 
+    def test_saved_game_payload_is_blocked_at_outer_gate(self):
+        dry = {**self.dry_result(), "keepa_result":{"product_type":1,"category_id":637394}}
+        req = real.RealExecuteRequest(asin=dry["asin"], store=dry["store_code"], management_number="test",
+            readiness_json=Path('ready'), dry_run_json=Path('dry'), preflight_json=Path('preflight'),
+            mock_result_json=Path('mock'), execute=True, approved=True, confirm_real_api=True, allow_live_transport=True)
+        self.stack.enter_context(patch.object(real,'load_json',side_effect=lambda p:dry if p==Path('dry') else {}))
+        for name,value in [('_validate_readiness_inputs',[]),('_validate_execute_guards',[]),('_build_transport_ready_summary',{'ready':True})]:
+            self.stack.enter_context(patch.object(real,name,return_value=value))
+        writes=self.stack.enter_context(patch.object(real,'_write_history'))
+        cabinet=Mock()
+        result=real.build_real_execute_result(req,cabinet_folder_resolver=cabinet)
+        self.assertEqual(result['final_status'],'blocked')
+        self.assertIn('オンラインコード納品', result['blocking_reasons'][0])
+        writes.assert_not_called();cabinet.assert_not_called()
+
     def test_both_batch_workers_accept_required_capability_marker(self):
         from scripts import rakuten_listing_batch_execute, rakuten_listing_batch_dry_run
         for worker in (rakuten_listing_batch_execute, rakuten_listing_batch_dry_run):
             with patch('sys.argv', ['worker', '--asin-file', 'fake', '--store', 'rakuten_1', '--output-dir', 'fake',
-                                    '--require-amazon-category-policy']):
-                self.assertTrue(worker.parse_args().require_amazon_category_policy)
+                                    '--require-amazon-category-policy','--require-game-delivery-policy']):
+                args=worker.parse_args()
+                self.assertTrue(args.require_amazon_category_policy)
+                self.assertTrue(args.require_game_delivery_policy)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ from scripts.listing.rakuten_item_client import RakutenItemClient
 from scripts.listing.real_readiness_service import save_execution_history_stub
 from scripts.listing.rakuten_transport import build_rakuten_auth_headers
 from scripts.listing.amazon_category_policy import check_current_categories
+from scripts.listing.game_delivery_policy import saved_game_delivery_block
 from scripts.listing.content_refresh_policy import content_refresh_artifact_error, replacement_artifact_error
 
 
@@ -429,6 +430,12 @@ def build_real_execute_result(
         if identity_error:
             result["blocking_reasons"] = [identity_error]
             result["final_status"] = "blocked"
+            return result
+
+    if not request.content_refresh or request.asin_replacement:
+        delivery_block = saved_game_delivery_block(dry_run_result)
+        if delivery_block:
+            result.update(delivery_block, blocking_reasons=[delivery_block["listing_reason"]], final_status="blocked")
             return result
 
     current_history_block = None if request.content_refresh else _current_history_block_reason(

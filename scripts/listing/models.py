@@ -71,6 +71,11 @@ class KeepaProductData:
     raw_summary: dict[str, Any] = field(default_factory=dict)
     binding: str = ""
     product_group: str = ""
+    product_type: Optional[int] = None
+    root_category: Optional[int] = None
+    item_type_keyword: str = ""
+    package_weight: Optional[int] = None
+    edition: str = ""
 
 
 @dataclass

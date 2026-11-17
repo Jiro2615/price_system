@@ -18,6 +18,7 @@ from scripts.listing.rakuten_inventory_client import RakutenInventoryClient, bui
 from scripts.listing.rakuten_item_client import RakutenItemClient, build_item_request
 from scripts.listing.rakuten_marketplace_policy import is_cosmetics_category
 from scripts.listing.amazon_category_policy import check_current_categories
+from scripts.listing.game_delivery_policy import saved_game_delivery_block
 from scripts.listing.content_refresh_policy import content_refresh_artifact_error, replacement_artifact_error
 from scripts.listing.rakuten_shop_category_client import (
     DEFAULT_COSMETICS_SHOP_CATEGORY_ID,
@@ -361,6 +362,10 @@ def execute_listing(
             identity_error = replacement_artifact_error(dry_run_result) if request.asin_replacement else content_refresh_artifact_error(dry_run_result)
             if identity_error:
                 return _fail(result, status="validation_failed", message=identity_error)
+        if not request.content_refresh or request.asin_replacement:
+            delivery_block = saved_game_delivery_block(dry_run_result)
+            if delivery_block:
+                return _fail(result, status="validation_failed", message=delivery_block["listing_reason"])
         category_block = None if request.content_refresh else (category_checker or check_current_categories)(dry_run_result)
     except RuntimeError as exc:
         return _fail(result, status='validation_failed', message=str(exc))

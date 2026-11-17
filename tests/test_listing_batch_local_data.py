@@ -140,11 +140,19 @@ class BulkDuplicateTests(NoNetwork):
     def test_bulk_query_preserves_active_listing_predicates_and_chunks(self):
         conn = MagicMock()
         cur = conn.__enter__.return_value.cursor.return_value.__enter__.return_value
-        cur.fetchall.return_value = [("B000TEST01", "item", 100, 2, "sku")]
+        cur.fetchone.return_value = (True,)
+        cur.fetchall.side_effect = [
+            [("B000000000", "reserved")],
+            [("B000000001", "item", 100, 2, "sku")], [], [],
+        ]
         with patch.object(listing_duplicate_check, "connect_db", return_value=conn):
             found = listing_duplicate_check.find_existing_listings([f"B{i:09}" for i in range(2001)], "shop")
-        self.assertEqual(cur.execute.call_count, 3)
-        for call in cur.execute.call_args_list:
+        schema, reservations, *chunks = cur.execute.call_args_list
+        self.assertIn("to_regclass", schema.args[0])
+        self.assertIn("FROM listing_asin_replacements", reservations.args[0])
+        self.assertTrue(found["B000000000"]["replacement_reserved"])
+        self.assertEqual(len(chunks), 3)
+        for call in chunks:
             sql, values = call.args
             self.assertIn("'delete_pending', 'deleted'", sql)
             self.assertIn("sp.force_stop", sql)
@@ -152,7 +160,7 @@ class BulkDuplicateTests(NoNetwork):
             self.assertNotIn("execution_history", sql)
             self.assertEqual(values[0], "shop")
             self.assertLessEqual(len(values[1]), 1000)
-        self.assertEqual(found["B000TEST01"]["sku_code"], "sku")
+        self.assertEqual(found["B000000001"]["sku_code"], "sku")
 
     def test_empty_input_makes_no_connection(self):
         with patch.object(listing_duplicate_check, "connect_db") as db:

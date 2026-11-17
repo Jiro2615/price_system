@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from scripts.listing.attribute_policy import resolve_required_attributes
 from scripts.listing.book_format import digital_book_reason, prepend_book_format
+from scripts.listing.game_delivery_policy import game_delivery_block
 from scripts.listing.amazon_category_policy import category_exclusion_result
 from scripts.listing.attribute_resolver import build_resolved_fields
 from scripts.listing.common_settings import build_seller_count_evaluation, load_listing_common_settings
@@ -352,6 +353,9 @@ def evaluate_listing(
     legacy_spacing_reviews: list[dict[str, object]] = []
     forced_bypass_checks: list[dict[str, object]] = []
 
+    delivery_block = None if content_refresh else game_delivery_block(keepa_result, getattr(amazon_result, "title", ""))
+    if delivery_block:
+        return EvaluationResult(delivery_block["listing_status"], delivery_block["listing_reason"], matched_rules, warnings)
     category_block = None if content_refresh else category_exclusion_result(keepa_result, master_data.amazon_category_exclusions)
     if category_block:
         return EvaluationResult(category_block['listing_status'], category_block['listing_reason'],

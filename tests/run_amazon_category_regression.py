@@ -13,7 +13,7 @@ if __name__ == '__main__':
         for target in ('psycopg.connect', 'requests.sessions.Session.request', 'urllib.request.OpenerDirector.open'):
             stack.enter_context(patch(target, side_effect=AssertionError('Live DB/HTTP forbidden')))
         suite = unittest.defaultTestLoader.loadTestsFromNames([
-            'tests.test_amazon_category_policy', 'tests.test_listing_precheck_order',
+            'tests.test_amazon_category_policy', 'tests.test_game_delivery_policy', 'tests.test_listing_precheck_order',
             'tests.test_listing_batch_local_data', 'tests.test_listing_batch_fast_pipeline',
             'tests.test_listing_execute_mock_e2e', 'tests.test_advertiser_encoding',
         ])
