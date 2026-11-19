@@ -52,6 +52,9 @@ class PrepareListingRequest:
     keepa_result_json: Path | None = None
     bypass_rules: tuple[str, ...] = ()
     forced_company_brand_block: bool = False
+    # Explicit checkbox OFF in forced listing only; ordinary listings retain
+    # the durable ledger even though they do not enable the forced-word mode.
+    ignore_cached_company_brand_ng: bool = False
     forced_word_review_mode: bool = False
     approved_forced_word_review_token: str = ""
     require_minimum_same_jan_listings: bool = False
@@ -189,6 +192,8 @@ def precheck_local_listing_exclusion(
 
 
 def _company_brand_ng_precheck(request, master_data, store_settings, common_settings, warnings):
+    if request.ignore_cached_company_brand_ng and not request.forced_company_brand_block:
+        return None
     asin = request.asin.strip().upper()
     reason = master_data.company_brand_ng.get(asin)
     if reason is None:
@@ -859,6 +864,7 @@ def prepare_listing(
         common_settings=common_settings,
         quasi_drug_evidence=quasi_drug_evidence,
         bypass_rules=bypass_rules,
+        ignore_cached_company_brand_ng=(request.ignore_cached_company_brand_ng and not request.forced_company_brand_block),
         require_minimum_same_jan_listings=request.require_minimum_same_jan_listings,
         minimum_rakuten_shops=request.minimum_rakuten_shops,
         **({"content_refresh": True} if request.update_existing else {}),

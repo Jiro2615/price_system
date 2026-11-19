@@ -84,7 +84,7 @@ class EarlyExclusionTests(NoLive):
                         "amazon_fetcher": Mock(return_value=self.fixture.amazon),
                         "keepa_fetcher": Mock(return_value=self.fixture.keepa)}
 
-    def test_cached_block_precedes_all_external_calls_despite_every_bypass_and_switch_off(self):
+    def test_cached_block_remains_default_without_explicit_forced_opt_out(self):
         self.fixture.master.company_brand_ng[ASIN] = "company Foo"
         result = prepare.prepare_listing(self.request, **self.options)
         self.assertEqual(result["listing_status"], "company_brand_blocked")
@@ -102,6 +102,34 @@ class EarlyExclusionTests(NoLive):
         result = listing_evaluator.evaluate_listing(asin=ASIN, amazon_result=None, keepa_result=None,
             master_data=self.fixture.master, store_settings=self.fixture.store, management_number="x", bypass_rules={"past_ng"})
         self.assertEqual(result.listing_status, "company_brand_blocked")
+
+    def test_explicit_forced_off_skips_cached_gate_without_erasing_ledger(self):
+        self.fixture.master.company_brand_ng[ASIN] = 'company Foo'
+        request = replace(self.request, ignore_cached_company_brand_ng=True)
+        local = {key: value for key, value in self.options.items()
+                 if key.endswith('loader') or key == 'existing_listing_lookup'}
+        self.assertIsNone(prepare.precheck_local_listing_exclusion(request, **local))
+        result = prepare.prepare_listing(request, **self.options)
+        self.assertEqual(result['listing_status'], 'eligible', result.get('listing_reason'))
+        self.options['amazon_fetcher'].assert_called_once()
+        self.options['keepa_fetcher'].assert_called_once()
+        self.assertEqual(self.fixture.master.company_brand_ng[ASIN], 'company Foo')
+        self.assertTrue(any('蓄積済みNGを適用しません' in warning for warning in result['warnings']))
+
+    def test_checkbox_on_keeps_cached_block_even_with_conflicting_opt_out(self):
+        self.fixture.master.company_brand_ng[ASIN] = 'company Foo'
+        result = prepare.prepare_listing(replace(self.request,
+            ignore_cached_company_brand_ng=True, forced_company_brand_block=True), **self.options)
+        self.assertEqual(result['listing_status'], 'company_brand_blocked')
+        self.options['amazon_fetcher'].assert_not_called()
+
+    def test_company_opt_out_does_not_disable_separate_past_ng_setting(self):
+        self.fixture.master.company_brand_ng[ASIN] = 'company Foo'
+        self.fixture.master.kako_ng[ASIN] = '別の過去NG'
+        result = prepare.prepare_listing(replace(self.request,
+            ignore_cached_company_brand_ng=True, bypass_rules=()), **self.options)
+        self.assertEqual(result['listing_status'], 'business_ng')
+        self.assertIn('別の過去NG', result['listing_reason'])
 
     def test_description_only_positive_match_is_saved_at_final_preparation(self):
         self.fixture.master.prohibited_words_rakuten = ["Foo"]

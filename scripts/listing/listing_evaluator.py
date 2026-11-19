@@ -338,6 +338,7 @@ def evaluate_listing(
     require_minimum_same_jan_listings: bool = False,
     minimum_rakuten_shops: int = MIN_SAME_JAN_LISTINGS_FOR_PROHIBITED_WORD_EXCEPTION,
     content_refresh: bool = False,
+    ignore_cached_company_brand_ng: bool = False,
 ) -> EvaluationResult:
     if isinstance(minimum_rakuten_shops, bool) or not isinstance(minimum_rakuten_shops, int) or not 1 <= minimum_rakuten_shops <= 30:
         raise ValueError("minimum_rakuten_shops must be an integer between 1 and 30")
@@ -377,8 +378,10 @@ def evaluate_listing(
 
     if not content_refresh and asin in master_data.company_brand_ng:
         reason = master_data.company_brand_ng[asin]
-        return EvaluationResult("company_brand_blocked", f"蓄積済みの禁止会社・ブランドNG: {reason}",
-                                [MatchedRule("company_brand_ng", asin, reason)], warnings)
+        if not ignore_cached_company_brand_ng:
+            return EvaluationResult("company_brand_blocked", f"蓄積済みの禁止会社・ブランドNG: {reason}",
+                                    [MatchedRule("company_brand_ng", asin, reason)], warnings)
+        record_bypass('company_brand_ng', f'会社・ブランド除外OFFのため蓄積済みNGを適用しません: {reason}')
 
     if not content_refresh and asin in master_data.kako_ng:
         matched_rules.append(MatchedRule("kakoNG", asin, master_data.kako_ng[asin]))

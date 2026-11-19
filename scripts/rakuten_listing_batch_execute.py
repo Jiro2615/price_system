@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from contextlib import asynccontextmanager
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,6 +27,9 @@ from scripts.listing.cabinet_rotation import CachedCabinetUploadFolderResolver
 from scripts.listing.listing_db_sync import ListingDbSyncRequest, sync_listing_result_to_db, sync_listing_content_result_to_db
 from scripts.listing.real_readiness_service import build_real_readiness_result
 from scripts.listing.write_coordination import LISTING_WRITE_PROTOCOL_VERSION, run_with_listing_write_slot
+from scripts.listing.delete_priority import (
+    LISTING_DELETE_PROTOCOL_VERSION, listing_item_turn, ordered_prepared_items,
+)
 from scripts.listing.forced_word_policy import HOLD_STATUSES, restored_observations, screen_forced_words, persist_company_brand_exclusion
 from scripts.listing.forced_word_classification_db import read_active_words
 from scripts.listing.listing_master_db import load_company_brand_ng
@@ -63,6 +68,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-live-transport", action="store_true")
     parser.add_argument("--update-existing", action="store_true", help="既出品のタイトル・説明・画像だけを最新化する")
     parser.add_argument("--block-forbidden-company-brands", action="store_true")
+    parser.add_argument("--ignore-cached-company-brand-ng", action="store_true",
+                        help="条件無視出品で会社・ブランド除外を明示的にOFFにした場合、蓄積済みNGも適用しない")
     parser.add_argument("--review-uncertain-words", action="store_true")
     parser.add_argument("--require-shared-word-classifications", action="store_true",
                         help="DB分類編集対応版の必須引数。旧出品ワーカーでは実行前に拒否します。")
@@ -88,6 +95,7 @@ def revalidate_prepared_listing(args, asin, dry):
         minimum_rakuten_shops=getattr(args, "minimum_rakuten_shops", 5),
         management_number=str(dry.get("management_number") or ""),
         forced_company_brand_block=getattr(args, "block_forbidden_company_brands", False),
+        ignore_cached_company_brand_ng=getattr(args, "ignore_cached_company_brand_ng", False),
         forced_word_review_mode=getattr(args, "review_uncertain_words", False),
         approved_forced_word_review_token=getattr(args, "approved_word_tokens", {}).get(asin, ""),
     )
@@ -149,12 +157,39 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     refresh_stage("preparing")
     prepare_pages = LazyAmazonPages(create_amazon_page, args.prepare_workers)
     auth_hold = ListingTabHold(args.store, active=not args.update_existing)
+    managed_run_id = os.environ.get('WEB_ORCHESTRATOR_MANAGED_RUN_ID', '').strip()
+    preparation_allowed = asyncio.Event()
+    preparation_allowed.set()
+    loop = asyncio.get_running_loop()
+
+    def delete_stage(stage, blocker):
+        loop.call_soon_threadsafe(preparation_allowed.clear if stage == 'waiting' else preparation_allowed.set)
+        print('LISTING_DELETE_STAGE ' + json.dumps(
+            {'stage': stage, 'waiting_for': blocker}, ensure_ascii=False), flush=True)
+
+    @asynccontextmanager
+    async def item_turn(asin):
+        if not managed_run_id:
+            yield False
+            return
+        slot = listing_item_turn(args.store, managed_run_id, asin, on_stage=delete_stage)
+        deleted = await asyncio.to_thread(slot.__enter__)
+        try:
+            yield deleted
+        finally:
+            await asyncio.to_thread(slot.__exit__, None, None, None)
+
+    if managed_run_id:
+        # Only a running child with the item/result boundary below may allow
+        # QNAP deletion to coexist with this otherwise-serial listing job.
+        print(f'LISTING_DELETE_PROTOCOL {LISTING_DELETE_PROTOCOL_VERSION}', flush=True)
 
     # 最速の経路は、ローカル判定・Keepa・Amazon・RMSを独立させること。
     # Keepa は契約トークンを守るため1本・一定間隔、Amazonはページごとに
     # 並列、RMS/Cabinetへの更新だけを必ず直列にする。
     local_precheck_workers = min(4, max(2, args.prepare_workers * 2))
     pipeline_buffer_size = max(50, args.prepare_workers * 10)
+    outstanding_items = asyncio.Semaphore(pipeline_buffer_size)
     prepared_queue: asyncio.Queue[tuple[int, str, dict[str, object]] | None] = asyncio.Queue(
         maxsize=pipeline_buffer_size
     )
@@ -206,6 +241,8 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
 
     async def feed_local_prechecks() -> None:
         for index, asin in enumerate(asins, start=1):
+            await outstanding_items.acquire()
+            await preparation_allowed.wait()
             await local_input_queue.put((index, asin))
         for _ in range(local_precheck_workers):
             await local_input_queue.put(None)
@@ -216,6 +253,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             if item is None:
                 return
             index, asin = item
+            await preparation_allowed.wait()
             request = PrepareListingRequest(
                 asin=asin,
                 store_code=args.store,
@@ -228,6 +266,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                 require_minimum_same_jan_listings=args.require_minimum_same_jan_listings,
                 minimum_rakuten_shops=args.minimum_rakuten_shops,
                 forced_company_brand_block=getattr(args, "block_forbidden_company_brands", False),
+                ignore_cached_company_brand_ng=getattr(args, "ignore_cached_company_brand_ng", False),
                 forced_word_review_mode=getattr(args, "review_uncertain_words", False),
                 approved_forced_word_review_token=args.approved_word_tokens.get(asin, ""),
             )
@@ -264,6 +303,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             if candidate is None:
                 break
             index, asin, request = candidate
+            await preparation_allowed.wait()
             try:
                 now = asyncio.get_running_loop().time()
                 if now < next_keepa_precheck_at:
@@ -288,6 +328,7 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
             if candidate is None:
                 return
             index, asin, request, keepa_result = candidate
+            await preparation_allowed.wait()
             try:
                 await auth_hold.wait()
                 amazon_page = await prepare_pages.get(tab_number)
@@ -368,9 +409,12 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
                         return {**dry,'listing_status':'already_listed','final_status':'already_listed',
                                 'listing_reason':'出品済み、またはASIN入れ替え予約中: '+str(latest_listing.get('management_number') or ''),
                                 'external_actions_performed':False}
-                # Another job may have excluded the ASIN while it waited for
-                # this slot. Check the ledger even if the switches are OFF.
-                durable_reason = None if args.update_existing else load_company_brand_ng(args.store, asin=asin).get(asin)
+                # Keep the final ledger check aligned with the explicit forced
+                # listing checkbox, including entries added while waiting.
+                check_company_ng = (getattr(args, 'block_forbidden_company_brands', False)
+                                    or not getattr(args, 'ignore_cached_company_brand_ng', False))
+                durable_reason = (load_company_brand_ng(args.store, asin=asin).get(asin)
+                                  if not args.update_existing and check_company_ng else None)
                 if durable_reason is not None:
                     return {**dry, "listing_status": "company_brand_blocked", "final_status": "company_brand_blocked",
                             "listing_reason": f"蓄積済みの禁止会社・ブランドNG: {durable_reason}",
@@ -444,17 +488,21 @@ async def run_batch(args: argparse.Namespace, asins: list[str]) -> int:
     keepa_stage = asyncio.create_task(run_keepa_prechecks())
     amazon_stage = asyncio.create_task(close_amazon_stage())
     with results_path.open("w", encoding="utf-8") as handle:
-        while True:
-            prepared_item = await prepared_queue.get()
-            if prepared_item is None:
-                break
+        async for prepared_item in ordered_prepared_items(prepared_queue, len(asins)):
             index, asin, dry = prepared_item
-            result = await execute_one(index, asin, dry)
-            refresh_stage("completed" if result.get("final_status") == "completed" else "failed",
-                          final_status=str(result.get("final_status") or "unknown"))
-            result["batch_index"] = index
-            handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
-            print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)
+            # Do not terminate/recreate this process or rebuild its ASIN list.
+            # One lease includes RMS, DB sync, and the durable local result.
+            async with item_turn(asin) as deleted:
+                result = ({'asin': asin, 'final_status': 'deleted_during_run',
+                           'listing_reason': 'この出品処理中に削除が指定されたため再出品しません',
+                           'external_actions_performed': False}
+                          if deleted else await execute_one(index, asin, dry))
+                refresh_stage("completed" if result.get("final_status") == "completed" else "failed",
+                              final_status=str(result.get("final_status") or "unknown"))
+                result["batch_index"] = index
+                handle.write(json.dumps(to_jsonable(sanitize_for_output(result)), ensure_ascii=False) + "\n"); handle.flush()
+                print(f"LISTING_BATCH_EXECUTE_PROGRESS {index}/{len(asins)} asin={asin} status={result.get('final_status')}", flush=True)
+            outstanding_items.release()
     await asyncio.gather(local_stage, keepa_stage, amazon_stage)
     summary = {"mode": "real_execute", "store": args.store, "input_count": len(asins), "completed_count": completed, "results_jsonl": str(results_path), "completed_at": datetime.now(timezone.utc).isoformat(),
                "require_minimum_same_jan_listings": args.require_minimum_same_jan_listings,

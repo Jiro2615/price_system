@@ -196,7 +196,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
                 row = json.loads((Path(folder) / "results.jsonl").read_text(encoding="utf-8"))
                 self.assertEqual(row["final_status"], "completed")
 
-    async def test_company_ng_added_while_waiting_stops_all_modes_inside_slot(self):
+    async def test_company_ng_added_while_waiting_blocks_without_explicit_opt_out(self):
         with tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
             module = execute_batch
             inside = []
@@ -227,7 +227,8 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             stack.enter_context(patch.object(module, "run_with_listing_write_slot", side_effect=slot))
             execute = stack.enter_context(patch.object(module, "build_real_execute_result", side_effect=AssertionError("Send forbidden")))
             sync = stack.enter_context(patch.object(module, "sync_listing_result_to_db", side_effect=AssertionError("Sync forbidden")))
-            # Company and past-NG switches are both disabled/bypassed.
+            # A legacy/ordinary request without the explicit forced opt-out
+            # still consults the ledger, independently of ordinary past NG.
             args = arguments(folder); args.ignore_rules="past_ng"; args.block_forbidden_company_brands=False
             await asyncio.wait_for(module.run_batch(args, ["B000TEST01"]), timeout=5)
             execute.assert_not_called(); sync.assert_not_called()
@@ -235,6 +236,36 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result["final_status"], "company_brand_blocked")
             self.assertFalse(result["external_actions_performed"])
             self.assertFalse(result["execution_allowed"])
+
+    async def test_explicit_company_off_reaches_final_slot_without_ledger_block(self):
+        with tempfile.TemporaryDirectory() as folder, ExitStack() as stack:
+            module = execute_batch
+            stack.enter_context(patch('psycopg.connect', side_effect=AssertionError('Live DB forbidden')))
+            stack.enter_context(patch('requests.sessions.Session.request', side_effect=AssertionError('HTTP forbidden')))
+            stack.enter_context(patch.object(module, 'BatchLocalData'))
+            dry = {'asin': 'B000TEST01', 'listing_status': 'eligible', 'execution_allowed': True,
+                   'management_number': 'item', 'amazon_result': 'amazon', 'keepa_result': 'keepa'}
+            def local(request, **_):
+                self.assertTrue(request.ignore_cached_company_brand_ng)
+                return dry
+            stack.enter_context(patch.object(module, 'precheck_local_listing_exclusion', side_effect=local))
+            stack.enter_context(patch.object(module, 'revalidate_prepared_listing', return_value=dry))
+            for name in ('build_preflight_result', 'build_mock_execute_result', 'build_real_readiness_result'):
+                stack.enter_context(patch.object(module, name, return_value={}))
+            self.read_ledger.side_effect = AssertionError('Explicit OFF must not consult cached NG at final send')
+            stack.enter_context(patch.object(module, 'run_with_listing_write_slot',
+                side_effect=lambda store, action, **_: action()))
+            execute = stack.enter_context(patch.object(module, 'build_real_execute_result',
+                return_value={'asin': 'B000TEST01', 'final_status': 'completed'}))
+            stack.enter_context(patch.object(module, 'sync_listing_result_to_db',
+                return_value={'external_db_writes_performed': True}))
+            args = arguments(folder)
+            args.ignore_cached_company_brand_ng = True
+            args.block_forbidden_company_brands = False
+            await asyncio.wait_for(module.run_batch(args, ['B000TEST01']), timeout=5)
+            execute.assert_called_once()
+            self.read_ledger.assert_not_called()
+            self.assertEqual(json.loads((Path(folder) / 'results.jsonl').read_text(encoding='utf-8'))['final_status'], 'completed')
 
     async def test_both_batches_reject_all_without_browser_keepa_or_rms(self):
         for module in (dry_batch, execute_batch):
@@ -329,12 +360,14 @@ class RevalidationTests(unittest.TestCase):
         args.update_existing = True
         args.bypass_rules = ("blacklist",)
         args.minimum_rakuten_shops = 3
+        args.ignore_cached_company_brand_ng = True
         with patch.object(execute_batch, "prepare_listing", return_value={"listing_status": "eligible"}) as prepare:
             execute_batch.revalidate_prepared_listing(args, "B000TEST01", {
                 "management_number": "same-item", "amazon_result": amazon, "keepa_result": keepa,
             })
         request = prepare.call_args.args[0]
         self.assertTrue(request.update_existing)
+        self.assertTrue(request.ignore_cached_company_brand_ng)
         self.assertEqual(request.bypass_rules, ("blacklist",))
         self.assertEqual(request.minimum_rakuten_shops, 3)
         self.assertEqual(request.management_number, "same-item")
